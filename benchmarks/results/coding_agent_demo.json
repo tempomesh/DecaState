@@ -1,0 +1,37 @@
+{
+  "model_id": "mlx-community/Qwen2.5-0.5B-Instruct-4bit",
+  "state_id": "coding-demo-1787663993442",
+  "repository_context_tokens": 2048,
+  "checkpoint": "repo-understood",
+  "cold_prefill_seconds": 0.17604245799884666,
+  "cold_continuation_seconds": 0.02890891599963652,
+  "wake_continuation_seconds": 0.029960291998577304,
+  "cold_vs_wake_exact": true,
+  "branches": [
+    {
+      "role": "coder",
+      "branch_context_tokens": 2057,
+      "fork_seconds": 0.01600483299989719,
+      "branch_wake_exact": true,
+      "branch_generation_seconds": 0.04442683300294448,
+      "branch_wake_seconds": 0.04333954099274706
+    },
+    {
+      "role": "reviewer",
+      "branch_context_tokens": 2054,
+      "fork_seconds": 0.01624104200163856,
+      "branch_wake_exact": true,
+      "branch_generation_seconds": 0.04373033299634699,
+      "branch_wake_seconds": 0.043316374998539686
+    },
+    {
+      "role": "security",
+      "branch_context_tokens": 2057,
+      "fork_seconds": 0.02047925000078976,
+      "branch_wake_exact": true,
+      "branch_generation_seconds": 0.04321445800451329,
+      "branch_wake_seconds": 0.04350462499860441
+    }
+  ],
+  "claim_boundary": "physical-copy forks; no COW or portability claim"
+}

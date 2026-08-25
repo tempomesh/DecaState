@@ -1,0 +1,23 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.coverage
+.DS_Store
+.env
+.env.*
+!.env.example
+*.dstate
+*.safetensors
+*.gguf
+models/
+logs/
+benchmark raw state/
+benchmarks/results/*
+!benchmarks/results/.gitkeep
+!benchmarks/results/*.json
+.decastate/
+
+# unrelated project plans kept local
+SESSIONMESH_*.md
+.DS_Store
+decastate.egg-info/

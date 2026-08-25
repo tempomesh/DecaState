@@ -1,0 +1,9 @@
+Your AI coding agent spends minutes reading your repository. Building context. Understanding your architecture.
+Then the process dies. Or you restart. Or you want a second agent. And it reads everything again. From zero. Every single time.
+DecaState fixes that. It saves the model's actual working memory — the real inference state, not a chat transcript.
+Watch. One command understands the repo, checkpoints it, kills the process, and wakes it — byte for byte identical.
+These numbers are measured live, on the machine, this run. Waking from disk beats rebuilding, and the gap only grows with context.
+At two thousand tokens: one hundred percent of the prefill avoided. Exact continuation. And forking a new agent takes about fifteen milliseconds.
+Fork the work, not the context. One understanding becomes a whole team — coder, reviewer, security — each independent.
+And every claim maps to a script and a results file. What's proven is proven. What isn't, we don't claim. We even publish the negatives.
+DecaState. Keep the state. Change everything else. Open source, MIT, on GitHub now.

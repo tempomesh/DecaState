@@ -1,0 +1,40 @@
+{
+  "model_id": "mlx-community/Qwen2.5-0.5B-Instruct-4bit",
+  "context_tokens": 2048,
+  "base_logical_bytes": 25170307,
+  "base_physical_bytes": 25174016,
+  "logical_total_bytes": 100681228,
+  "physical_total_before_mutation": 100696064,
+  "physical_total_after_one_byte_mutation": 100696064,
+  "initial_logical_to_physical_ratio": 0.9998526655421209,
+  "branches": [
+    {
+      "branch": "coder",
+      "clone_supported": true,
+      "fork_seconds": 0.00043525000000954606,
+      "logical_bytes": 25170307,
+      "physical_bytes_before_mutation": 25174016,
+      "physical_bytes_after_one_byte_mutation": 25174016,
+      "native_kv_cow_proven": false
+    },
+    {
+      "branch": "reviewer",
+      "clone_supported": true,
+      "fork_seconds": 0.00017654199928074377,
+      "logical_bytes": 25170307,
+      "physical_bytes_before_mutation": 25174016,
+      "physical_bytes_after_one_byte_mutation": 25174016,
+      "native_kv_cow_proven": false
+    },
+    {
+      "branch": "security",
+      "clone_supported": true,
+      "fork_seconds": 0.000216500000533415,
+      "logical_bytes": 25170307,
+      "physical_bytes_before_mutation": 25174016,
+      "physical_bytes_after_one_byte_mutation": 25174016,
+      "native_kv_cow_proven": false
+    }
+  ],
+  "claim_boundary": "APFS/file clone primitive measured; native KV copy-on-write not integrated or claimed"
+}

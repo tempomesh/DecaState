@@ -1,0 +1,106 @@
+{
+  "model_id": "mlx-community/Qwen2.5-0.5B-Instruct-4bit",
+  "prompt": "DecaState deterministic state replay test. Remember this exact fact: the archive marker is BLUE-EMBER-417. Explain why preserving inference state can reduce repeated prefill work.",
+  "prompt_tokens": 37,
+  "prefill_tokens": 36,
+  "probe_token": 13,
+  "prefill_seconds": 0.030685917001392227,
+  "cache": {
+    "classes": [
+      "KVCache",
+      "KVCache",
+      "KVCache",
+      "KVCache",
+      "KVCache",
+      "KVCache",
+      "KVCache",
+      "KVCache",
+      "KVCache",
+      "KVCache",
+      "KVCache",
+      "KVCache",
+      "KVCache",
+      "KVCache",
+      "KVCache",
+      "KVCache",
+      "KVCache",
+      "KVCache",
+      "KVCache",
+      "KVCache",
+      "KVCache",
+      "KVCache",
+      "KVCache",
+      "KVCache"
+    ],
+    "layers": 24,
+    "token_position": 36,
+    "bytes": 3145728,
+    "dtypes": [
+      "mlx.core.float16"
+    ]
+  },
+  "reference": {
+    "tokens": [
+      2014,
+      5978,
+      429,
+      279,
+      18132,
+      11134,
+      374,
+      6303
+    ],
+    "first_top_k": [
+      2014,
+      4111,
+      576,
+      758,
+      21806,
+      362,
+      358,
+      81917,
+      4710,
+      1096
+    ],
+    "elapsed_seconds": 0.016721958003472537
+  },
+  "cache_path": ".decastate/phase1/prompt-cache.safetensors",
+  "restored": {
+    "tokens": [
+      2014,
+      5978,
+      429,
+      279,
+      18132,
+      11134,
+      374,
+      6303
+    ],
+    "first_top_k": [
+      2014,
+      4111,
+      576,
+      758,
+      21806,
+      362,
+      358,
+      81917,
+      4710,
+      1096
+    ],
+    "elapsed_seconds": 0.03791504100081511
+  },
+  "prefill_avoidance": {
+    "eligible_prefill_tokens": 36,
+    "reprocessed_prefill_tokens": 0,
+    "avoided_prefill_tokens": 36,
+    "avoided_prefill_ratio": 1.0,
+    "restore_input_tokens": 1,
+    "evidence": "Process B loads the serialized KV cache and supplies only the one probe token; original prompt tokens are not passed to the model."
+  },
+  "state_size_bytes": 446668,
+  "process_death_checks": {
+    "top1_agreement": true,
+    "deterministic_continuation_agreement": true
+  }
+}

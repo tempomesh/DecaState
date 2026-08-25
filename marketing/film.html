@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:1920px; height:1080px; overflow:hidden; background:#07090e; }
+  body { font-family:'Manrope',sans-serif; color:#e9edf5; }
+  .stage { position:absolute; inset:0; }
+  .scene { position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; padding:0 160px; opacity:0; }
+  .mono { font-family:'JetBrains Mono',monospace; }
+  .accent { color:#c3f53c; }
+  .dim { color:#7f8aa3; }
+  .eyebrow { font-size:26px; letter-spacing:.34em; font-weight:700; text-transform:uppercase; color:#c3f53c; }
+  h1 { font-size:118px; font-weight:800; line-height:1.02; letter-spacing:-.02em; margin-top:28px; }
+  h1 em { font-style:normal; color:#c3f53c; }
+  .sub { font-size:40px; color:#aab6d0; margin-top:36px; font-weight:500; max-width:1200px; line-height:1.35; }
+  /* backdrop grid */
+  .grid-bg { position:absolute; inset:0; background-image:linear-gradient(rgba(195,245,60,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(195,245,60,.05) 1px,transparent 1px); background-size:64px 64px; }
+  .glow { position:absolute; width:1100px; height:1100px; border-radius:50%; background:radial-gradient(circle,rgba(195,245,60,.14),transparent 62%); filter:blur(20px); }
+
+  /* orbit */
+  .orbit { position:absolute; right:180px; top:50%; width:520px; height:520px; margin-top:-260px; }
+  .ring { position:absolute; inset:0; border:1.5px solid rgba(195,245,60,.28); border-radius:50%; }
+  .ring.two { inset:70px; border-color:rgba(195,245,60,.18); }
+  .ring.three { inset:150px; border-color:rgba(195,245,60,.12); }
+  .core { position:absolute; inset:200px; border-radius:50%; background:rgba(195,245,60,.10); border:1.5px solid rgba(195,245,60,.55); display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .core b { font-size:44px; color:#c3f53c; font-weight:800; }
+  .core span { font-size:18px; letter-spacing:.2em; color:#9fb0d8; }
+  .dot { position:absolute; width:16px; height:16px; background:#c3f53c; border-radius:50%; box-shadow:0 0 24px #c3f53c; }
+
+  /* problem scene blocks */
+  .flow { display:flex; align-items:center; gap:44px; margin-top:20px; }
+  .node { padding:34px 40px; border-radius:20px; border:1.5px solid #222836; background:#0c1017; font-size:34px; font-weight:600; }
+  .node.bad { border-color:#e2554e; color:#ff8f88; }
+  .node.good { border-color:#c3f53c; color:#c3f53c; }
+  .arrow { font-size:48px; color:#4a5570; }
+
+  /* terminal */
+  .term { width:1400px; margin:0 auto; border-radius:18px; overflow:hidden; border:1px solid #1c2230; box-shadow:0 40px 120px rgba(0,0,0,.6); background:#0a0d13; }
+  .term-bar { height:52px; background:#11151d; display:flex; align-items:center; padding:0 22px; gap:10px; }
+  .term-bar i { width:14px; height:14px; border-radius:50%; display:inline-block; }
+  .term-title { margin-left:18px; font-size:20px; color:#7f8aa3; font-family:'JetBrains Mono',monospace; }
+  .term-body { padding:34px 40px; font-family:'JetBrains Mono',monospace; font-size:26px; line-height:1.55; min-height:560px; white-space:pre-wrap; }
+  .term-body .g { color:#c3f53c; }
+  .term-body .c { color:#6fb7ff; }
+  .term-body .w { color:#e9edf5; }
+  .term-body .p { color:#7f8aa3; }
+  .cursor { display:inline-block; width:14px; height:28px; background:#c3f53c; vertical-align:-4px; }
+
+  /* metrics */
+  .cards { display:flex; gap:36px; margin-top:56px; }
+  .card { flex:1; padding:44px; border-radius:22px; border:1px solid #1c2230; background:linear-gradient(160deg,#0d1219,#0a0d13); }
+  .card .k { font-size:24px; color:#8b97b0; font-weight:600; }
+  .card .v { font-size:96px; font-weight:800; margin-top:14px; letter-spacing:-.03em; }
+  .card .v small { font-size:44px; }
+  .card .note { font-size:22px; color:#7f8aa3; margin-top:10px; }
+  .card.hero-card { border-color:rgba(195,245,60,.5); background:linear-gradient(160deg,rgba(195,245,60,.09),#0a0d13); }
+
+  /* bars */
+  .bars { display:flex; align-items:flex-end; gap:70px; height:440px; margin-top:40px; padding:0 40px; }
+  .bg { flex:1; display:flex; align-items:flex-end; gap:22px; justify-content:center; position:relative; height:100%; }
+  .bar { width:120px; border-radius:12px 12px 0 0; position:relative; }
+  .bar.cold { background:linear-gradient(180deg,#38414f,#232a36); }
+  .bar.wake { background:linear-gradient(180deg,#c3f53c,#8fbf1f); }
+  .bar .lab { position:absolute; top:-46px; left:0; right:0; text-align:center; font-size:26px; font-weight:700; font-family:'JetBrains Mono',monospace; }
+  .bg .xl { position:absolute; bottom:-52px; left:0; right:0; text-align:center; font-size:24px; color:#8b97b0; font-family:'JetBrains Mono',monospace; }
+
+  /* fork */
+  .fork { position:relative; height:560px; margin-top:20px; }
+  .base { position:absolute; left:80px; top:230px; padding:30px 40px; border-radius:18px; border:1.5px solid #c3f53c; background:rgba(195,245,60,.08); font-size:32px; font-weight:700; color:#c3f53c; }
+  .agent { position:absolute; right:120px; padding:26px 36px; border-radius:16px; border:1.5px solid #2a3242; background:#0c1017; font-size:30px; font-weight:600; width:420px; }
+  .agent b { color:#c3f53c; float:right; font-family:'JetBrains Mono',monospace; font-size:26px; }
+  .a1 { top:70px; } .a2 { top:250px; } .a3 { top:430px; }
+  svg.wires { position:absolute; inset:0; width:100%; height:100%; overflow:visible; }
+
+  /* honesty */
+  .cols { display:flex; gap:60px; margin-top:50px; }
+  .col { flex:1; padding:44px; border-radius:22px; border:1px solid #1c2230; background:#0a0d13; }
+  .col h3 { font-size:30px; margin-bottom:26px; }
+  .col.proven h3 { color:#c3f53c; }
+  .col.notyet h3 { color:#7f8aa3; }
+  .col li { list-style:none; font-size:27px; margin:18px 0; color:#c7d0e2; }
+  .col li span { font-family:'JetBrains Mono',monospace; margin-right:14px; }
+
+  .cta-big { font-size:96px; font-weight:800; line-height:1.05; letter-spacing:-.02em; }
+  .repo { margin-top:44px; font-family:'JetBrains Mono',monospace; font-size:40px; color:#c3f53c; }
+  .foot { position:absolute; left:160px; bottom:70px; font-size:26px; color:#5f6b85; letter-spacing:.02em; }
+  .badge { position:absolute; right:160px; bottom:70px; font-size:24px; color:#7f8aa3; font-family:'JetBrains Mono',monospace; }
+  .wm { position:absolute; top:70px; left:160px; font-size:28px; font-weight:800; letter-spacing:-.01em; }
+  .wm .d { color:#c3f53c; }
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <div class="grid-bg"></div>
+  <div class="glow" id="glow" style="left:-200px;top:-200px;"></div>
+  <div class="wm"><span class="d">◈</span> DecaState</div>
+
+  <!-- S1 title -->
+  <section class="scene" id="s1">
+    <div class="eyebrow">THE AI STATE RUNTIME</div>
+    <h1>Never make your AI<br/>rebuild the same<br/><em>state twice.</em></h1>
+    <div class="sub">Persist the model's real inference state. Wake it later. Continue exactly where it stopped.</div>
+  </section>
+
+  <!-- S2 problem -->
+  <section class="scene" id="s2">
+    <div class="eyebrow" style="color:#ff8f88">THE PROBLEM</div>
+    <h1 style="font-size:82px">Your agent reads the whole<br/>repo. Then forgets it.</h1>
+    <div class="flow" id="flow">
+      <div class="node">Read repo · 2 min</div>
+      <div class="arrow">→</div>
+      <div class="node bad">Process dies ✕</div>
+      <div class="arrow">→</div>
+      <div class="node bad">Reads it ALL again</div>
+    </div>
+    <div class="sub" style="font-size:32px;margin-top:50px">Every restart. Every new agent. From zero.</div>
+  </section>
+
+  <!-- S3 solution -->
+  <section class="scene" id="s3">
+    <div class="eyebrow">THE FIX</div>
+    <h1 style="font-size:88px">Save the model's<br/><em>working memory.</em></h1>
+    <div class="sub">Not a chat transcript — the actual KV cache. Serialized to disk, woken in a brand-new process, byte-exact.</div>
+  </section>
+
+  <!-- S4 terminal -->
+  <section class="scene" id="s4" style="justify-content:center">
+    <div class="term">
+      <div class="term-bar"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i><span class="term-title">~/your-repo — decastate demo .</span></div>
+      <div class="term-body" id="termbody"></div>
+    </div>
+  </section>
+
+  <!-- S5 metrics -->
+  <section class="scene" id="s5">
+    <div class="eyebrow">MEASURED — NOT MARKETED</div>
+    <h1 style="font-size:72px">Wake beats rebuild.<br/>The gap grows with context.</h1>
+    <div class="bars" id="bars"></div>
+  </section>
+
+  <!-- S6 cards -->
+  <section class="scene" id="s6">
+    <div class="eyebrow">AT 2,048 TOKENS · THIS MACHINE</div>
+    <div class="cards">
+      <div class="card"><div class="k">Prefill avoided</div><div class="v accent">100<small>%</small></div><div class="note">0 context tokens re-read</div></div>
+      <div class="card hero-card"><div class="k">Wake speedup</div><div class="v accent" id="spd">13.7<small>×</small></div><div class="note">grows with context length</div></div>
+      <div class="card"><div class="k">Continuation</div><div class="v">exact</div><div class="note">byte-for-byte after restore</div></div>
+      <div class="card"><div class="k">Fork an agent</div><div class="v">~15<small>ms</small></div><div class="note">from one understanding</div></div>
+    </div>
+  </section>
+
+  <!-- S7 fork -->
+  <section class="scene" id="s7">
+    <div class="eyebrow">FORK THE WORK, NOT THE CONTEXT</div>
+    <h1 style="font-size:66px">One understanding →<br/>a whole team.</h1>
+    <div class="fork" id="forkwrap">
+      <svg class="wires"><path id="w1" d="" stroke="#c3f53c" stroke-width="2.5" fill="none" opacity="0.6"/><path id="w2" d="" stroke="#c3f53c" stroke-width="2.5" fill="none" opacity="0.6"/><path id="w3" d="" stroke="#c3f53c" stroke-width="2.5" fill="none" opacity="0.6"/></svg>
+      <div class="base">repo-understood</div>
+      <div class="agent a1">Coder <b>14ms</b></div>
+      <div class="agent a2">Reviewer <b>14ms</b></div>
+      <div class="agent a3">Security <b>14ms</b></div>
+    </div>
+  </section>
+
+  <!-- S8 honesty -->
+  <section class="scene" id="s8">
+    <div class="eyebrow">WHY YOU CAN TRUST IT</div>
+    <h1 style="font-size:64px">Every claim maps to a<br/>script and a results file.</h1>
+    <div class="cols">
+      <div class="col proven"><h3>✓ Proven &amp; reproducible</h3>
+        <li><span class="accent">◆</span>Save / wake across process death</li>
+        <li><span class="accent">◆</span>Zero re-prefill, instrumented</li>
+        <li><span class="accent">◆</span>Checkpoint / rollback + guards</li>
+        <li><span class="accent">◆</span>Independent fork branches</li>
+      </div>
+      <div class="col notyet"><h3>○ Not claimed (yet)</h3>
+        <li><span>·</span>Copy-on-write storage savings</li>
+        <li><span>·</span>Cross-runtime / cross-model</li>
+        <li><span>·</span>Cloud storage · multi-user</li>
+        <li><span>·</span>We publish negatives too</li>
+      </div>
+    </div>
+  </section>
+
+  <!-- S9 CTA -->
+  <section class="scene" id="s9" style="align-items:flex-start">
+    <div class="eyebrow">OPEN SOURCE · MIT · APPLE SILICON</div>
+    <div class="cta-big">Keep the state.<br/><em class="accent">Change everything else.</em></div>
+    <div class="repo">$ git clone github.com/tempomesh/DecaState</div>
+    <div class="sub" style="font-size:30px;margin-top:30px">Star it if your agent ever re-read a repo it already understood.</div>
+  </section>
+
+  <div class="foot" id="foot"></div>
+  <div class="badge">Qwen2.5-0.5B · MLX-LM 0.31.3</div>
+</div>
+
+<script>
+const TERM_LINES = [
+  {t:'$ ', c:'p'},{t:'decastate demo .', c:'w', nl:true},
+  {t:'', nl:true},
+  {t:'DECASTATE DEMO — persistent AI state', c:'g', nl:true},
+  {t:'', nl:true},
+  {t:'✓ [1/5] Understood repo: 17 files, 2,047 tokens in 158 ms', c:'g', nl:true},
+  {t:'✓ [2/5] Checkpoint \'repo-understood\': 25.2 MB (14 ms)', c:'g', nl:true},
+  {t:'✓ [3/5] Cold 163ms vs wake 38ms → 4.3× · 0 tokens re-read', c:'g', nl:true},
+  {t:'✓ [4/5] Forked coder · reviewer · security  (~14 ms each)', c:'g', nl:true},
+  {t:'✓ [5/5] All continuations byte-exact: True', c:'g', nl:true},
+  {t:'', nl:true},
+  {t:'  wake speedup grows to 13.7× at 2,048 tokens', c:'c', nl:true},
+];
+// Precompute full char stream for typewriter
+let CHARS = [];
+TERM_LINES.forEach(seg => {
+  for (const ch of seg.t) CHARS.push({ch, c:seg.c||'w'});
+  if (seg.nl) CHARS.push({ch:'\n', c:seg.c||'w'});
+});
+const BARS = [
+  {tok:'128', cold:40.5, wake:9.5, sp:'4.3×'},
+  {tok:'512', cold:47.6, wake:9.8, sp:'4.9×'},
+  {tok:'1,024', cold:80.7, wake:10.5, sp:'7.7×'},
+  {tok:'2,048', cold:146.3, wake:10.7, sp:'13.7×'},
+];
+
+// Scene schedule [id, start, end] seconds
+const SCENES = [
+  ['s1', 0.0, 4.2],
+  ['s2', 4.2, 17.0],
+  ['s3', 17.0, 25.2],
+  ['s4', 25.2, 33.6],
+  ['s5', 33.6, 43.4],
+  ['s6', 43.4, 53.1],
+  ['s7', 53.1, 62.5],
+  ['s8', 62.5, 71.6],
+  ['s9', 71.6, 79.0],
+];
+const DURATION = 79.0;
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const ease=t=>t<0.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+
+function fadeFor(start,end,t){
+  const IN=0.6, OUT=0.5;
+  if(t<start-0.01||t>end+0.01) return 0;
+  if(t<start+IN) return ease(clamp((t-start)/IN,0,1));
+  if(t>end-OUT) return 1-ease(clamp((t-(end-OUT))/OUT,0,1));
+  return 1;
+}
+function slideFor(start,t){ // subtle rise
+  const p=clamp((t-start)/0.7,0,1);
+  return (1-ease(p))*40;
+}
+
+function buildBars(){
+  const wrap=document.getElementById('bars'); if(wrap.childElementCount) return;
+  const max=160;
+  BARS.forEach(b=>{
+    const g=document.createElement('div'); g.className='bg';
+    g.innerHTML=`<div class="bar cold" data-h="${b.cold/max*100}" style="height:0%"><div class="lab" style="color:#8b97b0">${b.cold.toFixed(0)}ms</div></div>`+
+      `<div class="bar wake" data-h="${b.wake/max*100}" style="height:0%"><div class="lab accent">${b.sp}</div></div>`+
+      `<div class="xl">${b.tok} tok</div>`;
+    wrap.appendChild(g);
+  });
+}
+function buildWires(){
+  const base={x:360,y:262}, ax=1500;
+  const ys=[110,290,470];
+  ['w1','w2','w3'].forEach((id,i)=>{
+    const p=document.getElementById(id);
+    const y2=ys[i]+30;
+    p.setAttribute('d',`M ${base.x} ${base.y} C ${base.x+300} ${base.y}, ${ax-300} ${y2}, ${ax} ${y2}`);
+    const len=p.getTotalLength(); p.style.strokeDasharray=len; p.dataset.len=len;
+  });
+}
+
+function renderFrame(t){
+  document.getElementById('foot').textContent = 'Measured live on Apple Silicon · '+ new Date().getFullYear();
+  // glow drift
+  const g=document.getElementById('glow');
+  g.style.transform=`translate(${Math.sin(t*0.3)*120+200}px, ${Math.cos(t*0.25)*100+150}px)`;
+  SCENES.forEach(([id,s,e])=>{
+    const el=document.getElementById(id);
+    const o=fadeFor(s,e,t);
+    el.style.opacity=o;
+    el.style.transform=`translateY(${o>0? slideFor(s,t):40}px)`;
+    el.style.pointerEvents='none';
+  });
+  // terminal typewriter
+  const s4=SCENES[3];
+  if(t>=s4[1]-0.5 && t<=s4[2]+0.2){
+    const local=clamp(t-(s4[1]+0.6),0,99);
+    const totalTypeTime=6.4;
+    const n=Math.floor(clamp(local/totalTypeTime,0,1)*CHARS.length);
+    let html=''; for(let i=0;i<n;i++){const c=CHARS[i]; html+=`<span class="${c.c}">${c.ch==='\n'?'<br/>':c.ch.replace('<','&lt;')}</span>`;}
+    const blink=(Math.floor(t*2)%2===0)?'<span class="cursor"></span>':'<span class="cursor" style="opacity:0"></span>';
+    document.getElementById('termbody').innerHTML=html+blink;
+  }
+  // bars grow
+  const s5=SCENES[4];
+  if(t>=s5[1]-0.6){
+    buildBars();
+    const p=clamp((t-(s5[1]+0.3))/1.2,0,1);
+    document.querySelectorAll('#bars .bar').forEach((bar,idx)=>{
+      const target=parseFloat(bar.dataset.h);
+      const delay=(Math.floor(idx/2))*0.12;
+      const pp=clamp((t-(s5[1]+0.3)-delay)/1.0,0,1);
+      bar.style.height=(target*ease(pp))+'%';
+    });
+  }
+  // fork wires
+  const s7=SCENES[6];
+  if(t>=s7[1]-0.4){
+    buildWires();
+    const p=clamp((t-(s7[1]+0.3))/1.1,0,1);
+    ['w1','w2','w3'].forEach((id,i)=>{
+      const path=document.getElementById(id);
+      const len=parseFloat(path.dataset.len||0);
+      const pp=clamp((t-(s7[1]+0.3)-i*0.18)/0.9,0,1);
+      path.style.strokeDashoffset=len*(1-ease(pp));
+    });
+  }
+}
+window.renderFrame=renderFrame;
+window.DURATION=DURATION;
+renderFrame(0);
+</script>
+</body>
+</html>

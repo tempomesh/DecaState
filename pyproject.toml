@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "decastate"
+version = "0.1.0"
+description = "Persistent and forkable inference state for AI workloads."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["typer>=0.12", "rich>=13.0"]
+
+[project.optional-dependencies]
+mlx = ["mlx", "mlx-lm", "safetensors"]
+dev = ["pytest", "pytest-cov"]
+
+[project.scripts]
+decastate = "decastate.cli.main:app"
+
+[tool.setuptools.packages.find]
+include = ["decastate*"]
+
+[tool.pytest.ini_options]
+markers = ["integration: tests that invoke a local model"]

@@ -1,0 +1,56 @@
+{
+  "model_id": "mlx-community/Qwen2.5-0.5B-Instruct-4bit",
+  "base_context_tokens": 1024,
+  "branches": [
+    {
+      "branch": "coder",
+      "fork_seconds": 0.007715959000051953,
+      "logical_state_size_bytes": 12636556,
+      "wake_exact_match": true,
+      "tokens": [
+        5290,
+        330,
+        4900,
+        64,
+        1397,
+        22435
+      ],
+      "native_state_sha256": "2361130e2476e4125dd64365ab20abe1147e26c7ef8df688272fff7a339a9200"
+    },
+    {
+      "branch": "reviewer",
+      "fork_seconds": 0.008239290997153148,
+      "logical_state_size_bytes": 12636556,
+      "wake_exact_match": true,
+      "tokens": [
+        311,
+        279,
+        1790,
+        3019,
+        315,
+        279
+      ],
+      "native_state_sha256": "33437e5b3e8e92db1aa1bccb4efbd8e26cdc2e8c9bad51e3fb38d5566667062f"
+    },
+    {
+      "branch": "security",
+      "fork_seconds": 0.008173750000423752,
+      "logical_state_size_bytes": 12624266,
+      "wake_exact_match": true,
+      "tokens": [
+        311,
+        279,
+        1790,
+        3019,
+        315,
+        279
+      ],
+      "native_state_sha256": "eb4529142b39bbbac6f413040de88bc25ca59d10f7a47618773a26cf1698ca71"
+    }
+  ],
+  "native_state_divergence": true,
+  "output_token_divergence": false,
+  "parent_unchanged": true,
+  "physical_copy_claim": false,
+  "logical_state_bytes": 37897378
+}

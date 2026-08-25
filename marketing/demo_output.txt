@@ -1,0 +1,31 @@
+
+DECASTATE DEMO — persistent AI state for DECASTATE
+
+loading model (one-time, not counted in benchmarks)…
+✓ [1/5] Understood repository: 17 files, 2,047 tokens of native MLX state in 158
+ms (context capped at 2,048 tokens for the proof model)
+✓ [2/5] Checkpoint 'repo-understood': 25.2 MB immutable native state (14 ms)
+✓ [3/5] Cold rebuild 163 ms vs wake 38 ms → 4.3× faster, 0/2,047 context tokens 
+re-read, exact continuation: True
+✓ [4/5] Forked 3 agents from one understood state: coder 14 ms, reviewer 14 ms, 
+security 14 ms
+✓ [5/5] All continuations byte-exact: True (physical-copy forks; no COW claim)
+
+                     decastate demo — DECASTATE                     
+             (mlx-community/Qwen2.5-0.5B-Instruct-4bit)             
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Metric                         ┃                           Value ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ Repository context             │         2,047 tokens / 17 files │
+│ Understand once (prefill)      │                          158 ms │
+│ Cold rebuild + continue        │                          163 ms │
+│ Wake from disk + continue      │                           38 ms │
+│ Resume speedup                 │                            4.3× │
+│ Context tokens re-read on wake │                               0 │
+│ Exact continuation             │                            True │
+│ Agents forked                  │ 3 (coder / reviewer / security) │
+└────────────────────────────────┴─────────────────────────────────┘
+
+All numbers measured live on this machine, this run. State stored under 
+/Users/ashish/DECASTATE/.decastate/
+

@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0b0d12" />
+    <title>DecaState — AI State Runtime</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand"><span class="brand-mark">◈</span><span>DecaState</span></div>
+        <div class="eyebrow">AI STATE RUNTIME</div>
+        <nav>
+          <a class="active" href="#overview"><span>⌁</span> Overview</a>
+          <a href="#states"><span>◌</span> Live states <b>01</b></a>
+          <a href="#evidence"><span>◇</span> Evidence</a>
+          <a href="#branches"><span>⑂</span> Branches <b>03</b></a>
+          <a href="#portability"><span>⇄</span> Portability <i>soon</i></a>
+        </nav>
+        <div class="sidebar-bottom">
+          <div class="local-card"><span class="pulse"></span><div><strong>Local runtime</strong><small>MLX · Apple Silicon</small></div></div>
+          <div class="sidebar-footer"><span>v0.1.0</span><span>⌘ K</span></div>
+        </div>
+      </aside>
+      <main class="main">
+        <header class="topbar"><div class="crumb"><span>Workspace</span><span class="slash">/</span><strong>Runtime overview</strong></div><div class="top-actions"><button class="icon-btn" aria-label="Notifications">♧</button><button class="avatar">A</button></div></header>
+        <section class="hero" id="overview">
+          <div><div class="eyebrow accent">RUNTIME CONTINUITY · VERIFIED</div><h1>State survives<br /><em>the process.</em></h1><p>Persist the model’s working memory. Wake it later, continue exactly where it stopped, and branch without rebuilding context.</p><div class="hero-actions"><button class="primary" onclick="document.querySelector('#evidence').scrollIntoView({behavior:'smooth'})">View verified evidence <span>↗</span></button><button class="quiet" onclick="copyClaim()">Copy product claim <span>⧉</span></button></div></div>
+          <div class="orbit"><div class="orbit-ring ring-one"></div><div class="orbit-ring ring-two"></div><div class="orbit-core"><span>STATE</span><strong>LIVE</strong></div><span class="orbit-label label-a">PERSIST</span><span class="orbit-label label-b">WAKE</span><span class="orbit-label label-c">BRANCH</span></div>
+        </section>
+        <section class="metrics" id="evidence">
+          <article class="metric-card"><div class="metric-top"><span>Prefill avoided</span><span class="check">✓</span></div><strong>100<span>%</span></strong><small>Across 128 → 2,048 token tests</small><div class="mini-line"><i style="width:100%"></i></div></article>
+          <article class="metric-card featured"><div class="metric-top"><span>Wake speedup</span><span class="spark">↗</span></div><strong>13.3<span>×</span></strong><small>At 2,048 context tokens</small><div class="mini-line"><i style="width:88%"></i></div></article>
+          <article class="metric-card"><div class="metric-top"><span>Replay fidelity</span><span class="check">✓</span></div><strong>100<span>%</span></strong><small>Exact deterministic continuation</small><div class="mini-line"><i style="width:100%"></i></div></article>
+          <article class="metric-card"><div class="metric-top"><span>Active branches</span><span class="branch-dot">●</span></div><strong>03</strong><small>Physical-copy forks · parent safe</small><div class="mini-line muted"><i style="width:42%"></i></div></article>
+        </section>
+        <section class="grid-two">
+          <article class="panel state-panel" id="states"><div class="panel-heading"><div><div class="eyebrow">ACTIVE STATE</div><h2>coding-demo <span class="live-tag">● LIVE</span></h2></div><button class="more">•••</button></div><div class="state-meta"><div><small>MODEL</small><strong>Qwen2.5-0.5B-Instruct-4bit</strong></div><div><small>RUNTIME</small><strong>MLX-LM 0.31.3</strong></div><div><small>CONTEXT</small><strong>2,048 tokens</strong></div></div><div class="lifecycle"><div class="life-line"></div><div class="life-step done"><span>✓</span><small>Prefill</small><b>0.15s</b></div><div class="life-step done"><span>✓</span><small>Persist</small><b>25.2 MB</b></div><div class="life-step done"><span>✓</span><small>Process death</small><b>verified</b></div><div class="life-step current"><span>◉</span><small>Wake</small><b>0.012s</b></div></div><div class="integrity"><span class="check">✓</span><div><strong>Integrity verified</strong><small>Fingerprint guard active · SHA-256 manifest match</small></div><code>MLX / QWEN</code></div></article>
+          <article class="panel timeline-panel"><div class="panel-heading"><div><div class="eyebrow">HOW IT WORKS</div><h2>Execution lifecycle</h2></div><span class="verified">✓ verified</span></div><div class="timeline"><div class="tl-item"><span class="tl-icon">01</span><div><strong>Understand</strong><small>Model reads the repository context once.</small></div><time>0.15s</time></div><div class="tl-item"><span class="tl-icon">02</span><div><strong>Persist</strong><small>Native KV cache becomes a durable state capsule.</small></div><time>25.2 MB</time></div><div class="tl-item"><span class="tl-icon">03</span><div><strong>Wake</strong><small>New process restores state and continues.</small></div><time>exact</time></div></div><div class="quote">“The original context is not passed to the model again.”<small>— process-death restore evidence</small></div></article>
+        </section>
+        <section class="panel benchmark-panel"><div class="panel-heading"><div><div class="eyebrow">MEASURED PERFORMANCE</div><h2>Wake vs. cold continuation</h2></div><div class="legend"><span class="cold-dot"></span> cold <span class="wake-dot"></span> wake</div></div><div class="chart" id="chart"></div><div class="chart-foot"><span>Context length (tokens)</span><span>Wake is measured after serialized cache restore · exact match at every point</span></div></section>
+        <section class="panel branches-panel" id="branches"><div class="panel-heading"><div><div class="eyebrow">PARALLEL WORK</div><h2>Forked agent branches</h2></div><span class="boundary">PHYSICAL COPY · NO COW CLAIM</span></div><div class="branch-grid"><div class="branch"><div class="branch-head"><span class="role-icon coder">⌘</span><div><strong>Coder</strong><small>Implement the change</small></div><span class="pass">PASS</span></div><div class="branch-stats"><span>Wake exact <b>✓</b></span><span>Fork <b>15ms</b></span></div></div><div class="branch"><div class="branch-head"><span class="role-icon reviewer">◎</span><div><strong>Reviewer</strong><small>Find edge cases</small></div><span class="pass">PASS</span></div><div class="branch-stats"><span>Wake exact <b>✓</b></span><span>Fork <b>21ms</b></span></div></div><div class="branch"><div class="branch-head"><span class="role-icon security">⊙</span><div><strong>Security</strong><small>Threat-model the diff</small></div><span class="pass">PASS</span></div><div class="branch-stats"><span>Wake exact <b>✓</b></span><span>Fork <b>20ms</b></span></div></div></div></section>
+        <section class="next-panel" id="portability"><div><div class="eyebrow">NEXT RELEASE FRONTIER</div><h2>Make state portable.</h2><p>Same-model runtime migration is next. Cloud storage, RBAC, and HA follow only when the runtime primitives are ready.</p></div><div class="roadmap"><span class="done-road">01 Lifecycle</span><span class="done-road">02 Fork</span><span class="active-road">03 COW / sharing</span><span>04 Runtime move</span></div></section>
+        <footer><span>DecaState · The AI State Runtime</span><span>Evidence generated locally from real MLX runs · 24 Aug 2026</span></footer>
+      </main>
+    </div>
+    <div class="toast" id="toast">Claim copied to clipboard</div>
+    <script src="./app.js"></script>
+  </body>
+</html>
