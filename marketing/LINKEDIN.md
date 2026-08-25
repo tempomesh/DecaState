@@ -1,5 +1,21 @@
 # DecaState — LinkedIn launch posts
 
+## 🔥 The "paying twice" hook bank (rotate these — this angle lands hardest)
+
+Use one as your first line, tweet, headline, or thumbnail text. Short = shareable.
+
+- **You already paid to understand your codebase. Stop paying for it again.**
+- **Your AI reads your repo once. You pay for it every single restart.**
+- **Stop paying twice to understand the same codebase.**
+- **Understand the repo once. Pay once. Not on every restart and every fork.**
+- **Your coding agent has amnesia — and you're billed for the re-learning.**
+- **Same repo. Same context. Read from zero, ten times a day. That's the tax DecaState deletes.**
+- **10 agents, 1 codebase, 10 copies of the same understanding. Why?**
+- **Never make your AI rebuild the same state twice.** (the brand line)
+
+---
+
+
 Four variants. Pick one and attach a visual: the square video (`decastate_launch_1x1.mp4`), the story GIF (`decastate_demo.gif`), or the real-terminal GIF (`decastate_coding.gif` — best for the "on a MacBook" flex). Best times: Tue–Thu, 8–10am your audience's timezone. Reply to every comment in the first 2 hours — that's what the algorithm rewards.
 
 ---

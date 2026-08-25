@@ -2,7 +2,9 @@
 
 # DecaState
 
-### Never make your AI rebuild the same state twice.
+### You already paid to understand your codebase. Stop paying for it again.
+
+Your coding agent reads your whole repo to understand it — then a restart, a crash, or a second agent makes it read the **whole thing again, from zero.** You pay for the same context twice, five times, ten times a day. **DecaState makes you pay once.**
 
 **Persist · Wake · Checkpoint · Rollback · Fork — real inference state, on your Mac.**
 
