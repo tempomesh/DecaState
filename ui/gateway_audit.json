@@ -1,0 +1,70 @@
+{
+  "records": [
+    {
+      "timestamp": 1787993275.519134,
+      "upstream": "https://api.anthropic.com",
+      "status": 401,
+      "latency_ms": 291.5,
+      "model": "claude-sonnet-5",
+      "byte_identical_forward": true,
+      "request_body_sha256": "adcf2a7fd6075825dec61fb00954eb6e5f67743cfbca8a31ca612764b52a33de",
+      "forwarded_body_sha256": "adcf2a7fd6075825dec61fb00954eb6e5f67743cfbca8a31ca612764b52a33de",
+      "system_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+      "tools_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+      "messages_sha256": "4e79873118cd9be7a1f0308b9cd772950c5410c74ca3fe1ba2626cba009a9237",
+      "tool_count": 0,
+      "message_count": 1,
+      "usage": {
+        "input_tokens": null,
+        "output_tokens": null,
+        "cache_creation_input_tokens": null,
+        "cache_read_input_tokens": null
+      },
+      "provider_cache_hit": false,
+      "prompt_integrity": "unchanged",
+      "saving": {
+        "input_rate_per_mtok_usd": 2.0,
+        "cache_read_tokens": 0,
+        "cache_read_saving_usd": 0.0,
+        "cache_write_premium_usd": 0.0,
+        "net_input_saving_usd": 0.0,
+        "note": "provider-reported cached tokens x published pricing; illustration, not a bill"
+      },
+      "attribution": "provider prompt-cache; measured by DecaState, not created by it"
+    },
+    {
+      "timestamp": 1787993459.309268,
+      "upstream": "http://127.0.0.1:60100",
+      "status": 200,
+      "latency_ms": 6.0,
+      "model": "claude-sonnet-5",
+      "byte_identical_forward": true,
+      "request_body_sha256": "8fec2980df4069ba752532e4e04e748a073f2808221b9219fb94bfa610c51e67",
+      "forwarded_body_sha256": "8fec2980df4069ba752532e4e04e748a073f2808221b9219fb94bfa610c51e67",
+      "system_sha256": "a311bb5aad3f7c5941ddc6109598c409d1ceb552f21e68323e828c4f8789da84",
+      "tools_sha256": "22b257d525153e2e31aab958bcc243c7e997d2baa7f9a8e2cdfc911bb0fc3352",
+      "messages_sha256": "797ab3fdbc2fb73bddbf79c6107e7b1a8ddddcf67698a77ee9b691462cd41796",
+      "tool_count": 1,
+      "message_count": 1,
+      "usage": {
+        "input_tokens": 40,
+        "output_tokens": 7,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 80000
+      },
+      "provider_cache_hit": true,
+      "prompt_integrity": "unchanged",
+      "saving": {
+        "input_rate_per_mtok_usd": 2.0,
+        "cache_read_tokens": 80000,
+        "cache_read_saving_usd": 0.144,
+        "cache_write_premium_usd": 0.0,
+        "net_input_saving_usd": 0.144,
+        "note": "provider-reported cached tokens x published pricing; illustration, not a bill"
+      },
+      "attribution": "provider prompt-cache; measured by DecaState, not created by it",
+      "mode": "selftest",
+      "provider": "local-echo"
+    }
+  ]
+}

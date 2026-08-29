@@ -20,6 +20,7 @@
           <a href="#states"><span>◌</span> Live states <b>01</b></a>
           <a href="#evidence"><span>◇</span> Evidence</a>
           <a href="#branches"><span>⑂</span> Branches <b>03</b></a>
+          <a href="#gateway"><span>⇉</span> API Gateway</a>
           <a href="#portability"><span>⇄</span> Portability <i>soon</i></a>
         </nav>
         <div class="sidebar-bottom">
@@ -45,6 +46,11 @@
         </section>
         <section class="panel benchmark-panel"><div class="panel-heading"><div><div class="eyebrow">MEASURED PERFORMANCE</div><h2>Wake vs. cold continuation</h2></div><div class="legend"><span class="cold-dot"></span> cold <span class="wake-dot"></span> wake</div></div><div class="chart" id="chart"></div><div class="chart-foot"><span>Context length (tokens)</span><span>Wake is measured after serialized cache restore · exact match at every point</span></div></section>
         <section class="panel branches-panel" id="branches"><div class="panel-heading"><div><div class="eyebrow">PARALLEL WORK</div><h2>Forked agent branches</h2></div><span class="boundary">PHYSICAL COPY · NO COW CLAIM</span></div><div class="branch-grid"><div class="branch"><div class="branch-head"><span class="role-icon coder">⌘</span><div><strong>Coder</strong><small>Implement the change</small></div><span class="pass">PASS</span></div><div class="branch-stats"><span>Wake exact <b>✓</b></span><span>Fork <b>15ms</b></span></div></div><div class="branch"><div class="branch-head"><span class="role-icon reviewer">◎</span><div><strong>Reviewer</strong><small>Find edge cases</small></div><span class="pass">PASS</span></div><div class="branch-stats"><span>Wake exact <b>✓</b></span><span>Fork <b>21ms</b></span></div></div><div class="branch"><div class="branch-head"><span class="role-icon security">⊙</span><div><strong>Security</strong><small>Threat-model the diff</small></div><span class="pass">PASS</span></div><div class="branch-stats"><span>Wake exact <b>✓</b></span><span>Fork <b>20ms</b></span></div></div></div></section>
+        <section class="panel gateway-panel" id="gateway"><div class="panel-heading"><div><div class="eyebrow">API GATEWAY · PROVIDER-CACHE AUDIT</div><h2>Forward byte-for-byte. Measure the provider's cache.</h2></div><span class="boundary" id="gw-status">CONNECTING…</span></div>
+          <p class="gw-lede">DecaState can sit in front of Claude Code as a transparent gateway — it never summarizes, drops files, rewrites prompts, or alters tools. It proves that with per-request integrity hashes, then reads the provider's own <code>cache_read</code> / <code>cache_creation</code> usage. The saving is the provider's prompt cache; DecaState measures and protects it.</p>
+          <div class="gw-grid" id="gw-grid"></div>
+          <div class="gw-foot"><span id="gw-source">audit source: —</span><span>Real numbers require your own API key + real upstream · no mock savings claimed</span></div>
+        </section>
         <section class="next-panel" id="portability"><div><div class="eyebrow">NEXT RELEASE FRONTIER</div><h2>Make state portable.</h2><p>Same-model runtime migration is next. Cloud storage, RBAC, and HA follow only when the runtime primitives are ready.</p></div><div class="roadmap"><span class="done-road">01 Lifecycle</span><span class="done-road">02 Fork</span><span class="active-road">03 COW / sharing</span><span>04 Runtime move</span></div></section>
         <footer><span>DecaState · The AI State Runtime</span><span>Evidence generated locally from real MLX runs · 24 Aug 2026</span></footer>
       </main>

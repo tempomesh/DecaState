@@ -86,6 +86,27 @@ def doctor() -> None:
 
 
 @app.command()
+def gateway(
+    port: int = typer.Option(8787, help="Local port for the gateway."),
+    upstream: str = typer.Option("https://api.anthropic.com", help="Provider base URL."),
+) -> None:
+    """Run the honest API gateway: byte-identical forwarding + provider-cache audit."""
+    from decastate.gateway.proxy import run_gateway
+
+    run_gateway(port=port, upstream=upstream)
+
+
+@app.command("gateway-selftest")
+def gateway_selftest() -> None:
+    """Verify gateway plumbing (byte-identical forward + usage extraction) with a local echo."""
+    from decastate.gateway.proxy import run_selftest
+
+    result = run_selftest()
+    if not result["passed"]:
+        raise typer.Exit(code=1)
+
+
+@app.command()
 def demo(
     repo: Path = typer.Argument(Path("."), exists=True, file_okay=False, readable=True),
     model: str = typer.Option("mlx-community/Qwen2.5-0.5B-Instruct-4bit"),

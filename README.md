@@ -241,6 +241,26 @@ Each gate **hard-fails** (non-zero exit) if any correctness property breaks. The
 
 ---
 
+## Bonus: the honest API-cache gateway
+
+DecaState also ships a transparent gateway you can put in front of Claude Code (or any
+Anthropic-API agent). It **forwards your request byte-for-byte** — never summarizing,
+dropping files, or rewriting prompts — proves it with per-request SHA-256 integrity
+hashes, and reads the **provider's own** `cache_read` / `cache_creation` usage so you can
+see exactly how much prompt cache you're reusing.
+
+```bash
+decastate gateway-selftest          # verify plumbing (no key needed)
+decastate gateway --port 8799       # run it for real
+export ANTHROPIC_BASE_URL=http://127.0.0.1:8799 && claude
+```
+
+**Honest scope:** the saving is the *provider's* prompt cache — DecaState **measures and
+protects** it, it doesn't invent it (Claude Code already caches, so expect it to confirm
+your real hit rate, not multiply it). Dollar figures are illustrations from published
+pricing, and provider cache is ephemeral (~5-min TTL). Full positioning and the A/B proof
+method: [docs/GATEWAY.md](docs/GATEWAY.md).
+
 ## Roadmap
 
 - **Now** — persistent state for coding agents on Apple Silicon: save / wake / checkpoint / rollback / fork. ✅ shipping

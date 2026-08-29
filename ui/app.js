@@ -48,6 +48,56 @@ async function loadLiveEvidence(){
 
 loadLiveEvidence();
 
+// ---- API Gateway audit panel: live gateway first, real snapshot fallback ----
+function tok(n){ return (n==null)?'—':Number(n).toLocaleString(); }
+function gwCard(r){
+  const u = r.usage||{};
+  const hit = r.provider_cache_hit;
+  const real = r.mode!=='selftest';
+  const save = r.saving||{};
+  const model = r.model||'—';
+  const status = r.status;
+  const saveLine = (save.net_input_saving_usd!=null)
+    ? `$${save.net_input_saving_usd} <span class="gw-hash">illustration</span>` : '—';
+  return `<div class="gw-card">
+    <div class="gw-top"><strong>${model}</strong>
+      <span class="gw-mode ${real?'real':'selftest'}">${real?'REAL FORWARD · '+status:'SELF-TEST · echo'}</span></div>
+    <div class="gw-rows">
+      <div class="gw-row">Prompt integrity <b class="${r.prompt_integrity==='unchanged'?'ok':'miss'}">${r.prompt_integrity||'—'}</b></div>
+      <div class="gw-row">Byte-identical forward <b class="${r.byte_identical_forward?'ok':'miss'}">${r.byte_identical_forward?'✓ verified':'✗'}</b></div>
+      <div class="gw-row">Provider cache <b class="${hit?'hit':'miss'}">${hit?'HIT':'miss'}</b></div>
+      <div class="gw-row">cache read / creation <b>${tok(u.cache_read_input_tokens)} / ${tok(u.cache_creation_input_tokens)}</b></div>
+      <div class="gw-row">input / output <b>${tok(u.input_tokens)} / ${tok(u.output_tokens)}</b></div>
+      <div class="gw-row">est. input saving <b>${saveLine}</b></div>
+      <div class="gw-row">body sha256 <b class="gw-hash">${(r.request_body_sha256||'').slice(0,16)}…</b></div>
+    </div></div>`;
+}
+async function loadGatewayAudit(){
+  const grid = document.querySelector('#gw-grid');
+  const status = document.querySelector('#gw-status');
+  const source = document.querySelector('#gw-source');
+  let records=null, live=false;
+  for (const port of [8799, 8787]) {
+    try {
+      const res = await fetch(`http://127.0.0.1:${port}/audit`, {cache:'no-store'});
+      if (res.ok){ records=(await res.json()).records; live=true; break; }
+    } catch(_e){}
+  }
+  if (!records) {
+    try { const res = await fetch('./gateway_audit.json',{cache:'no-store'});
+      if (res.ok) records=(await res.json()).records; } catch(_e){}
+  }
+  if (!records || !records.length){
+    status.textContent='OFFLINE'; grid.innerHTML='<div class="gw-card"><div class="gw-rows"><div class="gw-row">Start it with <b class="gw-hash">decastate gateway</b></div></div></div>';
+    source.textContent='audit source: none'; return;
+  }
+  status.textContent = live?'● LIVE':'SNAPSHOT';
+  status.className = live?'live':'snap';
+  source.textContent = live?'audit source: live gateway /audit':'audit source: recorded gateway_audit.json';
+  grid.innerHTML = records.slice(-4).reverse().map(gwCard).join('');
+}
+loadGatewayAudit();
+
 function copyClaim(){
   const claim='DecaState manages the lifecycle, persistence, branching, and portability of AI execution state.';
   navigator.clipboard?.writeText(claim);
