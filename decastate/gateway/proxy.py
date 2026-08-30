@@ -293,6 +293,45 @@ def _print_report(report: dict) -> None:
     print("─" * 60)
 
 
+def list_states(limit: int = 12) -> dict:
+    """Scan real DecaState state roots and return live workspace facts for the dashboard."""
+    import os
+    roots = [Path(os.environ.get("DECASTATE_HOME", Path.home() / ".decastate")),
+             Path.cwd() / ".decastate"]
+    states = []
+    seen = set()
+    for root in roots:
+        states_dir = root / "states"
+        if not states_dir.is_dir():
+            continue
+        for manifest_path in states_dir.glob("*/manifest.json"):
+            state_id = manifest_path.parent.name
+            if state_id in seen:
+                continue
+            seen.add(state_id)
+            try:
+                manifest = json.loads(manifest_path.read_text())
+            except (OSError, ValueError):
+                continue
+            live = manifest_path.parent / "live-cache.safetensors"
+            checkpoints = len(list((root / "checkpoints" / state_id).glob("*/manifest.json")))
+            branches = sorted(p.parent.name for p in
+                              (root / "branches" / state_id).glob("*/manifest.json"))
+            states.append({
+                "state_id": state_id,
+                "model": (manifest.get("model") or {}).get("id"),
+                "token_count": (manifest.get("context") or {}).get("token_count"),
+                "size_bytes": live.stat().st_size if live.exists() else None,
+                "checkpoints": checkpoints,
+                "branches": branches,
+                "restore": (manifest.get("restore") or {}).get("mode", "native-mlx"),
+                "mtime": manifest_path.stat().st_mtime,
+                "root": str(root),
+            })
+    states.sort(key=lambda s: s["mtime"], reverse=True)
+    return {"count": len(states), "states": states[:limit]}
+
+
 def make_handler(upstream: str, audit_path: Path, inject_cache: bool = False):
     class GatewayHandler(BaseHTTPRequestHandler):
         protocol_version = "HTTP/1.1"
@@ -338,6 +377,8 @@ def make_handler(upstream: str, audit_path: Path, inject_cache: bool = False):
                                    "audit": str(audit_path)}).encode()
             elif self.path.startswith("/savings"):
                 body = json.dumps(savings_summary(audit_path)).encode()
+            elif self.path.startswith("/states"):
+                body = json.dumps(list_states()).encode()
             elif self.path.startswith("/audit"):
                 records = []
                 if audit_path.exists():

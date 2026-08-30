@@ -147,6 +147,49 @@ async function loadApiSavingCard(){
 }
 loadApiSavingCard();
 
+// ---- Live states panel: real workspaces from disk (gateway /states, snapshot fallback) ----
+async function loadStates(){
+  let data=null, live=false;
+  for (const port of [8799, 8787, 8801]) {
+    try { const r=await fetch(`http://127.0.0.1:${port}/states`,{cache:'no-store'});
+      if (r.ok){ data=await r.json(); live=true; break; } } catch(_e){}
+  }
+  if (!data){ try { const r=await fetch('./states.json',{cache:'no-store'}); if(r.ok) data=await r.json(); } catch(_e){} }
+  const nav=document.querySelector('#nav-states');
+  if (!data || !data.states || !data.states.length){
+    if(nav) nav.textContent='00';
+    const t=document.querySelector('#st-title'); if(t) t.firstChild.textContent='no states yet ';
+    const s=document.querySelector('#st-source'); if(s) s.textContent='run: decastate understand .';
+    return;
+  }
+  if(nav) nav.textContent=String(data.count).padStart(2,'0');
+  const s=data.states[0];
+  const set=(id,v)=>{const e=document.querySelector(id); if(e) e.textContent=v;};
+  document.querySelector('#st-title').firstChild.textContent=(s.state_id.length>26?s.state_id.slice(0,24)+'…':s.state_id)+' ';
+  set('#st-model',(s.model||'—').replace('mlx-community/',''));
+  set('#st-tokens',`${Number(s.token_count||0).toLocaleString()} tokens`);
+  set('#st-size', s.size_bytes?`${(s.size_bytes/1e6).toFixed(1)} MB native`:'—');
+  set('#st-tok2',`${Number(s.token_count||0).toLocaleString()} tok`);
+  set('#st-cps',String(s.checkpoints));
+  set('#st-brs', s.branches.length? s.branches.join(' · ') : '0');
+  set('#st-mode', s.restore||'native-mlx');
+  set('#st-source', live?'● live from disk':'snapshot');
+  const list=document.querySelector('#st-list');
+  if (list && data.states.length>1){
+    list.innerHTML='<small>more states on this machine</small>'+data.states.slice(1,5).map(x=>
+      `<span class="st-chip">${x.state_id.slice(0,22)} · ${Number(x.token_count||0).toLocaleString()} tok · ${x.checkpoints} cp · ${x.branches.length} br</span>`).join('');
+  }
+}
+loadStates();
+
+function copyCmd(btn){
+  const cmd=btn.querySelector('code').textContent;
+  navigator.clipboard?.writeText(cmd);
+  const toast=document.querySelector('#toast');
+  toast.textContent='Copied: '+cmd;
+  toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'),2200);
+}
+
 function copyClaim(){
   const claim='DecaState manages the lifecycle, persistence, branching, and portability of AI execution state.';
   navigator.clipboard?.writeText(claim);

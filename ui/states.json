@@ -1,0 +1,185 @@
+{
+  "count": 20,
+  "states": [
+    {
+      "state_id": "coding-demo-1787663993442",
+      "model": "mlx-community/Qwen2.5-0.5B-Instruct-4bit",
+      "token_count": 2047,
+      "size_bytes": 25158060,
+      "checkpoints": 1,
+      "branches": [
+        "coder",
+        "reviewer",
+        "security"
+      ],
+      "restore": "native-mlx",
+      "mtime": 1787663993.6370814,
+      "root": "/Users/ashish/DECASTATE/.decastate"
+    },
+    {
+      "state_id": "fork-demo-1024-1787663991960",
+      "model": "mlx-community/Qwen2.5-0.5B-Instruct-4bit",
+      "token_count": 1024,
+      "size_bytes": 12587353,
+      "checkpoints": 0,
+      "branches": [
+        "coder",
+        "reviewer",
+        "security"
+      ],
+      "restore": "native-mlx",
+      "mtime": 1787663991.9642174,
+      "root": "/Users/ashish/DECASTATE/.decastate"
+    },
+    {
+      "state_id": "demo-1787655965581",
+      "model": "mlx-community/Qwen2.5-0.5B-Instruct-4bit",
+      "token_count": 2047,
+      "size_bytes": 25158053,
+      "checkpoints": 1,
+      "branches": [
+        "coder",
+        "reviewer",
+        "security"
+      ],
+      "restore": "native-mlx",
+      "mtime": 1787655965.5867481,
+      "root": "/Users/ashish/DECASTATE/.decastate"
+    },
+    {
+      "state_id": "coding-demo-1787638840013",
+      "model": "mlx-community/Qwen2.5-0.5B-Instruct-4bit",
+      "token_count": 2047,
+      "size_bytes": 25158060,
+      "checkpoints": 1,
+      "branches": [
+        "coder",
+        "reviewer",
+        "security"
+      ],
+      "restore": "native-mlx",
+      "mtime": 1787638840.2133956,
+      "root": "/Users/ashish/DECASTATE/.decastate"
+    },
+    {
+      "state_id": "fork-demo-1024-1787638838670",
+      "model": "mlx-community/Qwen2.5-0.5B-Instruct-4bit",
+      "token_count": 1024,
+      "size_bytes": 12587353,
+      "checkpoints": 0,
+      "branches": [
+        "coder",
+        "reviewer",
+        "security"
+      ],
+      "restore": "native-mlx",
+      "mtime": 1787638838.673058,
+      "root": "/Users/ashish/DECASTATE/.decastate"
+    },
+    {
+      "state_id": "coding-demo-1787543834841",
+      "model": "mlx-community/Qwen2.5-0.5B-Instruct-4bit",
+      "token_count": 2047,
+      "size_bytes": 25158060,
+      "checkpoints": 1,
+      "branches": [
+        "coder",
+        "reviewer",
+        "security"
+      ],
+      "restore": "native-mlx",
+      "mtime": 1787543835.0192459,
+      "root": "/Users/ashish/DECASTATE/.decastate"
+    },
+    {
+      "state_id": "fork-demo-1024-1787543833347",
+      "model": "mlx-community/Qwen2.5-0.5B-Instruct-4bit",
+      "token_count": 1024,
+      "size_bytes": 12587353,
+      "checkpoints": 0,
+      "branches": [
+        "coder",
+        "reviewer",
+        "security"
+      ],
+      "restore": "native-mlx",
+      "mtime": 1787543833.3610904,
+      "root": "/Users/ashish/DECASTATE/.decastate"
+    },
+    {
+      "state_id": "coding-demo-1787543795168",
+      "model": "mlx-community/Qwen2.5-0.5B-Instruct-4bit",
+      "token_count": 2047,
+      "size_bytes": 25158060,
+      "checkpoints": 1,
+      "branches": [
+        "coder",
+        "reviewer",
+        "security"
+      ],
+      "restore": "native-mlx",
+      "mtime": 1787543795.3426318,
+      "root": "/Users/ashish/DECASTATE/.decastate"
+    },
+    {
+      "state_id": "fork-demo-1024-1787543793673",
+      "model": "mlx-community/Qwen2.5-0.5B-Instruct-4bit",
+      "token_count": 1024,
+      "size_bytes": 12587353,
+      "checkpoints": 0,
+      "branches": [
+        "coder",
+        "reviewer",
+        "security"
+      ],
+      "restore": "native-mlx",
+      "mtime": 1787543793.6880941,
+      "root": "/Users/ashish/DECASTATE/.decastate"
+    },
+    {
+      "state_id": "coding-demo-1787543307840",
+      "model": "mlx-community/Qwen2.5-0.5B-Instruct-4bit",
+      "token_count": 2047,
+      "size_bytes": 25158060,
+      "checkpoints": 1,
+      "branches": [
+        "coder",
+        "reviewer",
+        "security"
+      ],
+      "restore": "native-mlx",
+      "mtime": 1787543308.0091054,
+      "root": "/Users/ashish/DECASTATE/.decastate"
+    },
+    {
+      "state_id": "coding-demo-1787536739053",
+      "model": "mlx-community/Qwen2.5-0.5B-Instruct-4bit",
+      "token_count": 2047,
+      "size_bytes": 25158060,
+      "checkpoints": 1,
+      "branches": [
+        "coder",
+        "reviewer",
+        "security"
+      ],
+      "restore": "native-mlx",
+      "mtime": 1787536739.216441,
+      "root": "/Users/ashish/DECASTATE/.decastate"
+    },
+    {
+      "state_id": "coding-demo-1787535929168",
+      "model": "mlx-community/Qwen2.5-0.5B-Instruct-4bit",
+      "token_count": 2047,
+      "size_bytes": 25158060,
+      "checkpoints": 1,
+      "branches": [
+        "coder",
+        "reviewer",
+        "security"
+      ],
+      "restore": "native-mlx",
+      "mtime": 1787535929.349765,
+      "root": "/Users/ashish/DECASTATE/.decastate"
+    }
+  ]
+}
