@@ -72,6 +72,35 @@ function gwCard(r){
       <div class="gw-row">body sha256 <b class="gw-hash">${(r.request_body_sha256||'').slice(0,16)}…</b></div>
     </div></div>`;
 }
+const GW_PRICING = {'claude-opus-5':5,'claude-opus-4-8':5,'claude-sonnet-5':2,'claude-sonnet-4-6':3,'claude-haiku-4-5':1,'claude-fable-5':10};
+async function renderGatewayTotals(records, live){
+  const el = document.querySelector('#gw-totals');
+  if (!el) return;
+  let t = null;
+  if (live) {
+    for (const port of [8799, 8787]) {
+      try { const r = await fetch(`http://127.0.0.1:${port}/savings`,{cache:'no-store'});
+        if (r.ok){ t = await r.json(); break; } } catch(_e){}
+    }
+  }
+  if (!t) { // compute from records client-side (same math, same honesty)
+    t = {requests:0, cache_read_tokens:0, est_net_saving_usd:0};
+    for (const r of records){
+      if (r.mode==='selftest' || r.status!==200) continue;
+      const u=r.usage||{}; const rate=GW_PRICING[r.model];
+      const read=u.cache_read_input_tokens||0, write=u.cache_creation_input_tokens||0;
+      t.requests++; t.cache_read_tokens+=read;
+      if (rate!=null) t.est_net_saving_usd += (read*(rate-rate*0.1) - write*(rate*0.25))/1e6;
+    }
+    t.est_net_saving_usd = Math.round(t.est_net_saving_usd*1e6)/1e6;
+  }
+  if (!t.requests){ el.innerHTML=''; return; }
+  el.innerHTML = `
+    <div class="gw-total"><b>${t.requests}</b><span>real requests measured</span></div>
+    <div class="gw-total"><b>${Number(t.cache_read_tokens).toLocaleString()}</b><span>cached tokens reused (provider-reported)</span></div>
+    <div class="gw-total accent"><b>$${t.est_net_saving_usd}</b><span>est. net input saving · provider price delta</span></div>
+    <div class="gw-total"><span class="gw-hash">read ~0.1× · write ~1.25× · published pricing · not a bill</span></div>`;
+}
 async function loadGatewayAudit(){
   const grid = document.querySelector('#gw-grid');
   const status = document.querySelector('#gw-status');
@@ -95,6 +124,7 @@ async function loadGatewayAudit(){
   status.className = live?'live':'snap';
   source.textContent = live?'audit source: live gateway /audit':'audit source: recorded gateway_audit.json';
   grid.innerHTML = records.slice(-4).reverse().map(gwCard).join('');
+  renderGatewayTotals(records, live);
 }
 loadGatewayAudit();
 

@@ -154,6 +154,75 @@ def _append_audit(report: dict, path: Path) -> None:
         handle.write(json.dumps(report) + "\n")
 
 
+def savings_summary(audit_path: Path | None = None) -> dict:
+    """Aggregate REAL (non-selftest, HTTP 200) audit records into running totals.
+
+    The $ figure is the provider's own price delta: cached input tokens billed at
+    ~0.1x instead of 1x, minus the 1.25x cache-write premium. It is computed from
+    provider-reported usage x published pricing — an estimate of money NOT billed,
+    delivered by the provider's prompt cache and measured by DecaState.
+    """
+    audit_path = audit_path or _audit_path()
+    totals = {"requests": 0, "cache_read_tokens": 0, "cache_creation_tokens": 0,
+              "uncached_input_tokens": 0, "output_tokens": 0,
+              "est_saving_usd": 0.0, "est_write_premium_usd": 0.0, "by_model": {}}
+    if not audit_path.exists():
+        return totals
+    for line in audit_path.read_text().splitlines():
+        if not line.strip():
+            continue
+        try:
+            r = json.loads(line)
+        except ValueError:
+            continue
+        if r.get("mode") == "selftest" or r.get("status") != 200:
+            continue
+        u = r.get("usage") or {}
+        model = r.get("model") or "unknown"
+        rate = PRICING.get(model)
+        read = int(u.get("cache_read_input_tokens") or 0)
+        write = int(u.get("cache_creation_input_tokens") or 0)
+        totals["requests"] += 1
+        totals["cache_read_tokens"] += read
+        totals["cache_creation_tokens"] += write
+        totals["uncached_input_tokens"] += int(u.get("input_tokens") or 0)
+        totals["output_tokens"] += int(u.get("output_tokens") or 0)
+        m = totals["by_model"].setdefault(model, {"requests": 0, "cache_read_tokens": 0,
+                                                  "est_saving_usd": 0.0})
+        m["requests"] += 1
+        m["cache_read_tokens"] += read
+        if rate is not None:
+            saving = read * (rate - rate * CACHE_READ_MULT) / 1_000_000
+            premium = write * (rate * CACHE_WRITE_MULT - rate) / 1_000_000
+            totals["est_saving_usd"] += saving
+            totals["est_write_premium_usd"] += premium
+            m["est_saving_usd"] += saving
+    totals["est_saving_usd"] = round(totals["est_saving_usd"], 6)
+    totals["est_write_premium_usd"] = round(totals["est_write_premium_usd"], 6)
+    totals["est_net_saving_usd"] = round(
+        totals["est_saving_usd"] - totals["est_write_premium_usd"], 6)
+    for m in totals["by_model"].values():
+        m["est_saving_usd"] = round(m["est_saving_usd"], 6)
+    totals["attribution"] = ("provider prompt-cache price delta (read ~0.1x, write ~1.25x), "
+                             "from provider-reported usage x published pricing; "
+                             "measured by DecaState, delivered by the provider")
+    return totals
+
+
+def print_savings(totals: dict) -> None:
+    print("DECASTATE SAVINGS TOTALS  (real forwarded requests only)")
+    print(f"  requests measured        {totals['requests']}")
+    print(f"  cached tokens reused     {totals['cache_read_tokens']:,}")
+    print(f"  cache-write tokens       {totals['cache_creation_tokens']:,}")
+    print(f"  uncached input tokens    {totals['uncached_input_tokens']:,}")
+    print(f"  est. saving (reads)      ${totals['est_saving_usd']}")
+    print(f"  est. write premium       -${totals['est_write_premium_usd']}")
+    print(f"  est. NET input saving    ${totals.get('est_net_saving_usd', 0)}")
+    for model, m in totals["by_model"].items():
+        print(f"    {model}: {m['requests']} req, {m['cache_read_tokens']:,} cached, ~${m['est_saving_usd']}")
+    print(f"  basis: {totals['attribution']}")
+
+
 def _print_report(report: dict) -> None:
     u = report["usage"]
     s = report["saving"]
@@ -215,6 +284,8 @@ def make_handler(upstream: str, audit_path: Path):
             if self.path == "/healthz":
                 body = json.dumps({"ok": True, "upstream": upstream,
                                    "audit": str(audit_path)}).encode()
+            elif self.path.startswith("/savings"):
+                body = json.dumps(savings_summary(audit_path)).encode()
             elif self.path.startswith("/audit"):
                 records = []
                 if audit_path.exists():

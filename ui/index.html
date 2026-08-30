@@ -48,6 +48,7 @@
         <section class="panel branches-panel" id="branches"><div class="panel-heading"><div><div class="eyebrow">PARALLEL WORK</div><h2>Forked agent branches</h2></div><span class="boundary">PHYSICAL COPY · NO COW CLAIM</span></div><div class="branch-grid"><div class="branch"><div class="branch-head"><span class="role-icon coder">⌘</span><div><strong>Coder</strong><small>Implement the change</small></div><span class="pass">PASS</span></div><div class="branch-stats"><span>Wake exact <b>✓</b></span><span>Fork <b>15ms</b></span></div></div><div class="branch"><div class="branch-head"><span class="role-icon reviewer">◎</span><div><strong>Reviewer</strong><small>Find edge cases</small></div><span class="pass">PASS</span></div><div class="branch-stats"><span>Wake exact <b>✓</b></span><span>Fork <b>21ms</b></span></div></div><div class="branch"><div class="branch-head"><span class="role-icon security">⊙</span><div><strong>Security</strong><small>Threat-model the diff</small></div><span class="pass">PASS</span></div><div class="branch-stats"><span>Wake exact <b>✓</b></span><span>Fork <b>20ms</b></span></div></div></div></section>
         <section class="panel gateway-panel" id="gateway"><div class="panel-heading"><div><div class="eyebrow">API GATEWAY · PROVIDER-CACHE AUDIT</div><h2>Forward byte-for-byte. Measure the provider's cache.</h2></div><span class="boundary" id="gw-status">CONNECTING…</span></div>
           <p class="gw-lede">DecaState can sit in front of Claude Code as a transparent gateway — it never summarizes, drops files, rewrites prompts, or alters tools. It proves that with per-request integrity hashes, then reads the provider's own <code>cache_read</code> / <code>cache_creation</code> usage. The saving is the provider's prompt cache; DecaState measures and protects it.</p>
+          <div class="gw-totals" id="gw-totals"></div>
           <div class="gw-grid" id="gw-grid"></div>
           <div class="gw-foot"><span id="gw-source">audit source: —</span><span>Real numbers require your own API key + real upstream · no mock savings claimed</span></div>
         </section>
@@ -56,6 +57,6 @@
       </main>
     </div>
     <div class="toast" id="toast">Claim copied to clipboard</div>
-    <script src="./app.js"></script>
+    <script src="./app.js?v=3"></script>
   </body>
 </html>

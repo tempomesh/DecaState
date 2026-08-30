@@ -96,6 +96,14 @@ def gateway(
     run_gateway(port=port, upstream=upstream)
 
 
+@app.command()
+def savings() -> None:
+    """Show cumulative provider-cache savings measured by the gateway (real requests only)."""
+    from decastate.gateway.proxy import print_savings, savings_summary
+
+    print_savings(savings_summary())
+
+
 @app.command("gateway-selftest")
 def gateway_selftest() -> None:
     """Verify gateway plumbing (byte-identical forward + usage extraction) with a local echo."""
