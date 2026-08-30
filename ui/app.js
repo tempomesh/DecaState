@@ -128,6 +128,25 @@ async function loadGatewayAudit(){
 }
 loadGatewayAudit();
 
+// ---- API added-savings card (top metrics): from the measured 3-leg experiment ----
+async function loadApiSavingCard(){
+  const pct=document.querySelector('#api-saving-pct'), sub=document.querySelector('#api-saving-sub'),
+        bar=document.querySelector('#api-saving-bar');
+  if(!pct) return;
+  try{
+    const res=await fetch('../benchmarks/results/api_added_savings.json',{cache:'no-store'});
+    if(!res.ok) throw new Error(res.status);
+    const d=await res.json(); const a=d.anthropic||{}; const o=d.openai||{};
+    if(a.added_saving_pct!=null){
+      pct.innerHTML=`+${a.added_saving_pct}<span>%</span>`;
+      bar.style.width=Math.min(100,a.added_saving_pct)+'%';
+      const oc=o.rows?` · OpenAI: ${Number(o.rows[1].cached).toLocaleString()} tok auto-cached (measured)`:'';
+      sub.textContent=`Added for NON-caching Anthropic clients (2-req pair, provider-billed)${oc}`;
+    } else { pct.textContent='n/a'; sub.textContent='run scripts/api_added_savings_proof.py'; }
+  }catch(_e){ pct.textContent='n/a'; sub.textContent='experiment results not found'; }
+}
+loadApiSavingCard();
+
 function copyClaim(){
   const claim='DecaState manages the lifecycle, persistence, branching, and portability of AI execution state.';
   navigator.clipboard?.writeText(claim);

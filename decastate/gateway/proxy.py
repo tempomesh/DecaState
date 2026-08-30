@@ -82,18 +82,64 @@ def _estimate_saving_usd(model: str | None, usage: dict) -> dict:
     }
 
 
+def _strip_cache_control(obj):
+    """Recursively remove cache_control keys (for content-equality comparison only)."""
+    if isinstance(obj, dict):
+        return {k: _strip_cache_control(v) for k, v in obj.items() if k != "cache_control"}
+    if isinstance(obj, list):
+        return [_strip_cache_control(v) for v in obj]
+    return obj
+
+
+def _inject_cache_control(raw_body: bytes) -> tuple[bytes, bool]:
+    """Opt-in mode: add a cache_control breakpoint for clients that don't cache.
+
+    Adds `cache_control: {type: ephemeral}` to the last system block (converting a
+    string system prompt to block form if needed). Model-visible CONTENT is never
+    changed — only the caching annotation. Returns (body, injected?). If the request
+    already has any cache_control, it is left completely untouched.
+    """
+    try:
+        payload = json.loads(raw_body)
+    except (ValueError, TypeError):
+        return raw_body, False
+    def has_cc_key(obj) -> bool:  # structural check: cache_control as a KEY, not as text
+        if isinstance(obj, dict):
+            return "cache_control" in obj or any(has_cc_key(v) for v in obj.values())
+        if isinstance(obj, list):
+            return any(has_cc_key(v) for v in obj)
+        return False
+
+    if has_cc_key(payload):  # client already caches → hands off entirely
+        return raw_body, False
+    system = payload.get("system")
+    if isinstance(system, str) and system:
+        payload["system"] = [{"type": "text", "text": system,
+                              "cache_control": {"type": "ephemeral"}}]
+    elif isinstance(system, list) and system and isinstance(system[-1], dict):
+        system[-1] = {**system[-1], "cache_control": {"type": "ephemeral"}}
+    else:
+        return raw_body, False
+    return json.dumps(payload).encode(), True
+
+
 def forward(raw_body: bytes, headers: dict, upstream: str, path: str = "/v1/messages",
-            timeout: float = 600.0) -> tuple[int, dict, bytes, dict]:
-    """Forward bytes unchanged to the upstream; return (status, headers, body, report)."""
+            timeout: float = 600.0, inject_cache: bool = False) -> tuple[int, dict, bytes, dict]:
+    """Forward to the upstream; byte-identical by default, opt-in cache injection."""
     body_sha = _sha(raw_body)
     fwd_headers = {k: v for k, v in headers.items() if k.lower() not in HOP_BY_HOP}
     fwd_headers.setdefault("content-type", "application/json")
     # A real User-Agent matters: some CDNs 1010-ban the default urllib UA.
     fwd_headers.setdefault("User-Agent", "DecaState-Gateway/0.1")
 
+    send_body = raw_body
+    injected = False
+    if inject_cache:
+        send_body, injected = _inject_cache_control(raw_body)
+
     url = upstream.rstrip("/") + path
-    request = urllib.request.Request(url, data=raw_body, headers=fwd_headers, method="POST")
-    sent_sha = _sha(raw_body)  # hashed at the moment of sending
+    request = urllib.request.Request(url, data=send_body, headers=fwd_headers, method="POST")
+    sent_sha = _sha(send_body)  # hashed at the moment of sending
     started = time.perf_counter()
     try:
         with urllib.request.urlopen(request, timeout=timeout) as resp:
@@ -135,7 +181,13 @@ def forward(raw_body: bytes, headers: dict, upstream: str, path: str = "/v1/mess
             "cache_read_input_tokens": usage.get("cache_read_input_tokens"),
         },
         "provider_cache_hit": cache_read > 0,
-        "prompt_integrity": "unchanged" if body_sha == sent_sha else "ALTERED",
+        "cache_injected": injected,
+        "prompt_integrity": (
+            "unchanged" if body_sha == sent_sha else
+            ("content-unchanged (cache_control injected)" if injected and
+             _sha(json.dumps(_strip_cache_control(json.loads(send_body)), sort_keys=True).encode()) ==
+             _sha(json.dumps(_strip_cache_control(json.loads(raw_body)), sort_keys=True).encode())
+             else "ALTERED")),
         "saving": _estimate_saving_usd(components.get("model"), usage),
         "attribution": "provider prompt-cache; measured by DecaState, not created by it",
     }
@@ -241,7 +293,7 @@ def _print_report(report: dict) -> None:
     print("─" * 60)
 
 
-def make_handler(upstream: str, audit_path: Path):
+def make_handler(upstream: str, audit_path: Path, inject_cache: bool = False):
     class GatewayHandler(BaseHTTPRequestHandler):
         protocol_version = "HTTP/1.1"
 
@@ -254,7 +306,7 @@ def make_handler(upstream: str, audit_path: Path):
             headers = {k: v for k, v in self.headers.items()}
             try:
                 status, resp_headers, resp_body, report = forward(
-                    raw_body, headers, upstream, path=self.path
+                    raw_body, headers, upstream, path=self.path, inject_cache=inject_cache
                 )
             except Exception as exc:  # network/transport failure — never silent
                 payload = json.dumps({"type": "error", "error": {
@@ -311,9 +363,9 @@ def make_handler(upstream: str, audit_path: Path):
 
 
 def run_gateway(port: int = 8787, upstream: str = DEFAULT_UPSTREAM,
-                audit_path: Path | None = None) -> None:
+                audit_path: Path | None = None, inject_cache: bool = False) -> None:
     audit_path = audit_path or _audit_path()
-    handler = make_handler(upstream, audit_path)
+    handler = make_handler(upstream, audit_path, inject_cache=inject_cache)
     server = ThreadingHTTPServer(("127.0.0.1", port), handler)
     print(f"DecaState gateway on http://127.0.0.1:{port}  →  {upstream}")
     print(f"audit log: {audit_path}")

@@ -27,9 +27,18 @@ itself turn a cache "miss" into a "hit" for Claude Code — its honest value her
 - **measurement** — surfacing your real cache-read vs cache-creation token split, and
 - **integrity** — proving the forwarded prompt was not altered.
 
-For clients that do **not** already cache, a future mode can inject `cache_control`
-breakpoints to make the provider cache hit — that is where DecaState would add real
-savings. That mode is not enabled yet and is not claimed.
+For clients that do **not** already cache, the opt-in `--inject-cache` mode adds a
+`cache_control` breakpoint (model-visible content is never altered; the report says
+`content-unchanged (cache_control injected)` instead of `unchanged`). **Measured result
+(2026-08-30, real billed requests, claude-haiku-4-5, ~13K-token prefix):** a non-caching
+client paid $0.026070 input for a 2-request pair direct; through `--inject-cache` it paid
+$0.017606 — **DecaState added a 32.5% input saving**, and every further same-prefix
+request within the TTL saves ~90% of the prefix. Evidence:
+`benchmarks/results/api_added_savings.json` (`scripts/api_added_savings_proof.py`).
+
+**OpenAI:** caching is automatic (~50% off cached tokens, ≥1024-token prefixes) — no
+gateway can add hits there. Measured: request 2 reused 10,752–10,880 cached tokens
+automatically. On OpenAI, DecaState's role is measurement only.
 
 The `$` figures are **illustrations**: provider-reported cached tokens × published
 per-model input pricing (cache read ≈ 0.1×, cache write ≈ 1.25×). They are not a bill.

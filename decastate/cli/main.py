@@ -89,11 +89,14 @@ def doctor() -> None:
 def gateway(
     port: int = typer.Option(8787, help="Local port for the gateway."),
     upstream: str = typer.Option("https://api.anthropic.com", help="Provider base URL."),
+    inject_cache: bool = typer.Option(False, "--inject-cache",
+                                      help="Add cache_control for clients that don't cache "
+                                           "(content never altered; reported honestly)."),
 ) -> None:
     """Run the honest API gateway: byte-identical forwarding + provider-cache audit."""
     from decastate.gateway.proxy import run_gateway
 
-    run_gateway(port=port, upstream=upstream)
+    run_gateway(port=port, upstream=upstream, inject_cache=inject_cache)
 
 
 @app.command()

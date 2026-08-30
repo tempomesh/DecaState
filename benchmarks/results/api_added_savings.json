@@ -1,0 +1,53 @@
+{
+  "anthropic": {
+    "baseline_rows": [
+      {
+        "input": 13036,
+        "output": 30,
+        "cache_creation": 0,
+        "cache_read": 0
+      },
+      {
+        "input": 13034,
+        "output": 30,
+        "cache_creation": 0,
+        "cache_read": 0
+      }
+    ],
+    "gateway_rows": [
+      {
+        "input": 15,
+        "output": 30,
+        "cache_creation": 13021,
+        "cache_read": 0
+      },
+      {
+        "input": 13,
+        "output": 30,
+        "cache_creation": 0,
+        "cache_read": 13021
+      }
+    ],
+    "baseline_input_cost_usd": 0.02607,
+    "gateway_input_cost_usd": 0.017606,
+    "added_saving_usd": 0.008464,
+    "added_saving_pct": 32.5,
+    "honest_scope": "DecaState ADDS this saving only for clients that don't already set cache_control; Claude Code already caches, so there it measures rather than adds."
+  },
+  "openai": {
+    "rows": [
+      {
+        "prompt": 10915,
+        "completion": 30,
+        "cached": 4224
+      },
+      {
+        "prompt": 10913,
+        "completion": 30,
+        "cached": 10880
+      }
+    ],
+    "est_saving_usd": 0.000816,
+    "honest_scope": "OpenAI caches automatically (~50% off cached tokens, >=1024-token prefixes); no gateway can add hits \u2014 DecaState's role on OpenAI is measurement only."
+  }
+}
