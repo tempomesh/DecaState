@@ -109,3 +109,63 @@ Every claim maps to a script and a results file in the repo. MIT licensed.
 | Who misses it | raw scripts, custom agents | ~nobody |
 | DecaState adds | +32.5% measured (2 reqs); ~90%/req after | nothing — measures only |
 | DecaState guarantees | byte-identical forward, SHA-256 audit | same |
+
+---
+
+## HOW DecaState does it — mechanism diagrams (for posts, decks, README)
+
+### The core mechanic: DecaState "asks" for the discount your client forgot
+
+```text
+ YOUR AGENT                DECASTATE GATEWAY                  ANTHROPIC API
+     │                      (localhost, yours)                      │
+     ├─► request ──────────► 1. SHA-256 everything                  │
+     │   (repo context,      2. already has cache_control?          │
+     │    no cache_control)     YES → touch nothing, measure        │
+     │                          NO  → add ONE annotation:           │
+     │                               cache_control: ephemeral       │
+     │                               (model sees identical words)   │
+     │                       3. forward ──────────────────────────► │ bills repeated
+     │                       4. read usage.cache_read ◄──────────── │ prefix at 0.1×
+     │ ◄── response ─────────5. log → audit.jsonl                   │
+     │     (untouched)          `decastate savings` = running total │
+```
+
+### Before / after billing
+
+```text
+ WITHOUT DECASTATE                        WITH DECASTATE (--inject-cache)
+ req 1  ████████████ 13,036 @ full        req 1  ████████████ 13,021 @ 1.25× (once)
+ req 2  ████████████ 13,034 @ full        req 2  ▌13,021 @ 0.1×  ◄── 90% off
+ req N  ████████████ full AGAIN           req N  ▌~90% off, every time (within TTL)
+
+ real 2-request bills:  $0.026070  →  $0.017606  =  32.5% SAVED (grows per request)
+```
+
+### Why the number is trustworthy
+
+```text
+ sha256(what you sent) ──┐
+                         ├── MUST MATCH (or the cache_control-only diff is DECLARED)
+ sha256(what API got) ───┘
+ savings = the PROVIDER's usage fields, never timing guesses
+ every request = one replayable line in audit.jsonl
+```
+
+### The whole story (hero shot)
+
+```text
+                    ◈  D E C A S T A T E
+                 "pay for understanding ONCE"
+                             │
+          ┌──────────────────┴──────────────────┐
+          ▼                                     ▼
+   LOCAL RUNTIME (core)                 API GATEWAY (companion)
+   save real KV state → disk            inject the cache opt-in
+   kill / reboot / fork                 clients forget to claim
+   wake byte-exact, 0 re-read           90% off repeated context
+   13.7× faster resume                  +32.5% measured (2 reqs)
+          └──────────────────┬──────────────────┘
+                             ▼
+             same context, never paid for twice
+```
