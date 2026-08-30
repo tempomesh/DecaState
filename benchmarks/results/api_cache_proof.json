@@ -1,0 +1,41 @@
+{
+  "model": "claude-haiku-4-5",
+  "approx_context_tokens": 9634,
+  "direct": {
+    "ok": true,
+    "model": "claude-haiku-4-5",
+    "req1": {
+      "input": 17,
+      "output": 40,
+      "cache_creation": 0,
+      "cache_read": 11238
+    },
+    "req2": {
+      "input": 15,
+      "output": 40,
+      "cache_creation": 0,
+      "cache_read": 11238
+    },
+    "cache_hit_on_repeat": true,
+    "est_saving_usd": 0.010114
+  },
+  "gateway": {
+    "ok": true,
+    "model": "claude-haiku-4-5",
+    "req1": {
+      "input": 17,
+      "output": 33,
+      "cache_creation": 0,
+      "cache_read": 11238
+    },
+    "req2": {
+      "input": 15,
+      "output": 40,
+      "cache_creation": 0,
+      "cache_read": 11238
+    },
+    "cache_hit_on_repeat": true,
+    "est_saving_usd": 0.010114
+  },
+  "attribution": "provider prompt-cache; measured, not created by DecaState"
+}

@@ -1,33 +1,65 @@
 {
   "records": [
     {
-      "timestamp": 1787993275.519134,
+      "timestamp": 1788077854.718773,
       "upstream": "https://api.anthropic.com",
-      "status": 401,
-      "latency_ms": 291.5,
-      "model": "claude-sonnet-5",
+      "status": 200,
+      "latency_ms": 1113.2,
+      "model": "claude-haiku-4-5",
       "byte_identical_forward": true,
-      "request_body_sha256": "adcf2a7fd6075825dec61fb00954eb6e5f67743cfbca8a31ca612764b52a33de",
-      "forwarded_body_sha256": "adcf2a7fd6075825dec61fb00954eb6e5f67743cfbca8a31ca612764b52a33de",
-      "system_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+      "request_body_sha256": "bc3f98f019da0d5c7dee2ab1b078e3307193c7939848c1d3a163df4ec4bee209",
+      "forwarded_body_sha256": "bc3f98f019da0d5c7dee2ab1b078e3307193c7939848c1d3a163df4ec4bee209",
+      "system_sha256": "c14d832cc9e13dc47a65fc3555e1c234e8d2b81cf5b5b8ca82367a53aa05e375",
       "tools_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
-      "messages_sha256": "4e79873118cd9be7a1f0308b9cd772950c5410c74ca3fe1ba2626cba009a9237",
+      "messages_sha256": "9d0b62d6f19e180bd9c6a19cca491d8ae916a87c8fafe1f30cf24b9b975e2570",
       "tool_count": 0,
       "message_count": 1,
       "usage": {
-        "input_tokens": null,
-        "output_tokens": null,
-        "cache_creation_input_tokens": null,
-        "cache_read_input_tokens": null
+        "input_tokens": 17,
+        "output_tokens": 33,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 11238
       },
-      "provider_cache_hit": false,
+      "provider_cache_hit": true,
       "prompt_integrity": "unchanged",
       "saving": {
-        "input_rate_per_mtok_usd": 2.0,
-        "cache_read_tokens": 0,
-        "cache_read_saving_usd": 0.0,
+        "input_rate_per_mtok_usd": 1.0,
+        "cache_read_tokens": 11238,
+        "cache_read_saving_usd": 0.010114,
         "cache_write_premium_usd": 0.0,
-        "net_input_saving_usd": 0.0,
+        "net_input_saving_usd": 0.010114,
+        "note": "provider-reported cached tokens x published pricing; illustration, not a bill"
+      },
+      "attribution": "provider prompt-cache; measured by DecaState, not created by it"
+    },
+    {
+      "timestamp": 1788077857.359898,
+      "upstream": "https://api.anthropic.com",
+      "status": 200,
+      "latency_ms": 1630.5,
+      "model": "claude-haiku-4-5",
+      "byte_identical_forward": true,
+      "request_body_sha256": "d53f67f1be1e0a5ed3a7faac2f3a581c4cccf4a49a7fbfd2e05937de2c2437e0",
+      "forwarded_body_sha256": "d53f67f1be1e0a5ed3a7faac2f3a581c4cccf4a49a7fbfd2e05937de2c2437e0",
+      "system_sha256": "c14d832cc9e13dc47a65fc3555e1c234e8d2b81cf5b5b8ca82367a53aa05e375",
+      "tools_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+      "messages_sha256": "d102b83a8d0ff9d127df1fc41306847d0f5ea12a841a81c3d38f586ab3c3a740",
+      "tool_count": 0,
+      "message_count": 1,
+      "usage": {
+        "input_tokens": 15,
+        "output_tokens": 40,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 11238
+      },
+      "provider_cache_hit": true,
+      "prompt_integrity": "unchanged",
+      "saving": {
+        "input_rate_per_mtok_usd": 1.0,
+        "cache_read_tokens": 11238,
+        "cache_read_saving_usd": 0.010114,
+        "cache_write_premium_usd": 0.0,
+        "net_input_saving_usd": 0.010114,
         "note": "provider-reported cached tokens x published pricing; illustration, not a bill"
       },
       "attribution": "provider prompt-cache; measured by DecaState, not created by it"
