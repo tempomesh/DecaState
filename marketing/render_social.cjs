@@ -5,7 +5,7 @@ fs.mkdirSync(OUT, { recursive: true });
 (async () => {
   const b = await chromium.launch();
   const p = await b.newPage({ viewport: { width: 1080, height: 1080 } });
-  await p.goto('file://' + path.join(__dirname, 'social_film2.html'));
+  await p.goto('file://' + path.join(__dirname, 'social_film3.html'));
   await p.waitForFunction('window.renderFrame && document.fonts.ready');
   await p.waitForTimeout(600);
   const dur = await p.evaluate('window.FILM_DURATION');
