@@ -134,14 +134,20 @@ async function loadApiSavingCard(){
         bar=document.querySelector('#api-saving-bar');
   if(!pct) return;
   try{
+    const sres=await fetch('../benchmarks/results/api_session_savings.json',{cache:'no-store'});
+    if(sres.ok){ const s=await sres.json();
+      pct.innerHTML=`−${s.saved_pct}<span>%</span>`;
+      bar.style.width=Math.min(100,s.saved_pct)+'%';
+      sub.textContent=`Input cost over a real ${s.requests_per_leg}-request session ($${s.direct_input_cost_usd.toFixed(4)}→$${s.gateway_input_cost_usd.toFixed(4)}, provider-billed) · non-caching clients`;
+      return;
+    }
     const res=await fetch('../benchmarks/results/api_added_savings.json',{cache:'no-store'});
     if(!res.ok) throw new Error(res.status);
-    const d=await res.json(); const a=d.anthropic||{}; const o=d.openai||{};
+    const d=await res.json(); const a=d.anthropic||{};
     if(a.added_saving_pct!=null){
       pct.innerHTML=`+${a.added_saving_pct}<span>%</span>`;
       bar.style.width=Math.min(100,a.added_saving_pct)+'%';
-      const oc=o.rows?` · OpenAI: ${Number(o.rows[1].cached).toLocaleString()} tok auto-cached (measured)`:'';
-      sub.textContent=`Added for NON-caching Anthropic clients (2-req pair, provider-billed)${oc}`;
+      sub.textContent='Added for NON-caching Anthropic clients (2-req pair, provider-billed)';
     } else { pct.textContent='n/a'; sub.textContent='run scripts/api_added_savings_proof.py'; }
   }catch(_e){ pct.textContent='n/a'; sub.textContent='experiment results not found'; }
 }

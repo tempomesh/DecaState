@@ -1,0 +1,23 @@
+{
+  "model": "claude-haiku-4-5",
+  "requests_per_leg": 10,
+  "direct_input_cost_usd": 0.137822,
+  "gateway_input_cost_usd": 0.029735,
+  "saved_usd": 0.108087,
+  "saved_pct": 78.4,
+  "direct": {
+    "ok": true,
+    "input_cost_usd": 0.137822,
+    "full_tokens": 137822,
+    "write_tokens": 0,
+    "read_tokens": 0
+  },
+  "gateway": {
+    "ok": true,
+    "input_cost_usd": 0.029735,
+    "full_tokens": 132,
+    "write_tokens": 13769,
+    "read_tokens": 123921
+  },
+  "honest_scope": "non-caching Anthropic clients; same-prefix requests within the ~5-min TTL (refreshed per read); asymptote 90% = Anthropic's own cache-read pricing; provider-billed usage"
+}
