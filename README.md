@@ -72,6 +72,14 @@ The speedup **grows with context length** — that's the point. Cold rebuild cos
 
 ## Stop paying to read the same repo twice
 
+<div align="center">
+
+![Measured: 78% input-cost reduction over a real 10-request session](marketing/decastate_social3_1x1.gif)
+
+*One real 10-request agent session, provider-billed: direct **$0.1378** vs via DecaState **$0.0297** — **78% saved**, zero prompt bytes changed (SHA-256 proven). Reproduce: `scripts/api_session_savings_proof.py`.*
+
+</div>
+
 You already pay to process your context once — in tokens, in GPU seconds, in battery, in the seconds you sit watching an agent "read the codebase." That's fine. **You should only pay it once.**
 
 Today you don't. Every restart, every crash, every new agent re-processes context the model *already understood*. That re-processing is pure waste — and it's exactly what DecaState eliminates.
