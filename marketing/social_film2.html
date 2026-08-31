@@ -1,0 +1,103 @@
+<meta charset="utf-8" />
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=Manrope:wght@500;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:1080px;height:1080px;overflow:hidden;background:#07090e;font-family:'Manrope',sans-serif}
+  .grid{position:fixed;inset:0;background-image:linear-gradient(rgba(195,245,60,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(195,245,60,.05) 1px,transparent 1px);background-size:54px 54px}
+  .brand{position:fixed;top:52px;left:70px;right:70px;display:flex;justify-content:space-between;align-items:center;z-index:5}
+  .brand .l{font-weight:800;font-size:30px;color:#e9edf5}.brand .l span{color:#c3f53c}
+  .brand .r{font-family:'JetBrains Mono',monospace;font-size:17px;color:#7f8aa3}
+  .scene{position:absolute;inset:0;opacity:0;transition:opacity .4s ease;display:flex;flex-direction:column;justify-content:center;padding:70px}
+  .scene.on{opacity:1}
+  .eyebrow{font-family:'JetBrains Mono',monospace;font-size:19px;letter-spacing:.26em;color:#c3f53c;margin-bottom:30px}
+  h1{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:88px;line-height:1.05;color:#e9edf5;letter-spacing:-.02em}
+  h1 .em{color:#c3f53c}h1 .bad{color:#ff8f88}
+  /* race scene */
+  .lane{margin-top:40px}
+  .lane-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px}
+  .lane-head .n{font-size:26px;font-weight:700;color:#e9edf5}
+  .money{font-family:'JetBrains Mono',monospace;font-size:44px;font-weight:700}
+  .money.bad{color:#ff8f88}.money.good{color:#c3f53c}
+  .bars{display:flex;gap:10px;height:150px;align-items:flex-end}
+  .b{flex:1;border-radius:6px 6px 0 0;background:linear-gradient(180deg,#ff8f88,#a34f4a);opacity:0}
+  .b.on{opacity:1}
+  .b.lime{background:linear-gradient(180deg,#c3f53c,#7fa826)}
+  .lane-sub{font-family:'JetBrains Mono',monospace;font-size:18px;color:#5f6b85;margin-top:12px}
+  .verdict{margin-top:46px;text-align:center;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:64px;color:#c3f53c;opacity:0;transition:opacity .4s}
+  .verdict.on{opacity:1}
+  /* proof scene */
+  .hashrow{display:grid;gap:22px;margin-top:44px}
+  .hcard{border:1px solid #1c2230;background:#0d1219;border-radius:16px;padding:28px 32px;font-family:'JetBrains Mono',monospace;font-size:23px;color:#8b97b0;opacity:0;transform:translateY(14px);transition:all .35s}
+  .hcard.in{opacity:1;transform:none}
+  .hcard b{color:#c3f53c;font-weight:500}
+  .hcard .h{color:#e9edf5}
+  /* cta */
+  .cta{text-align:center;align-items:center}
+  .cta h1{font-size:96px}
+  .clone{margin:42px auto 0;font-family:'JetBrains Mono',monospace;font-size:30px;color:#c3f53c;border:1.5px dashed rgba(195,245,60,.45);border-radius:14px;padding:22px 34px;display:inline-block}
+  .cta .k{margin-top:28px;font-size:25px;color:#8b97b0}
+</style>
+<div class="grid"></div>
+<div class="brand"><div class="l"><span>◈</span> DecaState</div><div class="r">MEASURED · REAL BILLED REQUESTS</div></div>
+
+<div class="scene" id="s1">
+  <div class="eyebrow">SAME AGENT · SAME 10 REQUESTS · SAME MODEL</div>
+  <h1>We ran the <span class="bad">same session</span><br/>twice and watched<br/>the <span class="em">bill.</span></h1>
+</div>
+
+<div class="scene" id="s2">
+  <div class="eyebrow">ONE REAL 10-REQUEST CODING-AGENT SESSION</div>
+  <div class="lane">
+    <div class="lane-head"><span class="n">Direct</span><span class="money bad" id="m1">$0.0000</span></div>
+    <div class="bars" id="bars1"></div>
+    <div class="lane-sub">full input price, every single request</div>
+  </div>
+  <div class="lane">
+    <div class="lane-head"><span class="n">via DecaState</span><span class="money good" id="m2">$0.0000</span></div>
+    <div class="bars" id="bars2"></div>
+    <div class="lane-sub">pays for understanding once — then pennies</div>
+  </div>
+  <div class="verdict" id="verdict">−78% input cost. Same output.</div>
+</div>
+
+<div class="scene" id="s3">
+  <div class="eyebrow">NO TRICKS · NO TRIMMING · NO REWRITES</div>
+  <h1>Zero bytes of your<br/>prompt <span class="em">changed.</span></h1>
+  <div class="hashrow">
+    <div class="hcard" id="h1">what you sent      <span class="h">sha256 · adcf2a7fd607…</span></div>
+    <div class="hcard" id="h2">what the API got   <span class="h">sha256 · adcf2a7fd607…</span>  <b>MATCH ✓</b></div>
+    <div class="hcard" id="h3">savings source     <b>the provider's own bill</b> — never timing guesses</div>
+  </div>
+</div>
+
+<div class="scene cta" id="s4">
+  <h1>Pay for understanding<br/><span class="em">once.</span></h1>
+  <div class="clone">decastate.com</div>
+  <p class="k">⭐ github.com/tempomesh/DecaState · open source · MIT</p>
+</div>
+
+<script>
+const S1=3.0, S2=10.2, S3=13.6, S4=16.4;
+window.FILM_DURATION=S4;
+// build bars: direct = 10 tall coral; decastate = 1 mid lime + 9 tiny lime
+const b1=document.getElementById('bars1'), b2=document.getElementById('bars2');
+for(let i=0;i<10;i++){const d=document.createElement('div');d.className='b';d.style.height='92%';b1.appendChild(d);
+  const g=document.createElement('div');g.className='b lime';g.style.height=(i===0?'100%':'9%');b2.appendChild(g);}
+const DIRECT=0.137822, GATE=0.029735;
+window.renderFrame=function(t){
+  const on=id=>{document.querySelectorAll('.scene').forEach(s=>s.classList.toggle('on',s.id===id));};
+  if(t<S1){on('s1');}
+  else if(t<S2){on('s2');
+    const dt=t-S1, per=0.52, n=Math.min(10,Math.floor(dt/per)+ (dt%per>0.1?1:0));
+    [...b1.children].forEach((el,i)=>el.classList.toggle('on',i<n));
+    [...b2.children].forEach((el,i)=>el.classList.toggle('on',i<n));
+    const frac=Math.min(1,dt/(per*10));
+    document.getElementById('m1').textContent='$'+(DIRECT*frac).toFixed(4);
+    document.getElementById('m2').textContent='$'+((frac<=0.1? GATE*0.63*(frac/0.1) : GATE*0.63+GATE*0.37*((frac-0.1)/0.9))).toFixed(4);
+    document.getElementById('verdict').classList.toggle('on',dt>per*10+0.35);}
+  else if(t<S3){on('s3');
+    const dt=t-S2;['h1','h2','h3'].forEach((id,i)=>document.getElementById(id).classList.toggle('in',dt>0.25+i*0.5));}
+  else{on('s4');}
+};
+renderFrame(0);
+</script>
