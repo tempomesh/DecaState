@@ -2,9 +2,9 @@
 
 # DecaState
 
-### You already paid to understand your codebase. Stop paying for it again.
+### You already paid your LLM to understand your codebase. Stop paying it again.
 
-Your coding agent reads your whole repo to understand it — then a restart, a crash, or a second agent makes it read the **whole thing again, from zero.** You pay for the same context twice, five times, ten times a day. **DecaState makes you pay once.**
+Every restart, crash, or extra agent re-sends your whole repo to **Anthropic or OpenAI at full input-token price** — or re-burns your own **GPU's time** locally. Same bytes, billed again: twice, five times, ten times a day. **DecaState makes you pay for understanding once.**
 
 **Persist · Wake · Checkpoint · Rollback · Fork — real inference state, on your Mac.**
 

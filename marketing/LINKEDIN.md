@@ -4,6 +4,9 @@
 
 Use one as your first line, tweet, headline, or thumbnail text. Short = shareable.
 
+- **You're paying your LLM twice for the same codebase.** (the payee-named winner)
+- **You already paid Anthropic to read your repo. Why are you paying again?**
+- **Your OpenAI bill has a line item called "re-reading what it already knew."**
 - **You already paid to understand your codebase. Stop paying for it again.**
 - **Your AI reads your repo once. You pay for it every single restart.**
 - **Stop paying twice to understand the same codebase.**
