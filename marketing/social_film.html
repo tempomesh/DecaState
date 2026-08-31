@@ -1,0 +1,98 @@
+<meta charset="utf-8" />
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=Manrope:wght@500;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:1080px;height:1080px;overflow:hidden;background:#07090e;font-family:'Manrope',sans-serif}
+  .grid{position:fixed;inset:0;background-image:linear-gradient(rgba(195,245,60,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(195,245,60,.05) 1px,transparent 1px);background-size:54px 54px}
+  .scene{position:absolute;inset:0;opacity:0;transition:opacity .45s ease;display:flex;flex-direction:column;justify-content:center;padding:70px}
+  .scene.on{opacity:1}
+  .brand{position:fixed;top:52px;left:70px;right:70px;display:flex;justify-content:space-between;align-items:center;z-index:5}
+  .brand .l{font-weight:800;font-size:30px;color:#e9edf5}.brand .l span{color:#c3f53c}
+  .brand .r{font-family:'JetBrains Mono',monospace;font-size:17px;color:#7f8aa3}
+  /* S1 hero */
+  .eyebrow{font-family:'JetBrains Mono',monospace;font-size:19px;letter-spacing:.3em;color:#c3f53c;margin-bottom:34px}
+  h1{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:92px;line-height:1.04;color:#e9edf5;letter-spacing:-.02em}
+  h1 .bad{color:#ff8f88}h1 .em{color:#c3f53c}
+  .sub{margin-top:36px;font-size:29px;color:#8b97b0;line-height:1.5;max-width:850px;font-weight:500}
+  .sub b{color:#e9edf5}
+  /* S2 terminal */
+  .term{border:1px solid #1c2230;border-radius:18px;background:#0a0d13;height:800px;overflow:hidden;box-shadow:0 30px 90px rgba(0,0,0,.55)}
+  .tbar{height:52px;background:#11151d;display:flex;align-items:center;padding:0 20px;gap:10px;border-bottom:1px solid #171c27}
+  .tbar i{width:13px;height:13px;border-radius:50%}.tbar .t{margin-left:14px;font-family:'JetBrains Mono',monospace;font-size:17px;color:#7f8aa3}
+  .tbody{padding:28px 32px;font-family:'JetBrains Mono',monospace;font-size:24px;line-height:1.62;white-space:pre-wrap;color:#cdd6e6}
+  .p{color:#7f8aa3}.g{color:#c3f53c}.w{color:#e9edf5}.y{color:#f5c451}.d{color:#7f8aa3}
+  .cur{display:inline-block;width:13px;height:26px;background:#c3f53c;vertical-align:-4px}
+  /* S3 stats */
+  .stats{display:grid;gap:26px}
+  .stat{border:1px solid #1c2230;background:#0d1219;border-radius:20px;padding:40px 46px;display:flex;align-items:baseline;gap:28px;opacity:0;transform:translateY(18px);transition:all .4s ease}
+  .stat.in{opacity:1;transform:none}
+  .stat b{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:74px;color:#c3f53c;min-width:290px}
+  .stat span{font-size:27px;color:#8b97b0;font-weight:500}
+  .stats-title{font-family:'JetBrains Mono',monospace;font-size:20px;letter-spacing:.28em;color:#c3f53c;margin-bottom:40px}
+  .stats-foot{margin-top:34px;font-family:'JetBrains Mono',monospace;font-size:18px;color:#5f6b85}
+  /* S4 cta */
+  .cta{text-align:center;align-items:center}
+  .cta h1{font-size:100px}
+  .clone{margin:44px auto 0;font-family:'JetBrains Mono',monospace;font-size:30px;color:#c3f53c;border:1.5px dashed rgba(195,245,60,.45);border-radius:14px;padding:22px 34px;display:inline-block}
+  .cta .k{margin-top:30px;font-size:26px;color:#8b97b0}
+</style>
+<div class="grid"></div>
+<div class="brand"><div class="l"><span>◈</span> DecaState</div><div class="r" id="brandr">THE AI STATE RUNTIME</div></div>
+
+<div class="scene" id="s1">
+  <div class="eyebrow">OPEN SOURCE · MIT · MEASURED, NOT MARKETED</div>
+  <h1>You're paying your<br/>LLM <span class="bad">twice</span> for the<br/>same <span class="em">codebase.</span></h1>
+  <p class="sub">Every restart re-sends your repo to <b>Anthropic or OpenAI at full input-token price</b> — or re-burns your GPU. The model already understood it.</p>
+</div>
+
+<div class="scene" id="s2">
+  <div class="term"><div class="tbar"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i><span class="t">~/DecaState — zsh · Apple M4 Max · 64 GB</span></div>
+  <div class="tbody" id="tbody"></div></div>
+</div>
+
+<div class="scene" id="s3">
+  <div class="stats-title">ALL NUMBERS MEASURED · REPRODUCIBLE IN MINUTES</div>
+  <div class="stats">
+    <div class="stat" id="st1"><b>100%</b><span>of redundant repo re-reading eliminated — 0 tokens re-read on wake</span></div>
+    <div class="stat" id="st2"><b>13.7×</b><span>faster to wake saved state than to rebuild it (grows with context)</span></div>
+    <div class="stat" id="st3"><b>+32.5%</b><span>API input saving added for non-caching clients — real billed A/B test</span></div>
+  </div>
+  <div class="stats-foot">every claim = a script + a results file in the repo · failed experiments published too</div>
+</div>
+
+<div class="scene cta" id="s4">
+  <h1>Pay for understanding<br/><span class="em">once.</span></h1>
+  <div class="clone">decastate.com</div>
+  <p class="k">⭐ github.com/tempomesh/DecaState · Apple Silicon · MIT</p>
+</div>
+
+<script>
+const T = [
+  {t:'$ ',c:'p'},{t:'decastate understand .\n',c:'w',pause:350},
+  {t:'  ✓ ',c:'g',i:1},{t:'8,486 tokens',c:'w',i:1},{t:' of repo understood → ',c:'d',i:1},{t:'99 MB',c:'y',i:1},{t:' native state\n',c:'d',i:1,pause:520},
+  {t:'$ ',c:'p'},{t:'decastate fork reviewer\n',c:'w',pause:300},
+  {t:'  ✓ ',c:'g',i:1},{t:'agent forked from that understanding in ',c:'d',i:1},{t:'0.066 s\n',c:'g',i:1,pause:520},
+  {t:'# … kill the process. reboot the Mac …\n',c:'d',pause:450},
+  {t:'$ ',c:'p'},{t:'decastate rollback repo repo-understood\n',c:'w',pause:300},
+  {t:'  ✓ ',c:'g',i:1},{t:'restored · ',c:'d',i:1},{t:'0 tokens re-read',c:'y',i:1},{t:' · byte-exact\n',c:'d',i:1,pause:650},
+];
+let STREAM=[];const CPS=55;
+T.forEach(s=>{const dt=s.i?0:1000/CPS;for(const ch of s.t)STREAM.push({ch,c:s.c,dt});if(s.pause)STREAM.push({ch:'',c:s.c,dt:s.pause});});
+let cum=0;STREAM.forEach(s=>{cum+=s.dt;s.time=cum;});
+const TERM_LEN=cum/1000;
+const S1=3.4, S2=S1+TERM_LEN+0.6, S3=S2+3.6, S4=S3+2.6;
+window.FILM_DURATION=S4;
+function esc(c){return c==='\n'?'<br/>':(c==='<'?'&lt;':(c==='>'?'&gt;':c));}
+window.renderFrame=function(t){
+  const on=id=>{document.querySelectorAll('.scene').forEach(s=>s.classList.toggle('on',s.id===id));};
+  if(t<S1){on('s1');}
+  else if(t<S2){on('s2');
+    const ms=(t-S1)*1000;let html='';
+    for(const s of STREAM){if(s.time>ms)break;if(s.ch)html+=`<span class="${s.c}">${esc(s.ch)}</span>`;}
+    document.getElementById('tbody').innerHTML=html+((Math.floor(t*2)%2===0)?'<span class="cur"></span>':'');}
+  else if(t<S3){on('s3');
+    const dt=t-S2;['st1','st2','st3'].forEach((id,i)=>document.getElementById(id).classList.toggle('in',dt>0.25+i*0.55));}
+  else{on('s4');}
+};
+renderFrame(0);
+</script>
