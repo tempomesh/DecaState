@@ -169,3 +169,39 @@ Every claim maps to a script and a results file in the repo. MIT licensed.
                              ▼
              same context, never paid for twice
 ```
+
+---
+
+## Show HN: Context Guard (the second post, once Guard ships publicly)
+
+**Title:** Show HN: I got tired of Claude Code's compaction eating my session, so my sessions checkpoint themselves now
+
+**Body:**
+
+When Claude Code's context fills up, it summarizes your history — and exact
+numbers, tool outputs, and decisions from mid-session can degrade or vanish.
+
+Context Guard hooks Claude Code's PreCompact event and, before every compaction:
+archives the full raw transcript (hashed, local-only), builds a structured
+checkpoint (goals / files / commands / test signals), and indexes 100% of the
+session as verbatim evidence. Later: `decastate guard-recall "<query>"` returns
+the exact original bytes with timestamp provenance — not a summary of a summary.
+
+The design rule that matters: **Guard never summarizes.** No model calls. The
+raw archive is the source of truth; the checkpoint is a map. A tool that fixes
+lossy summarization with more summarization would be selling the disease as
+the cure.
+
+Dogfood numbers (run on the actual session that built the feature): 9.9 MB /
+2,272-record transcript → 801 verbatim evidence entries, checkpointed in 0.052s;
+recall retrieved exact file contents from day 1 of a week-long session, past
+every compaction in between.
+
+What it does NOT do (so you don't have to ask): can't prevent compaction,
+can't touch Anthropic's server-side KV cache, can't measure subscription
+dollars. Whether checkpoint+recall beats default compaction on quality/tokens
+is pre-registered as an A/B in the repo — results get published either way,
+including if default compaction wins.
+
+MIT. Local files only. Part of DecaState (an AI State Runtime — same philosophy
+at the API level: measured, hash-proven, no invented numbers).

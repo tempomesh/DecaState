@@ -99,6 +99,76 @@ def gateway(
     run_gateway(port=port, upstream=upstream, inject_cache=inject_cache)
 
 
+@app.command("guard-checkpoint")
+def guard_checkpoint(
+    transcript: Path = typer.Argument(..., exists=True, readable=True, dir_okay=False),
+) -> None:
+    """Archive a Claude Code transcript + build a structured checkpoint and evidence index."""
+    from decastate.guard.manager import checkpoint
+
+    manifest = checkpoint(transcript)
+    print(json.dumps({k: manifest[k] for k in
+                      ("session_id", "raw_archive", "stats", "seconds", "paths", "honesty")}, indent=2))
+
+
+@app.command("guard-precompact")
+def guard_precompact() -> None:
+    """PreCompact hook entrypoint: reads Claude Code hook JSON on stdin, checkpoints the session."""
+    import sys
+
+    from decastate.guard.manager import checkpoint, guard_home
+
+    try:
+        payload = json.loads(sys.stdin.read() or "{}")
+    except ValueError:
+        payload = {}
+    transcript = payload.get("transcript_path")
+    if not transcript or not Path(transcript).exists():
+        print(json.dumps({"guard": "skipped", "reason": "no transcript_path in hook payload"}))
+        raise typer.Exit(code=0)  # never block compaction
+    try:
+        manifest = checkpoint(Path(transcript), session_id=payload.get("session_id"),
+                              trigger=payload.get("trigger", "precompact"))
+        print(json.dumps({"guard": "checkpointed", "archive": manifest["raw_archive"],
+                          "evidence_entries": manifest["stats"]["evidence_entries"],
+                          "brief": manifest["paths"]["brief"]}))
+    except Exception as exc:  # a guard failure must NEVER break the user's session
+        (guard_home() / "errors.log").open("a").write(f"{time.time()} {exc}\n")
+        print(json.dumps({"guard": "error", "detail": str(exc)}))
+    raise typer.Exit(code=0)
+
+
+@app.command("guard-recall")
+def guard_recall(
+    query: str = typer.Argument(...),
+    limit: int = typer.Option(5),
+) -> None:
+    """Retrieve EXACT original evidence (verbatim, with provenance) from archived sessions."""
+    from decastate.guard.manager import recall
+
+    hits = recall(query, limit=limit)
+    if not hits:
+        print("no evidence found; archives may be empty (run guard-checkpoint first)")
+        raise typer.Exit(code=1)
+    for h in hits:
+        print(f"--- score={h['score']} · {h.get('kind')} · {h.get('ts','')} · {h['archive']}"
+              + (f" · {h.get('path')}" if h.get("path") else ""))
+        print(h["text"][:1200])
+        print()
+
+
+@app.command("guard-install")
+def guard_install(
+    scope: str = typer.Option("project", help="'project' (.claude/settings.json) or 'user' (~/.claude/settings.json)"),
+) -> None:
+    """Install the PreCompact hook into Claude Code settings (merges; never clobbers)."""
+    from decastate.guard.manager import install_hook
+
+    target = (Path.cwd() / ".claude" / "settings.json") if scope == "project" \
+        else (Path.home() / ".claude" / "settings.json")
+    print(json.dumps(install_hook(target), indent=2))
+
+
 @app.command()
 def savings() -> None:
     """Show cumulative provider-cache savings measured by the gateway (real requests only)."""
