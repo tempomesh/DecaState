@@ -379,6 +379,21 @@ def make_handler(upstream: str, audit_path: Path, inject_cache: bool = False):
                 body = json.dumps(savings_summary(audit_path)).encode()
             elif self.path.startswith("/states"):
                 body = json.dumps(list_states()).encode()
+            elif self.path.startswith("/guard-recall"):
+                from urllib.parse import parse_qs, urlparse
+
+                from decastate.guard.manager import recall
+                q = parse_qs(urlparse(self.path).query).get("q", [""])[0]
+                body = json.dumps({"query": q, "hits": recall(q, limit=6) if q else []}).encode()
+            elif self.path.startswith("/guard"):
+                from decastate.guard.manager import guard_home
+                cps = []
+                for mp in sorted(guard_home().joinpath("checkpoints").glob("*.json")):
+                    try:
+                        cps.append(json.loads(mp.read_text()))
+                    except ValueError:
+                        pass
+                body = json.dumps({"count": len(cps), "checkpoints": cps[-5:]}).encode()
             elif self.path.startswith("/audit"):
                 records = []
                 if audit_path.exists():

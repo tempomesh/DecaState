@@ -1,0 +1,116 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>DecaState Context Guard</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=Manrope:wght@500;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+:root{--bg:#07090e;--panel:#0d1219;--line:#1c2230;--text:#e9edf5;--dim:#8b97b0;--dimmer:#5f6b85;--lime:#c3f53c;--coral:#ff8f88;--mono:'JetBrains Mono',monospace;--disp:'Bricolage Grotesque',sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;min-height:100vh}
+.grid{position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(195,245,60,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(195,245,60,.04) 1px,transparent 1px);background-size:54px 54px}
+.wrap{position:relative;max-width:1200px;margin:0 auto;padding:40px 36px 80px}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:54px}
+.brand{font-weight:800;font-size:24px}.brand span{color:var(--lime)}
+.live{font-family:var(--mono);font-size:13px;color:var(--lime);border:1px solid #567246;border-radius:6px;padding:6px 10px}
+.eyebrow{font-family:var(--mono);font-size:13px;letter-spacing:.28em;color:var(--lime)}
+h1{font-family:var(--disp);font-weight:800;font-size:clamp(38px,5.5vw,64px);line-height:1.05;margin:16px 0 12px;letter-spacing:-.02em}
+h1 .bad{color:var(--coral)}h1 .em{color:var(--lime)}
+.lede{color:var(--dim);font-size:17px;max-width:66ch;line-height:1.6}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:40px 0 14px}
+@media(max-width:800px){.split{grid-template-columns:1fr}}
+.half{border:1px solid var(--line);background:var(--panel);border-radius:16px;padding:26px}
+.half h3{font-family:var(--mono);font-size:12px;letter-spacing:.2em;margin-bottom:16px}
+.half.bad h3{color:var(--coral)}.half.good h3{color:var(--lime)}
+.meter{height:16px;border-radius:8px;background:#161c26;overflow:hidden;margin:10px 0 8px}
+.meter i{display:block;height:100%}
+.half.bad .meter i{width:9.9%;background:linear-gradient(90deg,#ff8f88,#a34f4a)}
+.half.good .meter i{width:100%;background:linear-gradient(90deg,var(--lime),#7fa826)}
+.half b{font-family:var(--disp);font-size:44px;font-weight:800}
+.half.bad b{color:var(--coral)}.half.good b{color:var(--lime)}
+.half small{color:var(--dimmer);font-family:var(--mono);font-size:12px;display:block;margin-top:8px;line-height:1.6}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:14px}
+@media(max-width:800px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{background:var(--panel);padding:20px 22px}
+.stat b{font-family:var(--disp);font-size:30px;color:var(--lime);display:block}
+.stat span{font-size:12px;color:var(--dim);font-family:var(--mono)}
+.panel{border:1px solid var(--line);background:var(--panel);border-radius:16px;padding:26px;margin-bottom:14px}
+.panel .ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.panel h2{font-size:19px;font-weight:800}
+.tag{font-family:var(--mono);font-size:11px;color:var(--dimmer)}
+.cp{font-family:var(--mono);font-size:13px;color:var(--dim);line-height:2}
+.cp b{color:var(--text);font-weight:500}.cp .g{color:var(--lime)}
+.search{display:flex;gap:10px;margin-bottom:16px}
+.search input{flex:1;background:#0a0e15;border:1px solid var(--line);border-radius:10px;padding:14px 16px;color:var(--text);font-family:var(--mono);font-size:14px;outline:none}
+.search input:focus{border-color:#567246}
+.search button{background:var(--lime);color:#0a0d05;border:0;border-radius:10px;padding:0 22px;font-family:var(--mono);font-weight:700;font-size:14px;cursor:pointer}
+.hit{border:1px solid var(--line);background:#0a0e15;border-radius:10px;padding:16px 18px;margin-bottom:10px}
+.hit .hm{font-family:var(--mono);font-size:11px;color:var(--lime);margin-bottom:8px}
+.hit pre{font-family:var(--mono);font-size:12.5px;color:#c7d0e2;white-space:pre-wrap;max-height:150px;overflow:hidden}
+.foot{font-family:var(--mono);font-size:12px;color:var(--dimmer);text-align:center;margin-top:36px;line-height:1.8}
+.foot b{color:var(--lime)}
+</style></head><body>
+<div class="grid"></div>
+<div class="wrap">
+  <div class="top"><div class="brand"><span>◈</span> DecaState <span style="color:var(--dim);font-weight:500">Context Guard</span></div><div class="live" id="live">connecting…</div></div>
+
+  <div class="eyebrow">EVERY CLAUDE CODE COMPACTION · AUTO-CHECKPOINT · VERBATIM RECALL</div>
+  <h1>Compaction kept <span class="bad">9.9%</span>.<br/>Guard keeps <span class="em">100%.</span></h1>
+  <p class="lede">When Claude Code compacts, your session's messages are replaced by a lossy summary — in a real 1M-token session, 950.8k of messages became 94.1k. Context Guard hooks the moment before, archives everything byte-exact, and hands back the <b style="color:var(--text)">exact original evidence</b> on demand. It never summarizes — no model calls, ever.</p>
+
+  <div class="split">
+    <div class="half bad"><h3>DEFAULT COMPACTION · REAL SESSION</h3><b>9.9%</b><div class="meter"><i></i></div><small>messages window: 950.8k → 94.1k tokens<br/>the rest → a summary the model wrote about itself</small></div>
+    <div class="half good"><h3>WITH CONTEXT GUARD</h3><b>100%</b><div class="meter"><i></i></div><small>full raw transcript archived · SHA-256 · local-only<br/>recall returns exact original bytes + provenance</small></div>
+  </div>
+
+  <div class="stats" id="stats">
+    <div class="stat"><b id="s-bytes">—</b><span>bytes archived (this session)</span></div>
+    <div class="stat"><b id="s-ev">—</b><span>verbatim evidence entries</span></div>
+    <div class="stat"><b id="s-sec">—</b><span>checkpoint time</span></div>
+    <div class="stat"><b id="s-cnt">—</b><span>checkpoints on this machine</span></div>
+  </div>
+
+  <div class="panel"><div class="ph"><h2>Latest checkpoint — real, from disk</h2><span class="tag" id="cp-src">reading…</span></div><div class="cp" id="cp"></div></div>
+
+  <div class="panel"><div class="ph"><h2>Recall exact evidence</h2><span class="tag">searches the raw archive · returns original bytes</span></div>
+    <div class="search"><input id="q" placeholder='try: "clonefile APFS physical allocation"' onkeydown="if(event.key==='Enter')doRecall()" /><button onclick="doRecall()">RECALL</button></div>
+    <div id="hits"></div>
+  </div>
+
+  <div class="foot">never summarizes · never blocks compaction (exit 0 by construction) · local files only · MIT<br/><b>decastate.com</b> · install: <b>decastate guard-install</b> — one command, every compaction auto-checkpoints</div>
+</div>
+<script>
+const FALLBACK={count:1,checkpoints:[{session_id:"529fff6c-875e-4fb2-be84-aecde2f25267",created_at:"2026-09-01",trigger:"manual",raw_archive:{file:"529fff6c-875-20260901-182512.jsonl",bytes:9921565,sha256:"f1cf9e8f8dae31e3887beb241a7679b5cfd7e53117ffe877e4b7dfb840c47c0e"},stats:{records:2272,user_messages:372,assistant_messages:215,files_touched:30,commands:139,evidence_entries:801},seconds:0.052}]};
+let BASE=null;
+async function load(){
+  let data=null;
+  for(const port of [8799,8801,8787]){
+    try{const r=await fetch(`http://127.0.0.1:${port}/guard`,{cache:'no-store'});
+      if(r.ok){data=await r.json();BASE=`http://127.0.0.1:${port}`;break;}}catch(_e){}}
+  const live=!!data; if(!data)data=FALLBACK;
+  document.getElementById('live').textContent=live?'● LIVE FROM DISK':'SNAPSHOT (real data)';
+  const cp=data.checkpoints[data.checkpoints.length-1]; if(!cp)return;
+  const set=(id,v)=>document.getElementById(id).textContent=v;
+  set('s-bytes',(cp.raw_archive.bytes/1e6).toFixed(1)+' MB');
+  set('s-ev',cp.stats.evidence_entries.toLocaleString());
+  set('s-sec',cp.seconds+' s');
+  set('s-cnt',data.count);
+  document.getElementById('cp-src').textContent=live?'● live':'recorded';
+  document.getElementById('cp').innerHTML=
+    `session <b>${cp.session_id.slice(0,12)}…</b> · trigger <b>${cp.trigger}</b><br/>`+
+    `archive <b>${cp.raw_archive.file}</b> · <span class="g">sha256 ${cp.raw_archive.sha256.slice(0,20)}…</span><br/>`+
+    `<b>${cp.stats.records.toLocaleString()}</b> records · <b>${cp.stats.user_messages}</b> user msgs · <b>${cp.stats.assistant_messages}</b> assistant msgs · <b>${cp.stats.files_touched}</b> files touched · <b>${cp.stats.commands}</b> commands<br/>`+
+    `evidence index <span class="g">${cp.stats.evidence_entries} verbatim entries</span> · built in <span class="g">${cp.seconds}s</span>`;
+}
+async function doRecall(){
+  const q=document.getElementById('q').value.trim(); if(!q)return;
+  const hits=document.getElementById('hits');
+  hits.innerHTML='<div class="tag">searching raw archives…</div>';
+  if(!BASE){hits.innerHTML='<div class="tag">live gateway offline — run: decastate gateway</div>';return;}
+  try{const r=await fetch(`${BASE}/guard-recall?q=`+encodeURIComponent(q),{cache:'no-store'});
+    const d=await r.json();
+    if(!d.hits.length){hits.innerHTML='<div class="tag">no evidence matched</div>';return;}
+    hits.innerHTML=d.hits.map(h=>`<div class="hit"><div class="hm">score ${h.score} · ${h.kind} · ${h.ts||''} ${h.path?('· '+h.path):''}</div><pre>${(h.text||'').replace(/</g,'&lt;').slice(0,900)}</pre></div>`).join('');
+  }catch(e){hits.innerHTML='<div class="tag">recall error: '+e.message+'</div>';}
+}
+load();
+</script>
+</body></html>
