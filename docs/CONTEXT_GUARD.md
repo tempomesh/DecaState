@@ -80,8 +80,9 @@ recall test         retrieved exact file bytes from day 1 of the session —
 | Returns the exact original record bytes on demand | ✅ working — `guard-recall --raw` (verified byte-identical vs archive) |
 | Never blocks or alters compaction (exit 0 always) | ✅ by construction; adds measured local overhead (0.049–0.052 s on a 9.9 MB transcript) |
 | Never summarizes or rewrites your history | ✅ by construction — no model calls |
-| Reduces context/tokens vs default compaction | ⏳ **unproven** — experiment below |
-| Improves post-compaction task quality | ⏳ **unproven** — experiment below |
+| Post-boundary factual fidelity vs compaction summary | ✅ **measured: 9/10 vs 0.7/10** (controlled boundary experiment, 3 runs, real API — `benchmarks/results/guard_ab.json`) |
+| Token cost vs full-history replay | ✅ **measured: 6,486 vs 22,222 input tokens (−71%)** at 9/10 vs 10/10 fidelity |
+| Same result in end-to-end Claude Code compaction | ⏳ follow-up study (protocol below); the controlled experiment simulates the boundary, it does not drive Claude Code's own compaction |
 | Prevents compaction / touches Anthropic's KV cache | ❌ impossible, not claimed |
 | Measures subscription dollar savings | ❌ not possible externally, not claimed |
 
@@ -101,5 +102,24 @@ Protocol:
 4. Raw transcripts and numbers get published in `benchmarks/results/` — including if
    Arm A wins.
 
-Until that lands, Guard's claim is recoverability, not savings. Recoverability alone
+### Controlled boundary experiment — done (2026-09-03)
+
+`scripts/guard_ab_experiment.py`, claude-haiku-4-5, 3 runs/arm, 10 exact-answer
+questions whose ground truths are derived at runtime from the log itself
+(every question answerable by construction; full-replay arm scored 10/10,
+validating the setup):
+
+```text
+A  compaction-style summary   0.7/10 correct   1,271 in-tokens
+B  GUARD brief + recall       9.0/10 correct   6,486 in-tokens   ← 29% of replay cost
+C  full-history replay       10.0/10 correct  22,222 in-tokens
+```
+
+Honest scope: this measures the boundary mechanism with real API calls and the
+real Guard pipeline; the end-to-end Claude Code study remains the follow-up.
+Two experiment iterations also caught and fixed a real product bug (recall now
+IDF-weights rare terms) and a methodology bug (index isolation) — both in the
+git history.
+
+Until the end-to-end study lands, the headline stays scoped to the boundary experiment. Recoverability alone
 is already real: your session history stops being disposable.

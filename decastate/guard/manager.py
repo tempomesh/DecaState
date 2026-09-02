@@ -184,22 +184,31 @@ def checkpoint(transcript: Path, session_id: str | None = None, trigger: str = "
 
 
 def recall(query: str, limit: int = 5) -> list[dict]:
-    """Search all evidence indexes; return EXACT original excerpts with provenance."""
+    """Search all evidence indexes; rare terms dominate (IDF-weighted), so a field
+    name like 'cold_prefill_seconds' outweighs a common token like '2048'.
+    Returns verbatim excerpts with provenance (use raw_record for exact bytes)."""
+    import math
     home = guard_home()
     terms = [t for t in re.findall(r"[a-zA-Z0-9_./-]+", query.lower()) if t not in STOPWORDS]
-    hits = []
+    entries = []
     for index_path in sorted((home / "checkpoints").glob("*.evidence.jsonl")):
         for line in index_path.open(errors="replace"):
             try:
                 ev = json.loads(line)
             except ValueError:
                 continue
-            hay = (ev.get("text", "") + " " + ev.get("path", "")).lower()
-            score = sum(hay.count(t) for t in terms)
-            if query.lower() in hay:
-                score += 10
-            if score > 0:
-                hits.append((score, ev))
+            entries.append((ev, (ev.get("text", "") + " " + ev.get("path", "")).lower()))
+    if not entries:
+        return []
+    n = len(entries)
+    idf = {t: math.log(n / (1 + sum(1 for _e, hay in entries if t in hay))) + 0.1 for t in terms}
+    hits = []
+    for ev, hay in entries:
+        score = sum(min(hay.count(t), 3) * idf[t] for t in terms)
+        if query.lower() in hay:
+            score += 10
+        if score > 0:
+            hits.append((round(score, 2), ev))
     hits.sort(key=lambda x: -x[0])
     return [{"score": s, **e} for s, e in hits[:limit]]
 

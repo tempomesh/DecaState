@@ -1,0 +1,141 @@
+{
+  "model": "claude-haiku-4-5",
+  "runs": 3,
+  "questions": 10,
+  "protocol": "controlled boundary experiment; real API calls, real guard pipeline; does NOT drive Claude Code's own end-to-end compaction (follow-up study)",
+  "accuracy": {
+    "A_compaction": 0.6666666666666666,
+    "B_guard": 9.0,
+    "C_full_replay": 10.0
+  },
+  "avg_input_tokens": {
+    "A_compaction": 1271.0,
+    "B_guard": 6486.0,
+    "C_full_replay": 22222.0
+  },
+  "raw": {
+    "A_compaction_summary": [
+      {
+        "score": 1,
+        "usage": {
+          "in": 1271,
+          "out": 328
+        },
+        "summary_usage": {
+          "in": 22000,
+          "out": 1000
+        }
+      },
+      {
+        "score": 1,
+        "usage": {
+          "in": 1271,
+          "out": 389
+        },
+        "summary_usage": {
+          "in": 22000,
+          "out": 1000
+        }
+      },
+      {
+        "score": 0,
+        "usage": {
+          "in": 1271,
+          "out": 309
+        },
+        "summary_usage": {
+          "in": 22000,
+          "out": 1000
+        }
+      }
+    ],
+    "B_guard": [
+      {
+        "score": 9,
+        "usage": {
+          "in": 6486,
+          "out": 259
+        }
+      },
+      {
+        "score": 9,
+        "usage": {
+          "in": 6486,
+          "out": 248
+        }
+      },
+      {
+        "score": 9,
+        "usage": {
+          "in": 6486,
+          "out": 304
+        }
+      }
+    ],
+    "C_full_replay": [
+      {
+        "score": 10,
+        "usage": {
+          "in": 22222,
+          "out": 303
+        }
+      },
+      {
+        "score": 10,
+        "usage": {
+          "in": 22222,
+          "out": 156
+        }
+      },
+      {
+        "score": 10,
+        "usage": {
+          "in": 22222,
+          "out": 301
+        }
+      }
+    ]
+  },
+  "qa": [
+    {
+      "q": "What was the exact state_size_bytes in the phase1 native state result?",
+      "truth": "446668"
+    },
+    {
+      "q": "What was the exact cold_prefill_seconds at 2048 context tokens in long_context_resume?",
+      "truth": "0.1534849169984227"
+    },
+    {
+      "q": "What was the exact resume_speedup at 1024 context tokens?",
+      "truth": "8.184449907785478"
+    },
+    {
+      "q": "What was the exact coder branch fork_seconds in fork_baseline?",
+      "truth": "0.007715959000051953"
+    },
+    {
+      "q": "What is the coder branch native_state_sha256 (first 12 characters)?",
+      "truth": "2361130e2476"
+    },
+    {
+      "q": "What was the exact c1_creation_seconds at 2048 tokens in checkpoint_rollback?",
+      "truth": "0.016940041998168454"
+    },
+    {
+      "q": "What was the direct_input_cost_usd in the api_session_savings result?",
+      "truth": "0.137822"
+    },
+    {
+      "q": "How many cache_read tokens did request 2 report in api_cache_proof (direct leg)?",
+      "truth": "11238"
+    },
+    {
+      "q": "What was the base_context_tokens in fork_baseline?",
+      "truth": "1024"
+    },
+    {
+      "q": "What was the gateway_input_cost_usd in api_session_savings?",
+      "truth": "0.029735"
+    }
+  ]
+}
