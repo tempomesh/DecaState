@@ -204,15 +204,25 @@ def recall(query: str, limit: int = 5) -> list[dict]:
     return [{"score": s, **e} for s, e in hits[:limit]]
 
 
-def raw_record(archive_name: str, line: int) -> str | None:
-    """Return the EXACT original JSONL line (byte-for-byte) from the raw archive."""
+def raw_record_bytes(archive_name: str, line: int) -> bytes | None:
+    """Return the EXACT original JSONL line as raw BYTES from the hashed archive.
+
+    Binary mode end-to-end: no decoding, no replacement characters, no mangling.
+    """
     path = guard_home() / "archives" / archive_name
     if not path.exists() or line < 0:
         return None
-    for lineno, text in enumerate(path.open(errors="replace")):
-        if lineno == line:
-            return text.rstrip("\n")
+    with path.open("rb") as fh:
+        for lineno, raw in enumerate(fh):
+            if lineno == line:
+                return raw.rstrip(b"\n")
     return None
+
+
+def raw_record(archive_name: str, line: int) -> str | None:
+    """Exact original JSONL line, decoded losslessly (surrogateescape round-trips)."""
+    raw = raw_record_bytes(archive_name, line)
+    return raw.decode("utf-8", errors="surrogateescape") if raw is not None else None
 
 
 PRECOMPACT_HOOK = {
