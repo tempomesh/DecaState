@@ -42,10 +42,22 @@ decastate guard-install                # adds the PreCompact hook to .claude/set
 # or --scope user for all your projects
 ```
 
-That's it. Every future compaction in that project auto-checkpoints first.
+That's it. Every future compaction in that project auto-checkpoints first, and archives
+remain local until your own retention policy (or you) removes them.
 Manual checkpoint any time: `decastate guard-checkpoint <transcript.jsonl>`.
 
+## ⚠️ Privacy — read before enabling on sensitive projects
+
+Guard stores the **raw Claude Code transcript** locally under `~/.decastate/guard/`.
+Transcripts can contain API keys or credentials printed in terminal output, private
+source code, and customer data. Nothing is uploaded anywhere — but review your disk
+retention, backups, and access permissions before enabling Guard on sensitive repos,
+and delete archives you no longer need.
+
 ## Measured on a real session (the one that built this feature)
+
+*Dogfood measurement from one real Claude Code session — not a general performance
+guarantee.*
 
 Run against this project's own live Claude Code session transcript:
 
@@ -53,7 +65,7 @@ Run against this project's own live Claude Code session transcript:
 transcript          9,921,565 bytes · 2,272 records
 extracted           372 user msgs · 215 assistant msgs · 30 files · 139 commands
 evidence indexed    801 verbatim entries
-checkpoint time     0.052 s
+checkpoint time     0.049–0.052 s (two runs)
 recall test         retrieved exact file bytes from day 1 of the session —
                     content that predated every subsequent compaction — with
                     timestamp provenance
@@ -63,9 +75,10 @@ recall test         retrieved exact file bytes from day 1 of the session —
 
 | Claim | Status |
 |---|---|
-| Archives the full raw session before compaction | ✅ working, hashed, local-only |
-| Returns exact original evidence on demand | ✅ working (verbatim + provenance) |
-| Never blocks or slows compaction (exit 0 always) | ✅ by construction |
+| Archives 100% of the captured raw transcript before compaction | ✅ working, SHA-256, local-only |
+| Returns verbatim excerpts with timestamp + provenance | ✅ working (index truncates long entries; the archive does not) |
+| Returns the exact original record bytes on demand | ✅ working — `guard-recall --raw` (verified byte-identical vs archive) |
+| Never blocks or alters compaction (exit 0 always) | ✅ by construction; adds measured local overhead (0.049–0.052 s on a 9.9 MB transcript) |
 | Never summarizes or rewrites your history | ✅ by construction — no model calls |
 | Reduces context/tokens vs default compaction | ⏳ **unproven** — experiment below |
 | Improves post-compaction task quality | ⏳ **unproven** — experiment below |

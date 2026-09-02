@@ -35,12 +35,14 @@ def guard_home() -> Path:
 
 
 def _iter_records(transcript: Path):
-    for line in transcript.open(errors="replace"):
+    for lineno, line in enumerate(transcript.open(errors="replace")):
         line = line.strip()
         if not line:
             continue
         try:
-            yield json.loads(line)
+            rec = json.loads(line)
+            rec["_line"] = lineno
+            yield rec
         except ValueError:
             continue
 
@@ -68,6 +70,7 @@ def extract(transcript: Path) -> dict:
     records = 0
     for rec in _iter_records(transcript):
         records += 1
+        line_no = rec.get("_line", -1)
         rtype = rec.get("type")
         message = rec.get("message") or {}
         ts = rec.get("timestamp", "")
@@ -75,13 +78,13 @@ def extract(transcript: Path) -> dict:
             text = _text_of(message.get("content"))
             if text and not text.startswith(("<system-reminder", "[SYSTEM")):
                 user_msgs.append({"ts": ts, "text": text[:2000]})
-                evidence.append({"ts": ts, "kind": "user", "text": text[:4000]})
+                evidence.append({"ts": ts, "line": line_no, "kind": "user", "text": text[:4000]})
         elif rtype == "assistant" and isinstance(message, dict):
             content = message.get("content")
             text = _text_of(content)
             if text:
                 assistant_msgs.append({"ts": ts, "text": text[:2000]})
-                evidence.append({"ts": ts, "kind": "assistant", "text": text[:4000]})
+                evidence.append({"ts": ts, "line": line_no, "kind": "assistant", "text": text[:4000]})
             if isinstance(content, list):
                 for block in content:
                     if isinstance(block, dict) and block.get("type") == "tool_use":
@@ -89,12 +92,12 @@ def extract(transcript: Path) -> dict:
                         tin = block.get("input") or {}
                         if name in ("Write", "Edit", "NotebookEdit") and tin.get("file_path"):
                             files_touched.append(tin["file_path"])
-                            evidence.append({"ts": ts, "kind": f"file:{name.lower()}",
+                            evidence.append({"ts": ts, "line": line_no, "kind": f"file:{name.lower()}",
                                              "path": tin["file_path"],
                                              "text": str(tin.get("content") or tin.get("new_string") or "")[:4000]})
                         elif name == "Bash" and tin.get("command"):
                             commands.append(tin["command"][:300])
-                            evidence.append({"ts": ts, "kind": "bash",
+                            evidence.append({"ts": ts, "line": line_no, "kind": "bash",
                                              "text": tin["command"][:4000]})
         # tool results ride on user-typed records in the transcript
         if isinstance(message, dict):
@@ -199,6 +202,17 @@ def recall(query: str, limit: int = 5) -> list[dict]:
                 hits.append((score, ev))
     hits.sort(key=lambda x: -x[0])
     return [{"score": s, **e} for s, e in hits[:limit]]
+
+
+def raw_record(archive_name: str, line: int) -> str | None:
+    """Return the EXACT original JSONL line (byte-for-byte) from the raw archive."""
+    path = guard_home() / "archives" / archive_name
+    if not path.exists() or line < 0:
+        return None
+    for lineno, text in enumerate(path.open(errors="replace")):
+        if lineno == line:
+            return text.rstrip("\n")
+    return None
 
 
 PRECOMPACT_HOOK = {

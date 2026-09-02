@@ -142,9 +142,11 @@ def guard_precompact() -> None:
 def guard_recall(
     query: str = typer.Argument(...),
     limit: int = typer.Option(5),
+    raw: bool = typer.Option(False, "--raw", help="Return the exact original JSONL record "
+                                                  "bytes from the hashed archive."),
 ) -> None:
-    """Retrieve EXACT original evidence (verbatim, with provenance) from archived sessions."""
-    from decastate.guard.manager import recall
+    """Retrieve verbatim evidence excerpts — or, with --raw, the exact original archive record."""
+    from decastate.guard.manager import raw_record, recall
 
     hits = recall(query, limit=limit)
     if not hits:
@@ -152,8 +154,12 @@ def guard_recall(
         raise typer.Exit(code=1)
     for h in hits:
         print(f"--- score={h['score']} · {h.get('kind')} · {h.get('ts','')} · {h['archive']}"
-              + (f" · {h.get('path')}" if h.get("path") else ""))
-        print(h["text"][:1200])
+              f" · line {h.get('line')}" + (f" · {h.get('path')}" if h.get("path") else ""))
+        if raw:
+            original = raw_record(h["archive"], h.get("line", -1))
+            print(original[:2400] if original else "(raw record unavailable)")
+        else:
+            print(h["text"][:1200])
         print()
 
 
