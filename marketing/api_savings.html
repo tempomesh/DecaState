@@ -1,0 +1,148 @@
+<meta charset="utf-8" />
+<title>DecaState API Savings</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Manrope:wght@500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+:root{--bg:#07090e;--panel:#0d1219;--line:#1c2230;--text:#e9edf5;--dim:#8b97b0;--dimmer:#5f6b85;--lime:#c3f53c;--coral:#ff8f88;--mono:'JetBrains Mono',monospace;--disp:'Bricolage Grotesque',sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;line-height:1.55}
+.grid{position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(195,245,60,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(195,245,60,.035) 1px,transparent 1px);background-size:54px 54px}
+.wrap{position:relative;max-width:1100px;margin:0 auto;padding:56px 32px 90px}
+.brand{display:flex;justify-content:space-between;align-items:center;margin-bottom:60px}
+.brand .l{font-weight:800;font-size:24px}.brand .l span{color:var(--lime)}
+.brand a{font-family:var(--mono);font-size:13px;color:#0a0d05;background:var(--lime);padding:9px 15px;border-radius:8px;text-decoration:none}
+.eyebrow{font-family:var(--mono);font-size:13px;letter-spacing:.26em;color:var(--lime)}
+.eyebrow.coral{color:var(--coral)}
+h1{font-family:var(--disp);font-weight:800;font-size:clamp(38px,6vw,68px);line-height:1.04;margin:16px 0 14px;letter-spacing:-.02em}
+h1 .em{color:var(--lime)}
+h2{font-family:var(--disp);font-weight:800;font-size:clamp(24px,3.4vw,34px);margin:14px 0 8px}
+.lede{color:var(--dim);font-size:17px;max-width:70ch}
+section{margin-top:72px}
+.panel{border:1px solid var(--line);background:var(--panel);border-radius:16px;padding:26px;margin-top:22px}
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:13.5px;font-variant-numeric:tabular-nums}
+th,td{padding:12px 14px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+thead th{color:var(--dimmer);font-weight:500;font-size:11px;letter-spacing:.06em;text-transform:uppercase}
+tbody tr:last-child td{border-bottom:none}
+td .hi{color:var(--lime);font-weight:700}
+td .bad{color:var(--coral)}
+.note{color:var(--dimmer);font-size:13px;margin-top:14px;max-width:76ch;line-height:1.6}
+.badge{font-family:var(--mono);font-size:11px;letter-spacing:.1em;padding:5px 9px;border-radius:5px;vertical-align:middle;margin-left:10px}
+.badge.meas{color:var(--lime);border:1px solid #567246;background:#141b12}
+.badge.ill{color:#f5c451;border:1px solid #4a4020;background:#191509}
+/* scaling bars */
+.bars{display:grid;gap:14px;margin-top:8px}
+.brow{display:grid;grid-template-columns:110px 1fr;gap:14px;align-items:center}
+.brow .lbl{font-family:var(--mono);font-size:13px;color:var(--dim)}
+.btrack{display:grid;gap:5px}
+.bbar{height:16px;border-radius:5px;position:relative}
+.bbar.wo{background:linear-gradient(90deg,#39424f,#232a36)}
+.bbar.wi{background:linear-gradient(90deg,var(--lime),#7fa826)}
+.bbar span{position:absolute;left:calc(100% + 10px);top:-1px;font-family:var(--mono);font-size:12px;color:var(--dim);white-space:nowrap}
+.bbar.wi span{color:var(--lime)}
+/* architecture */
+.arch{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:22px}
+@media(max-width:840px){.arch{grid-template-columns:1fr}}
+.lane{border:1px solid var(--line);background:var(--panel);border-radius:16px;padding:24px}
+.lane h3{font-family:var(--mono);font-size:12px;letter-spacing:.2em;color:var(--lime);margin-bottom:18px}
+.node{border:1px solid var(--line);background:#0a0e15;border-radius:10px;padding:13px 16px;font-size:14px;text-align:center}
+.node b{display:block;font-size:15px}
+.node small{font-family:var(--mono);font-size:11px;color:var(--dimmer);display:block;margin-top:4px;line-height:1.5}
+.node.hero{border-color:#567246;background:#10160c}
+.node.hero b{color:var(--lime)}
+.node.provider{border-color:#3a2f2e}
+.arrow{text-align:center;color:var(--dimmer);font-family:var(--mono);font-size:12px;padding:7px 0}
+.arrow b{color:var(--dim)}
+.bound{margin-top:22px;font-family:var(--mono);font-size:13px;color:var(--dim);line-height:2}
+.bound b{color:var(--lime)}
+.warn{border:1px solid #4a4020;background:#191509;border-radius:12px;padding:16px 20px;margin-top:18px;font-size:13.5px;color:#d9c98f;line-height:1.6}
+footer{margin-top:80px;text-align:center;font-family:var(--mono);font-size:12px;color:var(--dimmer);line-height:2}
+footer b{color:var(--lime)}
+</style>
+<div class="grid"></div>
+<div class="wrap">
+  <div class="brand"><div class="l"><span>◈</span> DecaState</div><a href="https://github.com/tempomesh/DecaState">★ GitHub</a></div>
+
+  <div class="eyebrow">API SAVINGS · MEASURED VS ILLUSTRATED · NOTHING INVENTED</div>
+  <h1>What prompt caching is<br/>actually worth — <span class="em">per model.</span></h1>
+  <p class="lede">Every number on this page is either <b style="color:var(--text)">measured</b> (real billed requests, result file in the repo) or an <b style="color:var(--text)">illustration</b> from published provider pricing — and each table says which it is.</p>
+
+  <section>
+    <div class="eyebrow">THE REAL RESULT <span class="badge meas">MEASURED</span></div>
+    <h2>Real Anthropic bills, non-caching client</h2>
+    <div class="panel tablewrap"><table>
+      <thead><tr><th>Test</th><th>Direct</th><th>Through DecaState</th><th>Input-cost saving</th></tr></thead>
+      <tbody>
+        <tr><td>2-request pair · claude-haiku-4-5</td><td>$0.026070</td><td>$0.017606</td><td><span class="hi">32.5%</span></td></tr>
+        <tr><td>10-request session · claude-haiku-4-5</td><td>$0.137822</td><td>$0.029735</td><td><span class="hi">78.4%</span></td></tr>
+      </tbody></table></div>
+    <p class="note">Provider-reported usage fields, zero prompt bytes changed (SHA-256 per request). Measures <b>input-token cost</b> — output and tool charges must be added before any "total bill" claim. Reproduce: <code style="font-family:var(--mono);color:var(--lime)">scripts/api_session_savings_proof.py</code> · evidence: <code style="font-family:var(--mono);color:var(--lime)">benchmarks/results/api_session_savings.json</code>. Clients that already cache (Claude Code does): DecaState adds ~0 and measures instead.</p>
+  </section>
+
+  <section>
+    <div class="eyebrow">CLAUDE HERO MODELS <span class="badge ill">ILLUSTRATION · PUBLISHED PRICING</span></div>
+    <h2>Same workload, Anthropic's published rates</h2>
+    <p class="lede" style="font-size:15px">One 100K-token project prompt × 10 requests, 1K output tokens each. Cache read ≈ 0.1× input, write ≈ 1.25×, ~5-min TTL refreshed per read.</p>
+    <div class="panel tablewrap"><table>
+      <thead><tr><th>Model</th><th>Input /1M</th><th>Cached /1M</th><th>Output /1M</th><th>10 req no cache</th><th>10 req cached</th><th>Saving</th></tr></thead>
+      <tbody>
+        <tr><td>Claude Fable 5</td><td>$10.00</td><td>$1.00</td><td>$50.00</td><td>$10.500</td><td>$2.650</td><td><span class="hi">74.8%</span></td></tr>
+        <tr><td>Claude Opus 5</td><td>$5.00</td><td>$0.50</td><td>$25.00</td><td>$5.250</td><td>$1.325</td><td><span class="hi">74.8%</span></td></tr>
+        <tr><td>Claude Sonnet 5</td><td>$2.00</td><td>$0.20</td><td>$10.00</td><td>$2.100</td><td>$0.530</td><td><span class="hi">74.8%</span></td></tr>
+        <tr><td>Claude Haiku 4.5</td><td>$1.00</td><td>$0.10</td><td>$5.00</td><td>$1.050</td><td>$0.265</td><td><span class="hi">74.8%</span></td></tr>
+      </tbody></table></div>
+    <p class="note">The % is identical across tiers (uniform cache multipliers) — the <b>dollars</b> scale with tier: this workload saves ~$0.79/day-batch on Haiku and ~$7.85 on Fable 5. Our measured 78.4% beat this 74.8% illustration because the measured run had near-zero output tokens. Fable 5.1 (visible in newer Claude Code builds) is excluded until its pricing is verified — we don't guess.</p>
+  </section>
+
+  <section>
+    <div class="eyebrow">OPENAI MODELS <span class="badge ill">ILLUSTRATION · PUBLISHED PRICING</span></div>
+    <h2>Same workload, OpenAI's automatic caching</h2>
+    <div class="panel tablewrap"><table>
+      <thead><tr><th>Model</th><th>Input /1M</th><th>Cached /1M</th><th>Output /1M</th><th>10 req no cache</th><th>10 req cached</th><th>Saving</th></tr></thead>
+      <tbody>
+        <tr><td>GPT-5.6 Sol</td><td>$4.00</td><td>$0.40</td><td>$20.00</td><td>$4.200</td><td>$1.060</td><td><span class="hi">74.8%</span></td></tr>
+        <tr><td>GPT-5.6 Terra</td><td>$2.00</td><td>$0.20</td><td>$12.00</td><td>$2.120</td><td>$0.550</td><td><span class="hi">74.1%</span></td></tr>
+        <tr><td>GPT-5.6 Luna</td><td>$0.20</td><td>$0.02</td><td>$1.20</td><td>$0.212</td><td>$0.055</td><td><span class="hi">74.1%</span></td></tr>
+      </tbody></table></div>
+    <p class="note">OpenAI caches automatically (≥1024-token prefixes) — <b>no tool can add savings there, including DecaState</b>. Our OpenAI story is observability: which tokens cached, which missed, why the prefix changed, what was actually charged. Measured on the real API: request 2 reused 10,880 cached tokens automatically.</p>
+  </section>
+
+  <section>
+    <div class="eyebrow">HOW IT COMPOUNDS</div>
+    <h2>The saving grows with every same-prefix request</h2>
+    <div class="panel"><div class="bars">
+      <div class="brow"><span class="lbl">2 req</span><div class="btrack"><div class="bbar wo" style="width:70%"><span>$0.0424</span></div><div class="bbar wi" style="width:48.5%"><span>$0.0294 · −30.7%</span></div></div></div>
+      <div class="brow"><span class="lbl">10 req</span><div class="btrack"><div class="bbar wo" style="width:70%"><span>$0.2120</span></div><div class="bbar wi" style="width:18.2%"><span>$0.0550 · −74.1%</span></div></div></div>
+      <div class="brow"><span class="lbl">100 req</span><div class="btrack"><div class="bbar wo" style="width:70%"><span>$2.1200</span></div><div class="bbar wi" style="width:11.3%"><span>$0.3430 · −83.8%</span></div></div></div>
+      <div class="brow"><span class="lbl">1,000 req</span><div class="btrack"><div class="bbar wo" style="width:70%"><span>$21.200</span></div><div class="bbar wi" style="width:10.6%"><span>$3.2230 · −84.8%</span></div></div></div>
+    </div><p class="note">Luna illustration incl. output tokens; grey = without cache, lime = with. Percentage approaches the provider's cached-input economics; not guaranteed if the prefix changes or the cache TTL lapses.</p></div>
+  </section>
+
+  <section>
+    <div class="eyebrow">ARCHITECTURE · VERIFIED AGAINST THE REAL INTEGRATION</div>
+    <h2>Where DecaState sits — and where it can't reach</h2>
+    <div class="arch">
+      <div class="lane"><h3>CLAUDE CODE / CLAUDE API · API KEY</h3>
+        <div class="node"><b>Claude Code / your app</b><small>ANTHROPIC_BASE_URL → localhost</small></div>
+        <div class="arrow">│ full request ▼</div>
+        <div class="node hero"><b>◈ DecaState Gateway</b><small>SHA-256 everything · content preserved<br/>adds cache_control ONLY if absent<br/>logs provider usage + cost → audit.jsonl</small></div>
+        <div class="arrow">│ HTTPS ▼</div>
+        <div class="node provider"><b>Anthropic API</b><small>owns the server-side prompt cache / KV state<br/>DecaState cannot read or move those tensors</small></div>
+        <div class="arrow">▲ response returns untouched │</div>
+      </div>
+      <div class="lane"><h3>OPENAI API · API-KEY CLIENT</h3>
+        <div class="node"><b>Codex API client / your app</b><small>OpenAI-compatible base URL, where supported</small></div>
+        <div class="arrow">│ full request ▼</div>
+        <div class="node hero"><b>◈ DecaState OpenAI Adapter</b><small>preserve request · keep prefix stable<br/>log hashes, cached_tokens, cost, misses</small></div>
+        <div class="arrow">│ HTTPS ▼</div>
+        <div class="node provider"><b>OpenAI API</b><small>caches automatically — nothing to inject<br/>DecaState measures, never invents</small></div>
+        <div class="arrow">▲ response returns untouched │</div>
+      </div>
+    </div>
+    <div class="bound"><b>DecaState owns:</b> routing, hashes, evidence, metrics, policy &nbsp;·&nbsp; <b>Provider owns:</b> model execution + server-side KV/prompt cache &nbsp;·&nbsp; <b>Model owns:</b> the reasoning and the answer</div>
+    <div class="warn">⚠ Stated before anyone finds it for us: the gateway currently buffers responses — SSE streaming is not yet relayed incrementally, so Claude Code through it is measurement-grade, not a daily driver. Streaming passthrough is the next gateway milestone. A ChatGPT/Codex or Claude subscription session is provider-managed: no external tool can intercept it or prove dollar savings there.</div>
+  </section>
+
+  <footer><b>decastate.com</b> · open source · MIT<br/>measured claims ship with scripts and result files · illustrations are labeled · failed experiments get published too</footer>
+</div>
