@@ -183,6 +183,23 @@ def savings() -> None:
     print_savings(savings_summary())
 
 
+@app.command()
+def audit(
+    transcripts: bool = typer.Option(False, "--transcripts",
+                                     help="Also scan local Claude Code transcripts."),
+    days: int = typer.Option(30, help="Window in days when scanning transcripts."),
+    json_out: bool = typer.Option(False, "--json", help="Emit the raw receipt JSON."),
+) -> None:
+    """Full-invoice cost receipt: actual spend vs no-cache, provider-billed (not estimated)."""
+    from decastate.gateway.proxy import audit_receipt, print_receipt
+
+    receipt = audit_receipt(transcripts=transcripts, window_days=days if transcripts else None)
+    if json_out:
+        print(json.dumps(receipt, indent=2))
+    else:
+        print_receipt(receipt)
+
+
 @app.command("gateway-selftest")
 def gateway_selftest() -> None:
     """Verify gateway plumbing (byte-identical forward + usage extraction) with a local echo."""

@@ -1,5 +1,25 @@
 # DecaState API Gateway
 
+## Implementation status (2026-09-03)
+
+```text
+Anthropic gateway + cache injection       IMPLEMENTED
+Anthropic provider usage audit            IMPLEMENTED
+Claude Code API-key routing               EXPERIMENTAL / measurable
+Claude Code Context Guard                 IMPLEMENTED separately
+Incremental streaming passthrough        IMPLEMENTED (SSE relayed byte-for-byte, usage captured)
+Total invoice accounting                  IMPLEMENTED (decastate audit — input+cache+output)
+OpenAI/Codex API adapter                  NOT BUILT
+ChatGPT/Codex subscription interception   NOT POSSIBLE from this gateway
+```
+
+The current gateway is therefore a working **Anthropic API measurement and
+cache-injection prototype**, not yet a universal Claude/OpenAI production
+proxy. The next gateway milestone is streaming passthrough and end-to-end
+Claude Code API-key testing. The OpenAI adapter is a separate implementation
+because OpenAI has a different request schema and reports cached usage in a
+different usage structure.
+
 An **honest transparent proxy** for the Anthropic Messages API. It sits between your
 coding agent (e.g. Claude Code) and the provider, and does exactly four things:
 
@@ -36,9 +56,10 @@ $0.017606 — **DecaState added a 32.5% input saving**, and every further same-p
 request within the TTL saves ~90% of the prefix. Evidence:
 `benchmarks/results/api_added_savings.json` (`scripts/api_added_savings_proof.py`).
 
-**OpenAI:** caching is automatic (~50% off cached tokens, ≥1024-token prefixes) — no
-gateway can add hits there. Measured: request 2 reused 10,752–10,880 cached tokens
-automatically. On OpenAI, DecaState's role is measurement only.
+**OpenAI:** caching is automatic — no Anthropic gateway can add hits there. The
+repository contains a direct OpenAI cache-observation probe, but there is no
+OpenAI-compatible DecaState proxy yet. On OpenAI, the planned adapter's first
+job is measurement: cached tokens, stable-prefix changes, and actual cost.
 
 The `$` figures are **illustrations**: provider-reported cached tokens × published
 per-model input pricing (cache read ≈ 0.1×, cache write ≈ 1.25×). They are not a bill.
@@ -81,3 +102,37 @@ Honest expected outcome for Claude Code: **A ≈ B**, because Claude Code alread
 If B shows *more* cache reads than A, that is a real measured win — publish it. If they
 match, DecaState's value is the report and the integrity guarantee, and the claim must
 say exactly that.
+
+## Claude Code integration boundary
+
+There are two separate DecaState features:
+
+```text
+Claude Code PreCompact hook
+    → Context Guard archives the local transcript before compaction
+    → no provider request is intercepted
+
+Claude Code with an Anthropic API key
+    → ANTHROPIC_BASE_URL points to the local gateway
+    → gateway forwards the API request and records provider usage
+```
+
+Context Guard protects recoverability of the local transcript. The API gateway
+measures Anthropic's server-side prompt-cache usage. Neither feature can read,
+export, or move Anthropic's internal KV tensors, and neither applies to a
+ChatGPT-authenticated Claude/Codex subscription session.
+
+The current proxy buffers the upstream response before returning it. It is
+appropriate for controlled measurements, but streaming passthrough is required
+before recommending it as a daily Claude Code replacement.
+
+## Remaining production work
+
+Before calling this a production gateway, DecaState still needs:
+
+- incremental SSE streaming with unchanged event ordering;
+- an OpenAI adapter for API-key-backed applications and Codex API clients;
+- provider-specific cost calculators including output, reasoning, and tool charges;
+- automated cache-miss diagnostics and repeated-workload A/B tests;
+- secret redaction, request limits, retry policy, structured error handling, and
+  stronger integration tests.

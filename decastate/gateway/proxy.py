@@ -37,6 +37,35 @@ CACHE_READ_MULT = 0.1     # cached input billed at ~0.1x normal input
 CACHE_WRITE_MULT = 1.25   # cache creation billed at ~1.25x normal input
 HOP_BY_HOP = {"host", "content-length", "connection", "keep-alive", "transfer-encoding"}
 
+# Full provider pricing per 1M tokens (input, output) — for total-invoice accounting,
+# not just the input-side saving. Published list rates.
+PRICING_FULL = {
+    "claude-fable-5": {"in": 10.0, "out": 50.0},
+    "claude-opus-5": {"in": 5.0, "out": 25.0},
+    "claude-opus-4-8": {"in": 5.0, "out": 25.0},
+    "claude-opus-4-7": {"in": 5.0, "out": 25.0},
+    "claude-sonnet-5": {"in": 2.0, "out": 10.0},
+    "claude-sonnet-4-6": {"in": 3.0, "out": 15.0},
+    "claude-haiku-4-5": {"in": 1.0, "out": 5.0},
+}
+
+
+def invoice_cost(model: str | None, usage: dict) -> float | None:
+    """Total provider-billed request cost from ALL token types (input+cache+output).
+
+    Not just input-side savings — this is the whole invoice line, from the
+    provider's own reported usage × published pricing.
+    """
+    p = PRICING_FULL.get(model or "")
+    if not p:
+        return None
+    i = int(usage.get("input_tokens") or 0)
+    cw = int(usage.get("cache_creation_input_tokens") or 0)
+    cr = int(usage.get("cache_read_input_tokens") or 0)
+    o = int(usage.get("output_tokens") or 0)
+    return (i * p["in"] + cw * p["in"] * CACHE_WRITE_MULT
+            + cr * p["in"] * CACHE_READ_MULT + o * p["out"]) / 1_000_000
+
 
 def _sha(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
@@ -123,49 +152,35 @@ def _inject_cache_control(raw_body: bytes) -> tuple[bytes, bool]:
     return json.dumps(payload).encode(), True
 
 
-def forward(raw_body: bytes, headers: dict, upstream: str, path: str = "/v1/messages",
-            timeout: float = 600.0, inject_cache: bool = False) -> tuple[int, dict, bytes, dict]:
-    """Forward to the upstream; byte-identical by default, opt-in cache injection."""
+def _prepare(raw_body: bytes, headers: dict, inject_cache: bool):
     body_sha = _sha(raw_body)
     fwd_headers = {k: v for k, v in headers.items() if k.lower() not in HOP_BY_HOP}
     fwd_headers.setdefault("content-type", "application/json")
-    # A real User-Agent matters: some CDNs 1010-ban the default urllib UA.
-    fwd_headers.setdefault("User-Agent", "DecaState-Gateway/0.1")
+    fwd_headers.setdefault("User-Agent", "DecaState-Gateway/0.1")  # some CDNs 1010-ban urllib's UA
+    send_body, injected = (_inject_cache_control(raw_body) if inject_cache else (raw_body, False))
+    return send_body, fwd_headers, injected, body_sha, _sha(send_body)
 
-    send_body = raw_body
-    injected = False
-    if inject_cache:
-        send_body, injected = _inject_cache_control(raw_body)
 
-    url = upstream.rstrip("/") + path
-    request = urllib.request.Request(url, data=send_body, headers=fwd_headers, method="POST")
-    sent_sha = _sha(send_body)  # hashed at the moment of sending
-    started = time.perf_counter()
-    try:
-        with urllib.request.urlopen(request, timeout=timeout) as resp:
-            status = resp.status
-            resp_headers = dict(resp.getheaders())
-            resp_body = resp.read()
-    except urllib.error.HTTPError as exc:
-        status = exc.code
-        resp_headers = dict(exc.headers.items())
-        resp_body = exc.read()
-    elapsed = time.perf_counter() - started
-
-    usage = {}
-    try:
-        usage = (json.loads(resp_body) or {}).get("usage", {}) or {}
-    except (ValueError, TypeError):
-        pass
-
+def _build_report(raw_body, send_body, injected, body_sha, sent_sha,
+                  upstream, status, usage, elapsed, streamed=False) -> dict:
     components = _component_hashes(raw_body)
+    model = components.get("model")
     cache_read = int(usage.get("cache_read_input_tokens") or 0)
-    report = {
+    integrity = "unchanged" if body_sha == sent_sha else "ALTERED"
+    if integrity == "ALTERED" and injected:
+        try:
+            if _sha(json.dumps(_strip_cache_control(json.loads(send_body)), sort_keys=True).encode()) == \
+               _sha(json.dumps(_strip_cache_control(json.loads(raw_body)), sort_keys=True).encode()):
+                integrity = "content-unchanged (cache_control injected)"
+        except (ValueError, TypeError):
+            pass
+    return {
         "timestamp": time.time(),
         "upstream": upstream,
         "status": status,
         "latency_ms": round(elapsed * 1000, 1),
-        "model": components.get("model"),
+        "streamed": streamed,
+        "model": model,
         "byte_identical_forward": body_sha == sent_sha,
         "request_body_sha256": body_sha,
         "forwarded_body_sha256": sent_sha,
@@ -182,16 +197,94 @@ def forward(raw_body: bytes, headers: dict, upstream: str, path: str = "/v1/mess
         },
         "provider_cache_hit": cache_read > 0,
         "cache_injected": injected,
-        "prompt_integrity": (
-            "unchanged" if body_sha == sent_sha else
-            ("content-unchanged (cache_control injected)" if injected and
-             _sha(json.dumps(_strip_cache_control(json.loads(send_body)), sort_keys=True).encode()) ==
-             _sha(json.dumps(_strip_cache_control(json.loads(raw_body)), sort_keys=True).encode())
-             else "ALTERED")),
-        "saving": _estimate_saving_usd(components.get("model"), usage),
+        "prompt_integrity": integrity,
+        "saving": _estimate_saving_usd(model, usage),
+        "invoice_usd": invoice_cost(model, usage),
         "attribution": "provider prompt-cache; measured by DecaState, not created by it",
     }
+
+
+def wants_stream(raw_body: bytes) -> bool:
+    try:
+        return json.loads(raw_body).get("stream") is True
+    except (ValueError, TypeError):
+        return False
+
+
+def forward(raw_body: bytes, headers: dict, upstream: str, path: str = "/v1/messages",
+            timeout: float = 600.0, inject_cache: bool = False) -> tuple[int, dict, bytes, dict]:
+    """Buffered forward (non-streaming): byte-identical by default, opt-in cache injection."""
+    send_body, fwd_headers, injected, body_sha, sent_sha = _prepare(raw_body, headers, inject_cache)
+    request = urllib.request.Request(upstream.rstrip("/") + path, data=send_body,
+                                     headers=fwd_headers, method="POST")
+    started = time.perf_counter()
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as resp:
+            status, resp_headers, resp_body = resp.status, dict(resp.getheaders()), resp.read()
+    except urllib.error.HTTPError as exc:
+        status, resp_headers, resp_body = exc.code, dict(exc.headers.items()), exc.read()
+    elapsed = time.perf_counter() - started
+    usage = {}
+    try:
+        usage = (json.loads(resp_body) or {}).get("usage", {}) or {}
+    except (ValueError, TypeError):
+        pass
+    report = _build_report(raw_body, send_body, injected, body_sha, sent_sha,
+                           upstream, status, usage, elapsed)
     return status, resp_headers, resp_body, report
+
+
+def _usage_from_sse(event_data: dict, usage: dict) -> None:
+    """Accumulate Anthropic SSE usage: input/cache in message_start, output in message_delta."""
+    t = event_data.get("type")
+    if t == "message_start":
+        u = (event_data.get("message") or {}).get("usage") or {}
+        for k in ("input_tokens", "cache_creation_input_tokens", "cache_read_input_tokens", "output_tokens"):
+            if u.get(k) is not None:
+                usage[k] = u[k]
+    elif t in ("message_delta", "message_stop"):
+        u = event_data.get("usage") or {}
+        if u.get("output_tokens") is not None:
+            usage["output_tokens"] = u["output_tokens"]  # cumulative; last wins
+
+
+def forward_stream(raw_body: bytes, headers: dict, upstream: str, write_chunk,
+                   path: str = "/v1/messages", timeout: float = 600.0,
+                   inject_cache: bool = False) -> tuple[int, dict, dict]:
+    """Streaming forward: relay SSE bytes to `write_chunk` as they arrive, accumulate usage.
+
+    Returns (status, resp_headers, report). Byte-for-byte relay — the client sees the
+    exact upstream event stream, in order; DecaState only reads usage off the side.
+    """
+    send_body, fwd_headers, injected, body_sha, sent_sha = _prepare(raw_body, headers, inject_cache)
+    request = urllib.request.Request(upstream.rstrip("/") + path, data=send_body,
+                                     headers=fwd_headers, method="POST")
+    started = time.perf_counter()
+    usage: dict = {}
+    try:
+        resp = urllib.request.urlopen(request, timeout=timeout)
+        status, resp_headers = resp.status, dict(resp.getheaders())
+    except urllib.error.HTTPError as exc:
+        body = exc.read()
+        write_chunk(body)
+        report = _build_report(raw_body, send_body, injected, body_sha, sent_sha,
+                               upstream, exc.code, {}, time.perf_counter() - started, streamed=True)
+        return exc.code, dict(exc.headers.items()), report
+    try:
+        for line in resp:  # iterates SSE lines, preserving exact bytes and order
+            write_chunk(line)
+            if line.startswith(b"data:"):
+                payload = line[5:].strip()
+                if payload and payload != b"[DONE]":
+                    try:
+                        _usage_from_sse(json.loads(payload), usage)
+                    except ValueError:
+                        pass
+    finally:
+        resp.close()
+    report = _build_report(raw_body, send_body, injected, body_sha, sent_sha,
+                           upstream, status, usage, time.perf_counter() - started, streamed=True)
+    return status, resp_headers, report
 
 
 def _audit_path() -> Path:
@@ -204,6 +297,115 @@ def _audit_path() -> Path:
 def _append_audit(report: dict, path: Path) -> None:
     with path.open("a") as handle:
         handle.write(json.dumps(report) + "\n")
+
+
+def audit_receipt(audit_path: Path | None = None, transcripts: bool = False,
+                  window_days: int | None = None) -> dict:
+    """Full-invoice receipt from provider-reported usage.
+
+    Reads the gateway audit log (real requests through DecaState) and, optionally,
+    your Claude Code transcripts. For every request it computes the ACTUAL invoice
+    (all token types × published pricing) and the COUNTERFACTUAL no-cache invoice
+    (every cached/written token billed at full input rate). The difference is the
+    money the prompt cache actually saved — provider-billed, not estimated timing.
+    """
+    import os as _os
+
+    def price(model):
+        return PRICING_FULL.get(model or "")
+
+    def scan_records():
+        ap = audit_path or _audit_path()
+        if ap.exists():
+            for line in ap.read_text().splitlines():
+                if not line.strip():
+                    continue
+                try:
+                    r = json.loads(line)
+                except ValueError:
+                    continue
+                if r.get("mode") == "selftest" or r.get("status") != 200:
+                    continue
+                yield ("gateway", r.get("model"), r.get("usage") or {})
+        if transcripts:
+            base = Path.home() / ".claude" / "projects"
+            cutoff = (time.time() - window_days * 86400) if window_days else 0
+            if base.is_dir():
+                for proj in base.iterdir():
+                    if not proj.is_dir():
+                        continue
+                    for t in proj.glob("*.jsonl"):
+                        if t.stat().st_mtime < cutoff:
+                            continue
+                        for line in t.open(errors="replace"):
+                            if '"usage"' not in line:
+                                continue
+                            try:
+                                rec = json.loads(line)
+                            except ValueError:
+                                continue
+                            msg = rec.get("message") or {}
+                            u = msg.get("usage") or {}
+                            if u:
+                                yield ("transcript", msg.get("model"), u)
+
+    tot = {"requests": 0, "actual_usd": 0.0, "nocache_usd": 0.0,
+           "input_tokens": 0, "cache_write_tokens": 0, "cache_read_tokens": 0,
+           "output_tokens": 0, "priced_requests": 0, "by_model": {}}
+    for _src, model, u in scan_records():
+        tot["requests"] += 1
+        i = int(u.get("input_tokens") or 0)
+        cw = int(u.get("cache_creation_input_tokens") or 0)
+        cr = int(u.get("cache_read_input_tokens") or 0)
+        o = int(u.get("output_tokens") or 0)
+        tot["input_tokens"] += i; tot["cache_write_tokens"] += cw
+        tot["cache_read_tokens"] += cr; tot["output_tokens"] += o
+        p = price(model)
+        if not p:
+            continue
+        tot["priced_requests"] += 1
+        actual = (i * p["in"] + cw * p["in"] * CACHE_WRITE_MULT
+                  + cr * p["in"] * CACHE_READ_MULT + o * p["out"]) / 1e6
+        nocache = ((i + cw + cr) * p["in"] + o * p["out"]) / 1e6
+        tot["actual_usd"] += actual
+        tot["nocache_usd"] += nocache
+        bm = tot["by_model"].setdefault(model, {"requests": 0, "actual_usd": 0.0, "nocache_usd": 0.0})
+        bm["requests"] += 1; bm["actual_usd"] += actual; bm["nocache_usd"] += nocache
+    saved = tot["nocache_usd"] - tot["actual_usd"]
+    tot["saved_usd"] = round(saved, 4)
+    tot["saved_pct"] = round(saved / tot["nocache_usd"] * 100, 1) if tot["nocache_usd"] else 0.0
+    tot["actual_usd"] = round(tot["actual_usd"], 4)
+    tot["nocache_usd"] = round(tot["nocache_usd"], 4)
+    for bm in tot["by_model"].values():
+        bm["saved_usd"] = round(bm["nocache_usd"] - bm["actual_usd"], 4)
+        bm["actual_usd"] = round(bm["actual_usd"], 4)
+        bm["nocache_usd"] = round(bm["nocache_usd"], 4)
+    tot["basis"] = ("provider-reported usage × published pricing; actual = full invoice "
+                    "(input+cache+output), nocache = every cached token at full input rate; "
+                    "the difference is what the prompt cache actually saved")
+    tot["source"] = "gateway audit" + (" + Claude Code transcripts" if transcripts else "")
+    return tot
+
+
+def print_receipt(r: dict) -> None:
+    print("=" * 60)
+    print("  DECASTATE COST RECEIPT  ·  provider-billed, not estimated")
+    print("=" * 60)
+    print(f"  requests measured        {r['requests']:,}  ({r['priced_requests']:,} priced)")
+    print(f"  source                   {r['source']}")
+    print(f"  input tokens             {r['input_tokens']:,}")
+    print(f"  cache-write tokens       {r['cache_write_tokens']:,}")
+    print(f"  cache-read tokens        {r['cache_read_tokens']:,}")
+    print(f"  output tokens            {r['output_tokens']:,}")
+    print("  " + "-" * 56)
+    print(f"  actual invoice           ${r['actual_usd']:,.2f}")
+    print(f"  without any caching       ${r['nocache_usd']:,.2f}")
+    print(f"  SAVED BY CACHING         ${r['saved_usd']:,.2f}   ({r['saved_pct']}%)")
+    print("  " + "-" * 56)
+    for model, bm in sorted(r["by_model"].items(), key=lambda x: -x[1]["actual_usd"]):
+        print(f"    {model:24s} ${bm['actual_usd']:>10,.2f}  saved ${bm['saved_usd']:,.2f}  ({bm['requests']:,} req)")
+    print(f"\n  basis: {r['basis']}")
+    print("=" * 60)
 
 
 def savings_summary(audit_path: Path | None = None) -> dict:
@@ -339,22 +541,29 @@ def make_handler(upstream: str, audit_path: Path, inject_cache: bool = False):
         def log_message(self, *_args):  # silence default noise
             return
 
+        def _error(self, exc):
+            payload = json.dumps({"type": "error", "error": {
+                "type": "decastate_gateway_error", "message": str(exc)}}).encode()
+            self.send_response(502)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(payload)))
+            self.end_headers()
+            self.wfile.write(payload)
+
         def _proxy(self):
             length = int(self.headers.get("Content-Length", 0) or 0)
             raw_body = self.rfile.read(length) if length else b""
             headers = {k: v for k, v in self.headers.items()}
+
+            if wants_stream(raw_body):
+                self._proxy_stream(raw_body, headers)
+                return
             try:
                 status, resp_headers, resp_body, report = forward(
                     raw_body, headers, upstream, path=self.path, inject_cache=inject_cache
                 )
             except Exception as exc:  # network/transport failure — never silent
-                payload = json.dumps({"type": "error", "error": {
-                    "type": "decastate_gateway_error", "message": str(exc)}}).encode()
-                self.send_response(502)
-                self.send_header("Content-Type", "application/json")
-                self.send_header("Content-Length", str(len(payload)))
-                self.end_headers()
-                self.wfile.write(payload)
+                self._error(exc)
                 return
             _append_audit(report, audit_path)
             _print_report(report)
@@ -368,6 +577,40 @@ def make_handler(upstream: str, audit_path: Path, inject_cache: bool = False):
             self.end_headers()
             self.wfile.write(resp_body)
 
+        def _proxy_stream(self, raw_body, headers):
+            """Relay SSE with HTTP/1.1 chunked framing; flush each event immediately."""
+            headers_sent = {"done": False}
+
+            def write_chunk(data: bytes):
+                if not data:
+                    return
+                if not headers_sent["done"]:
+                    self.send_response(200)
+                    self.send_header("Content-Type", "text/event-stream")
+                    self.send_header("Cache-Control", "no-cache")
+                    self.send_header("Connection", "close")
+                    self.send_header("Transfer-Encoding", "chunked")
+                    self.send_header("X-DecaState-Integrity", "stream")
+                    self.end_headers()
+                    headers_sent["done"] = True
+                self.wfile.write(f"{len(data):X}\r\n".encode() + data + b"\r\n")
+                self.wfile.flush()
+
+            try:
+                status, _rh, report = forward_stream(
+                    raw_body, headers, upstream, write_chunk,
+                    path=self.path, inject_cache=inject_cache
+                )
+            except Exception as exc:
+                if not headers_sent["done"]:
+                    self._error(exc)
+                return
+            if headers_sent["done"]:
+                self.wfile.write(b"0\r\n\r\n")  # terminate chunked stream
+                self.wfile.flush()
+            _append_audit(report, audit_path)
+            _print_report(report)
+
         def do_POST(self):
             self._proxy()
 
@@ -377,6 +620,8 @@ def make_handler(upstream: str, audit_path: Path, inject_cache: bool = False):
                                    "audit": str(audit_path)}).encode()
             elif self.path.startswith("/savings"):
                 body = json.dumps(savings_summary(audit_path)).encode()
+            elif self.path.startswith("/receipt"):
+                body = json.dumps(audit_receipt(audit_path)).encode()
             elif self.path.startswith("/states"):
                 body = json.dumps(list_states()).encode()
             elif self.path.startswith("/guard-recall"):
