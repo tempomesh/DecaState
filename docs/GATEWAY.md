@@ -9,7 +9,8 @@ Claude Code API-key routing               EXPERIMENTAL / measurable
 Claude Code Context Guard                 IMPLEMENTED separately
 Incremental streaming passthrough        IMPLEMENTED (SSE relayed byte-for-byte, usage captured)
 Total invoice accounting                  IMPLEMENTED (decastate audit — input+cache+output)
-OpenAI/Codex API adapter                  NOT BUILT
+OpenAI API adapter                        IMPLEMENTED (auto-detected usage; verified on gpt-4o-mini)
+Shareable receipt card                    IMPLEMENTED (decastate brag — zero-dep SVG)
 ChatGPT/Codex subscription interception   NOT POSSIBLE from this gateway
 ```
 

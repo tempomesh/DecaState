@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 1080 1080" font-family="'Manrope',system-ui,sans-serif">
+<rect width="1080" height="1080" fill="#07090e"/>
+<text x="90" y="112" fill="#e9edf5" font-size="30" font-weight="800">◈ DecaState</text>
+<text x="990" y="112" fill="#7f8aa3" font-family="monospace" font-size="18" text-anchor="end">COST RECEIPT · PROVIDER-BILLED</text>
+<text x="90" y="270" fill="#c3f53c" font-family="monospace" font-size="22" letter-spacing="6">SAVED BY CACHING · MEASURED, PROVIDER-BILLED</text>
+<text x="86" y="470" fill="#c3f53c" font-size="200" font-weight="800" letter-spacing="-6">$119,927</text>
+<text x="90" y="560" fill="#e9edf5" font-size="46" font-weight="800">84.2% off the no-cache bill</text>
+<rect x="90" y="610" width="900" height="1" fill="#1c2230"/>
+<text x="90" y="676" fill="#8b97b0" font-size="26">actual invoice</text>
+<text x="990" y="676" fill="#e9edf5" font-family="monospace" font-size="30" text-anchor="end" font-weight="700">$22,520</text>
+<text x="90" y="722" fill="#8b97b0" font-size="26">without any caching</text>
+<text x="990" y="722" fill="#ff8f88" font-family="monospace" font-size="30" text-anchor="end" font-weight="700">$142,446</text>
+<rect x="90" y="748" width="900" height="1" fill="#1c2230"/>
+<text x="90" y="792" fill="#8b97b0" font-family="monospace" font-size="24">claude-opus-4-8</text><text x="990" y="792" fill="#c3f53c" font-family="monospace" font-size="24" text-anchor="end">saved $75,222</text><text x="90" y="838" fill="#8b97b0" font-family="monospace" font-size="24">claude-fable-5</text><text x="990" y="838" fill="#c3f53c" font-family="monospace" font-size="24" text-anchor="end">saved $37,512</text><text x="90" y="884" fill="#8b97b0" font-family="monospace" font-size="24">claude-opus-5</text><text x="990" y="884" fill="#c3f53c" font-family="monospace" font-size="24" text-anchor="end">saved $7,188</text><text x="90" y="930" fill="#8b97b0" font-family="monospace" font-size="24">claude-sonnet-5</text><text x="990" y="930" fill="#c3f53c" font-family="monospace" font-size="24" text-anchor="end">saved $4.56</text>
+<text x="90" y="1012" fill="#5f6b85" font-family="monospace" font-size="19">48,484 requests · every $ from provider-reported usage</text>
+<text x="90" y="1040" fill="#c3f53c" font-family="monospace" font-size="19">decastate.com · run your own: decastate audit</text>
+</svg>

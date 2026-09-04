@@ -37,8 +37,8 @@ CACHE_READ_MULT = 0.1     # cached input billed at ~0.1x normal input
 CACHE_WRITE_MULT = 1.25   # cache creation billed at ~1.25x normal input
 HOP_BY_HOP = {"host", "content-length", "connection", "keep-alive", "transfer-encoding"}
 
-# Full provider pricing per 1M tokens (input, output) — for total-invoice accounting,
-# not just the input-side saving. Published list rates.
+# Full provider pricing per 1M tokens (input, output) — for total-invoice accounting.
+# Published list rates. Anthropic caches at ~0.1x read; OpenAI at ~0.5x read.
 PRICING_FULL = {
     "claude-fable-5": {"in": 10.0, "out": 50.0},
     "claude-opus-5": {"in": 5.0, "out": 25.0},
@@ -47,14 +47,48 @@ PRICING_FULL = {
     "claude-sonnet-5": {"in": 2.0, "out": 10.0},
     "claude-sonnet-4-6": {"in": 3.0, "out": 15.0},
     "claude-haiku-4-5": {"in": 1.0, "out": 5.0},
+    # OpenAI (published list rates; cache read ~0.5x)
+    "gpt-4o": {"in": 2.5, "out": 10.0}, "gpt-4o-mini": {"in": 0.15, "out": 0.60},
+    "gpt-4.1": {"in": 2.0, "out": 8.0}, "gpt-4.1-mini": {"in": 0.40, "out": 1.60},
 }
+
+
+def _is_openai(model: str | None) -> bool:
+    return (model or "").lower().startswith("gpt")
+
+
+def _cache_read_mult(model: str | None) -> float:
+    return 0.5 if _is_openai(model) else CACHE_READ_MULT
+
+
+def _cache_write_mult(model: str | None) -> float:
+    return 1.0 if _is_openai(model) else CACHE_WRITE_MULT  # OpenAI has no separate write premium
+
+
+def normalize_usage(raw: dict) -> dict:
+    """Normalize provider usage to a common shape. Anthropic and OpenAI report differently.
+
+    Anthropic: input_tokens, cache_creation_input_tokens, cache_read_input_tokens, output_tokens
+    OpenAI:    prompt_tokens (INCLUDES cached), prompt_tokens_details.cached_tokens,
+               completion_tokens
+    """
+    if not raw:
+        return {}
+    if "prompt_tokens" in raw:  # OpenAI shape
+        cached = int((raw.get("prompt_tokens_details") or {}).get("cached_tokens") or 0)
+        prompt = int(raw.get("prompt_tokens") or 0)
+        return {"input_tokens": max(0, prompt - cached), "cache_read_input_tokens": cached,
+                "cache_creation_input_tokens": 0, "output_tokens": int(raw.get("completion_tokens") or 0)}
+    return {"input_tokens": raw.get("input_tokens"), "output_tokens": raw.get("output_tokens"),
+            "cache_creation_input_tokens": raw.get("cache_creation_input_tokens"),
+            "cache_read_input_tokens": raw.get("cache_read_input_tokens")}
 
 
 def invoice_cost(model: str | None, usage: dict) -> float | None:
     """Total provider-billed request cost from ALL token types (input+cache+output).
 
-    Not just input-side savings — this is the whole invoice line, from the
-    provider's own reported usage × published pricing.
+    Whole invoice line, provider-reported usage × published pricing, provider-aware
+    cache multipliers.
     """
     p = PRICING_FULL.get(model or "")
     if not p:
@@ -63,8 +97,8 @@ def invoice_cost(model: str | None, usage: dict) -> float | None:
     cw = int(usage.get("cache_creation_input_tokens") or 0)
     cr = int(usage.get("cache_read_input_tokens") or 0)
     o = int(usage.get("output_tokens") or 0)
-    return (i * p["in"] + cw * p["in"] * CACHE_WRITE_MULT
-            + cr * p["in"] * CACHE_READ_MULT + o * p["out"]) / 1_000_000
+    return (i * p["in"] + cw * p["in"] * _cache_write_mult(model)
+            + cr * p["in"] * _cache_read_mult(model) + o * p["out"]) / 1_000_000
 
 
 def _sha(data: bytes) -> str:
@@ -91,16 +125,17 @@ def _component_hashes(raw_body: bytes) -> dict:
 
 def _estimate_saving_usd(model: str | None, usage: dict) -> dict:
     """Illustrative $ from PROVIDER-reported cached tokens. Not a bill guarantee."""
-    rate = PRICING.get(model or "")
+    p = PRICING_FULL.get(model or "")
+    rate = p["in"] if p else PRICING.get(model or "")
     read = int(usage.get("cache_read_input_tokens") or 0)
     write = int(usage.get("cache_creation_input_tokens") or 0)
     if rate is None:
         return {"input_rate_per_mtok_usd": None, "cache_read_saving_usd": None,
                 "note": "unknown model; no price applied"}
     # Saving = what the cached-read tokens would have cost at full input rate,
-    # minus what they actually cost at the cache-read rate.
-    saving = read * (rate - rate * CACHE_READ_MULT) / 1_000_000
-    write_premium = write * (rate * CACHE_WRITE_MULT - rate) / 1_000_000
+    # minus what they actually cost at the cache-read rate (provider-aware multiplier).
+    saving = read * (rate - rate * _cache_read_mult(model)) / 1_000_000
+    write_premium = write * (rate * _cache_write_mult(model) - rate) / 1_000_000
     return {
         "input_rate_per_mtok_usd": rate,
         "cache_read_tokens": read,
@@ -226,7 +261,7 @@ def forward(raw_body: bytes, headers: dict, upstream: str, path: str = "/v1/mess
     elapsed = time.perf_counter() - started
     usage = {}
     try:
-        usage = (json.loads(resp_body) or {}).get("usage", {}) or {}
+        usage = normalize_usage((json.loads(resp_body) or {}).get("usage", {}) or {})
     except (ValueError, TypeError):
         pass
     report = _build_report(raw_body, send_body, injected, body_sha, sent_sha,
@@ -235,17 +270,21 @@ def forward(raw_body: bytes, headers: dict, upstream: str, path: str = "/v1/mess
 
 
 def _usage_from_sse(event_data: dict, usage: dict) -> None:
-    """Accumulate Anthropic SSE usage: input/cache in message_start, output in message_delta."""
+    """Accumulate usage from SSE, handling both Anthropic and OpenAI stream shapes."""
     t = event_data.get("type")
-    if t == "message_start":
+    if t == "message_start":  # Anthropic: input/cache land here
         u = (event_data.get("message") or {}).get("usage") or {}
         for k in ("input_tokens", "cache_creation_input_tokens", "cache_read_input_tokens", "output_tokens"):
             if u.get(k) is not None:
                 usage[k] = u[k]
-    elif t in ("message_delta", "message_stop"):
+    elif t in ("message_delta", "message_stop"):  # Anthropic: output accumulates here
         u = event_data.get("usage") or {}
         if u.get("output_tokens") is not None:
             usage["output_tokens"] = u["output_tokens"]  # cumulative; last wins
+    elif event_data.get("usage"):  # OpenAI: final chunk carries full usage
+        for k, v in normalize_usage(event_data["usage"]).items():
+            if v is not None:
+                usage[k] = v
 
 
 def forward_stream(raw_body: bytes, headers: dict, upstream: str, write_chunk,
@@ -385,6 +424,38 @@ def audit_receipt(audit_path: Path | None = None, transcripts: bool = False,
                     "the difference is what the prompt cache actually saved")
     tot["source"] = "gateway audit" + (" + Claude Code transcripts" if transcripts else "")
     return tot
+
+
+def render_card_svg(r: dict) -> str:
+    """Render a receipt as a shareable 1080×1080 SVG card. Zero dependencies."""
+    def esc(s):
+        return str(s).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    def money(x):
+        return f"${x:,.0f}" if x >= 1000 else f"${x:,.2f}"
+    saved = r.get("saved_usd", 0)
+    models = sorted(r.get("by_model", {}).items(), key=lambda x: -x[1]["actual_usd"])[:4]
+    rows = ""
+    for i, (m, bm) in enumerate(models):
+        y = 792 + i * 46
+        rows += (f'<text x="90" y="{y}" fill="#8b97b0" font-family="monospace" font-size="24">{esc(m)}</text>'
+                 f'<text x="990" y="{y}" fill="#c3f53c" font-family="monospace" font-size="24" text-anchor="end">saved {esc(money(bm["saved_usd"]))}</text>')
+    return f'''<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 1080 1080" font-family="'Manrope',system-ui,sans-serif">
+<rect width="1080" height="1080" fill="#07090e"/>
+<text x="90" y="112" fill="#e9edf5" font-size="30" font-weight="800">◈ DecaState</text>
+<text x="990" y="112" fill="#7f8aa3" font-family="monospace" font-size="18" text-anchor="end">COST RECEIPT · PROVIDER-BILLED</text>
+<text x="90" y="270" fill="#c3f53c" font-family="monospace" font-size="22" letter-spacing="6">SAVED BY CACHING · MEASURED, PROVIDER-BILLED</text>
+<text x="86" y="470" fill="#c3f53c" font-size="200" font-weight="800" letter-spacing="-6">{esc(money(saved))}</text>
+<text x="90" y="560" fill="#e9edf5" font-size="46" font-weight="800">{r.get("saved_pct",0)}% off the no-cache bill</text>
+<rect x="90" y="610" width="900" height="1" fill="#1c2230"/>
+<text x="90" y="676" fill="#8b97b0" font-size="26">actual invoice</text>
+<text x="990" y="676" fill="#e9edf5" font-family="monospace" font-size="30" text-anchor="end" font-weight="700">{esc(money(r.get("actual_usd",0)))}</text>
+<text x="90" y="722" fill="#8b97b0" font-size="26">without any caching</text>
+<text x="990" y="722" fill="#ff8f88" font-family="monospace" font-size="30" text-anchor="end" font-weight="700">{esc(money(r.get("nocache_usd",0)))}</text>
+<rect x="90" y="748" width="900" height="1" fill="#1c2230"/>
+{rows}
+<text x="90" y="1012" fill="#5f6b85" font-family="monospace" font-size="19">{r.get("requests",0):,} requests · every $ from provider-reported usage</text>
+<text x="90" y="1040" fill="#c3f53c" font-family="monospace" font-size="19">decastate.com · run your own: decastate audit</text>
+</svg>'''
 
 
 def print_receipt(r: dict) -> None:

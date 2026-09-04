@@ -200,6 +200,24 @@ def audit(
         print_receipt(receipt)
 
 
+@app.command()
+def brag(
+    transcripts: bool = typer.Option(False, "--transcripts",
+                                     help="Also scan local Claude Code transcripts."),
+    days: int = typer.Option(30, help="Window in days when scanning transcripts."),
+    out: Path = typer.Option(None, help="Output SVG path (default ~/.decastate/brag.svg)."),
+) -> None:
+    """Render your cost receipt as a shareable SVG card (zero dependencies)."""
+    from decastate.gateway.proxy import audit_receipt, render_card_svg
+
+    receipt = audit_receipt(transcripts=transcripts, window_days=days if transcripts else None)
+    out = out or (Path(os.environ.get("DECASTATE_HOME", Path.home() / ".decastate")) / "brag.svg")
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(render_card_svg(receipt))
+    print(json.dumps({"card": str(out), "saved_usd": receipt.get("saved_usd"),
+                      "saved_pct": receipt.get("saved_pct")}, indent=2))
+
+
 @app.command("gateway-selftest")
 def gateway_selftest() -> None:
     """Verify gateway plumbing (byte-identical forward + usage extraction) with a local echo."""
