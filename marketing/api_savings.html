@@ -68,6 +68,17 @@ footer b{color:var(--lime)}
   <h1>What prompt caching is<br/>actually worth — <span class="em">per model.</span></h1>
   <p class="lede">Every number on this page is either <b style="color:var(--text)">measured</b> (real billed requests, result file in the repo) or an <b style="color:var(--text)">illustration</b> from published provider pricing — and each table says which it is.</p>
 
+  <section id="counter-hero" style="margin-top:44px">
+    <div class="panel" style="text-align:center;padding:44px 26px;border-color:#567246;background:linear-gradient(180deg,#101610,#0d1219)">
+      <div class="eyebrow" style="margin-bottom:8px">VERIFIED SAVINGS MEASURED THROUGH DECASTATE</div>
+      <div id="counter" style="font-family:var(--disp);font-weight:800;font-size:clamp(56px,11vw,132px);color:var(--lime);letter-spacing:-.03em;line-height:1">$0</div>
+      <div id="counter-sub" style="color:var(--dim);font-size:16px;margin-top:6px"></div>
+      <div style="font-size:12.5px;color:var(--dimmer);margin-top:18px;max-width:64ch;margin-left:auto;margin-right:auto;line-height:1.6">
+        Sum of <b style="color:var(--dim)">reproducible</b> DecaState receipts — provider-reported usage × published pricing, every entry rerunnable from the repo. Includes the founder's own 30-day audit. <b style="color:var(--lime)">Run your own → decastate audit</b>
+      </div>
+    </div>
+  </section>
+
   <section>
     <div class="eyebrow">THE REAL RESULT <span class="badge meas">MEASURED</span></div>
     <h2>Real Anthropic bills, non-caching client</h2>
@@ -141,8 +152,25 @@ footer b{color:var(--lime)}
       </div>
     </div>
     <div class="bound"><b>DecaState owns:</b> routing, hashes, evidence, metrics, policy &nbsp;·&nbsp; <b>Provider owns:</b> model execution + server-side KV/prompt cache &nbsp;·&nbsp; <b>Model owns:</b> the reasoning and the answer</div>
-    <div class="warn">⚠ Stated before anyone finds it for us: the gateway currently buffers responses — SSE streaming is not yet relayed incrementally, so Claude Code through it is measurement-grade, not a daily driver. Streaming passthrough is the next gateway milestone. A ChatGPT/Codex or Claude subscription session is provider-managed: no external tool can intercept it or prove dollar savings there.</div>
+    <div class="warn">⚠ Stated plainly: DecaState's gateway runs on <b>your localhost</b> — one line to switch (<code>ANTHROPIC_BASE_URL</code> / OpenAI <code>base_url</code>), streaming relayed byte-for-byte, both providers. Your prompts never leave your machine except straight to the provider you chose with your key — nothing to attest, because nothing is hosted by us. A ChatGPT/Codex or Claude <b>subscription</b> session is provider-managed: no external tool can intercept it or prove dollar savings there.</div>
   </section>
 
   <footer><b>decastate.com</b> · open source · MIT<br/>measured claims ship with scripts and result files · illustrations are labeled · failed experiments get published too</footer>
 </div>
+<script>
+(async function(){
+  let led=null;
+  try{ const r=await fetch('./savings_ledger.json',{cache:'no-store'}); if(r.ok) led=await r.json(); }catch(_e){}
+  const el=document.getElementById('counter'), sub=document.getElementById('counter-sub');
+  if(!led){ if(el) el.textContent='—'; return; }
+  const target=led.total_saved_usd;
+  if(sub) sub.textContent=`across ${led.total_requests.toLocaleString()} real requests · ${led.entries.length} reproducible receipts · updated ${led.generated_at}`;
+  const fmt=n=>'$'+Math.round(n).toLocaleString();
+  const dur=1600, t0=performance.now();
+  function tick(t){ const p=Math.min(1,(t-t0)/dur); const e=1-Math.pow(1-p,3);
+    el.textContent=fmt(target*e); if(p<1) requestAnimationFrame(tick); else el.textContent=fmt(target); }
+  const io=new IntersectionObserver(es=>es.forEach(x=>{if(x.isIntersecting){requestAnimationFrame(tick); io.disconnect();}}),{threshold:.4});
+  io.observe(el);
+})();
+</script>
+

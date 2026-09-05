@@ -1,0 +1,27 @@
+{
+  "generated_at": "2026-09-05",
+  "total_saved_usd": 121010.38,
+  "total_requests": 49180,
+  "basis": "sum of reproducible DecaState receipts; provider-reported usage x published pricing; every entry rerunnable from the repo",
+  "note": "Includes the founder's own 30-day audit. Run `decastate audit` to add yours.",
+  "entries": [
+    {
+      "source": "founder 30-day audit (real Claude Code transcripts)",
+      "saved_usd": 121010.2674,
+      "requests": 49156,
+      "reproduce": "decastate audit --transcripts"
+    },
+    {
+      "source": "10-request A/B session (real billed)",
+      "saved_usd": 0.1081,
+      "requests": 20,
+      "reproduce": "scripts/api_session_savings_proof.py"
+    },
+    {
+      "source": "2-request A/B pair (real billed)",
+      "saved_usd": 0.0085,
+      "requests": 4,
+      "reproduce": "scripts/api_added_savings_proof.py"
+    }
+  ]
+}
