@@ -134,24 +134,24 @@ footer b{color:var(--lime)}
     <div class="eyebrow">ARCHITECTURE · VERIFIED AGAINST THE REAL INTEGRATION</div>
     <h2>Where DecaState sits — and where it can't reach</h2>
     <div class="arch">
-      <div class="lane"><h3>CLAUDE CODE / CLAUDE API · API KEY</h3>
-        <div class="node"><b>Claude Code / your app</b><small>ANTHROPIC_BASE_URL → localhost</small></div>
-        <div class="arrow">│ full request ▼</div>
-        <div class="node hero"><b>◈ DecaState Gateway</b><small>SHA-256 everything · content preserved<br/>adds cache_control ONLY if absent<br/>logs provider usage + cost → audit.jsonl</small></div>
-        <div class="arrow">│ HTTPS ▼</div>
-        <div class="node provider"><b>Anthropic API</b><small>owns the server-side prompt cache / KV state<br/>DecaState cannot read or move those tensors</small></div>
+      <div class="lane"><h3>CLAUDE CODE / CLAUDE API · YOUR KEY</h3>
+        <div class="node"><b>Your app / coding agent</b><small>one line to switch</small></div>
+        <div class="arrow">│ ▼</div>
+        <div class="node hero"><b>◈ DecaState</b><small>runs on your machine · your key<br/>content preserved · nothing hosted by us</small></div>
+        <div class="arrow">│ ▼</div>
+        <div class="node provider"><b>Anthropic API</b><small>the provider you chose · owns the model + cache</small></div>
         <div class="arrow">▲ response returns untouched │</div>
       </div>
-      <div class="lane"><h3>OPENAI API · API-KEY CLIENT</h3>
-        <div class="node"><b>Codex API client / your app</b><small>OpenAI-compatible base URL, where supported</small></div>
-        <div class="arrow">│ full request ▼</div>
-        <div class="node hero"><b>◈ DecaState OpenAI Adapter</b><small>preserve request · keep prefix stable<br/>log hashes, cached_tokens, cost, misses</small></div>
-        <div class="arrow">│ HTTPS ▼</div>
-        <div class="node provider"><b>OpenAI API</b><small>caches automatically — nothing to inject<br/>DecaState measures, never invents</small></div>
+      <div class="lane"><h3>OPENAI API · YOUR KEY</h3>
+        <div class="node"><b>Your app / coding agent</b><small>one line to switch</small></div>
+        <div class="arrow">│ ▼</div>
+        <div class="node hero"><b>◈ DecaState</b><small>runs on your machine · your key<br/>measures what the provider bills</small></div>
+        <div class="arrow">│ ▼</div>
+        <div class="node provider"><b>OpenAI API</b><small>the provider you chose · owns the model + cache</small></div>
         <div class="arrow">▲ response returns untouched │</div>
       </div>
     </div>
-    <div class="bound"><b>DecaState owns:</b> routing, hashes, evidence, metrics, policy &nbsp;·&nbsp; <b>Provider owns:</b> model execution + server-side KV/prompt cache &nbsp;·&nbsp; <b>Model owns:</b> the reasoning and the answer</div>
+    <div class="bound"><b>DecaState owns:</b> the local gateway + your measurements &nbsp;·&nbsp; <b>Provider owns:</b> the model + its cache &nbsp;·&nbsp; <b>Model owns:</b> the answer</div>
     <div class="warn">⚠ Stated plainly: DecaState's gateway runs on <b>your localhost</b> — one line to switch (<code>ANTHROPIC_BASE_URL</code> / OpenAI <code>base_url</code>), streaming relayed byte-for-byte, both providers. Your prompts never leave your machine except straight to the provider you chose with your key — nothing to attest, because nothing is hosted by us. A ChatGPT/Codex or Claude <b>subscription</b> session is provider-managed: no external tool can intercept it or prove dollar savings there.</div>
   </section>
 
