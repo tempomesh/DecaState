@@ -21,15 +21,22 @@
           <a href="#evidence"><span>◇</span> Evidence</a>
           <a href="#branches"><span>⑂</span> Branches <b>03</b></a>
           <a href="#gateway"><span>⇉</span> API Gateway</a>
+          <a href="#qkv"><span>Q/K/V</span> Cache flow</a>
           <a href="#portability"><span>⇄</span> Portability <i>soon</i></a>
         </nav>
         <div class="sidebar-bottom">
+          <div class="signup-card">
+            <strong>Get early access</strong>
+            <small>launch updates only · never shared</small>
+            <div class="signup-row"><input id="su-email" type="email" placeholder="you@dev.com" /><button onclick="doSignup()">→</button></div>
+            <small class="signup-note" id="su-note"></small>
+          </div>
           <div class="local-card"><span class="pulse"></span><div><strong>Local runtime</strong><small>MLX · Apple Silicon</small></div></div>
           <div class="sidebar-footer"><span>v0.1.0</span><span>⌘ K</span></div>
         </div>
       </aside>
       <main class="main">
-        <header class="topbar"><div class="crumb"><span>Workspace</span><span class="slash">/</span><strong>Runtime overview</strong></div><div class="top-actions"><button class="icon-btn" aria-label="Notifications">♧</button><button class="avatar">A</button></div></header>
+        <header class="topbar"><div class="crumb"><a class="back-link" href="/">← decastate.com</a><span class="slash">/</span><strong>Runtime overview</strong></div><div class="top-actions" id="auth-area"><span class="auth-hint" id="auth-hint"></span></div></header>
         <section class="hero" id="overview">
           <div><div class="eyebrow accent">RUNTIME CONTINUITY · VERIFIED</div><h1>State survives<br /><em>the process.</em></h1><p>Persist the model’s working memory. Wake it later, continue exactly where it stopped, and branch without rebuilding context.</p><div class="hero-actions"><button class="primary" onclick="document.querySelector('#evidence').scrollIntoView({behavior:'smooth'})">View verified evidence <span>↗</span></button><button class="quiet" onclick="copyClaim()">Copy product claim <span>⧉</span></button></div></div>
           <div class="orbit"><div class="orbit-ring ring-one"></div><div class="orbit-ring ring-two"></div><div class="orbit-core"><span>STATE</span><strong>LIVE</strong></div><span class="orbit-label label-a">PERSIST</span><span class="orbit-label label-b">WAKE</span><span class="orbit-label label-c">BRANCH</span></div>
@@ -44,6 +51,44 @@
         <section class="grid-two">
           <article class="panel state-panel" id="states"><div class="panel-heading"><div><div class="eyebrow">ACTIVE STATE · FROM DISK</div><h2 id="st-title">— <span class="live-tag" id="st-live">● LIVE</span></h2></div><span class="verified" id="st-source">reading…</span></div><div class="state-meta"><div><small>MODEL</small><strong id="st-model">—</strong></div><div><small>CONTEXT</small><strong id="st-tokens">—</strong></div><div><small>STATE ON DISK</small><strong id="st-size">—</strong></div></div><div class="lifecycle"><div class="life-line"></div><div class="life-step done"><span>✓</span><small>Understood</small><b id="st-tok2">—</b></div><div class="life-step done"><span>✓</span><small>Checkpoints</small><b id="st-cps">—</b></div><div class="life-step done"><span>✓</span><small>Branches</small><b id="st-brs">—</b></div><div class="life-step current"><span>◉</span><small>Restore</small><b id="st-mode">native-mlx</b></div></div><div class="state-list" id="st-list"></div><div class="integrity"><span class="check">✓</span><div><strong>Integrity verified</strong><small>Fingerprint guard active · SHA-256 manifest match</small></div><code>MLX / QWEN</code></div></article>
           <article class="panel timeline-panel"><div class="panel-heading"><div><div class="eyebrow">HOW IT WORKS</div><h2>Execution lifecycle</h2></div><span class="verified">✓ verified</span></div><div class="timeline"><div class="tl-item"><span class="tl-icon">01</span><div><strong>Understand</strong><small>Model reads the repository context once.</small></div><time>0.15s</time></div><div class="tl-item"><span class="tl-icon">02</span><div><strong>Persist</strong><small>Native KV cache becomes a durable state capsule.</small></div><time>25.2 MB</time></div><div class="tl-item"><span class="tl-icon">03</span><div><strong>Wake</strong><small>New process restores state and continues.</small></div><time>exact</time></div></div><div class="quote">“The original context is not passed to the model again.”<small>— process-death restore evidence</small></div></article>
+        </section>
+        <section class="panel qkv-panel" id="qkv"><div class="panel-heading"><div><div class="eyebrow">LOCAL MLX · Q / K / V</div><h2>How the cache carries the conversation</h2></div><span class="verified">✓ local state explained</span></div>
+          <p class="qkv-lede">The model reads the first prompt and creates attention state. DecaState saves the <strong>K</strong>eys and <strong>V</strong>alues. Each later prompt creates a new <strong>Q</strong>uery, reads the earlier K/V state, and appends its own K/V state.</p>
+          <div class="qkv-defs"><div><span class="q-pill">Q · Query</span><small>What the current token is looking for.</small></div><div><span class="k-pill">K · Key</span><small>Signals describing earlier tokens.</small></div><div><span class="v-pill">V · Value</span><small>Information carried by earlier tokens.</small></div></div>
+          <div class="qkv-flow">
+            <article class="qkv-step first"><div class="qkv-step-top"><span class="qkv-num">01</span><span class="qkv-status">PREFILL · SAVE</span></div><h3>“Understand this repository.”</h3><p>MLX reads the repository context once.</p><div class="qkv-pills"><span class="q-pill">Q₁</span><span class="k-pill">K₁ created</span><span class="v-pill">V₁ created</span></div><div class="qkv-caption">Saved locally as K₁ + V₁</div></article>
+            <div class="qkv-arrow">→</div>
+            <article class="qkv-step"><div class="qkv-step-top"><span class="qkv-num">02</span><span class="qkv-status">READ + APPEND</span></div><h3>“Find the gateway entry point.”</h3><p>New Q₂ looks at the saved K₁/V₁.</p><div class="qkv-pills"><span class="q-pill">Q₂</span><span class="reuse-pill">reads K₁ + V₁</span><span class="k-pill">adds K₂</span><span class="v-pill">adds V₂</span></div><div class="qkv-caption">State becomes K₁…K₂ + V₁…V₂</div></article>
+            <div class="qkv-arrow">→</div>
+            <article class="qkv-step"><div class="qkv-step-top"><span class="qkv-num">03</span><span class="qkv-status">READ + APPEND</span></div><h3>“Explain how persistence works.”</h3><p>New Q₃ reads the complete earlier state.</p><div class="qkv-pills"><span class="q-pill">Q₃</span><span class="reuse-pill">reads K₁…K₂ + V₁…V₂</span><span class="k-pill">adds K₃</span><span class="v-pill">adds V₃</span></div><div class="qkv-caption">The model continues with shared context</div></article>
+            <div class="qkv-arrow">→</div>
+            <article class="qkv-step"><div class="qkv-step-top"><span class="qkv-num">04</span><span class="qkv-status">WAKE · CONTINUE</span></div><h3>“Continue with the architecture.”</h3><p>After process death, DecaState loads the saved state.</p><div class="qkv-pills"><span class="q-pill">Q₄</span><span class="reuse-pill">restores K₁…K₃ + V₁…V₃</span><span class="k-pill">adds K₄</span><span class="v-pill">adds V₄</span></div><div class="qkv-caption">No original prompt prefill again</div></article>
+          </div>
+          <div class="qkv-ascii"><div class="eyebrow">THE SAME FLOW IN ONE VIEW</div><pre>Prompt 1: Understand repository
+      │
+      ▼
+MLX creates Q₁ → K₁ + V₁ ───────────────┐
+      │                                  │
+      ▼                                  │
+DecaState saves K₁ + V₁                 │
+                                         │
+Prompt 2: Find gateway ── Q₂ ── reads K₁ + V₁ ── adds K₂ + V₂
+                                         │
+Prompt 3: Explain state ─ Q₃ ─ reads K₁..K₂ + V₁..V₂ ─ adds K₃ + V₃
+                                         │
+Process dies / wakes                     │
+                                         ▼
+Prompt 4: Continue ────── Q₄ ── loads K₁..K₃ + V₁..V₃ ── answer
+
+Local proof: 24 layers × (Key + Value) = 48 tensors · float16 · 2,047 tokens</pre></div>
+          <div class="qkv-boundary"><span class="check">✓</span><div><strong>What DecaState owns</strong><small>Local MLX cache file, manifest, fingerprint, save, restore, and replay proof.</small></div><span class="boundary">PROVIDER KV IS DIFFERENT</span><div><strong>What Anthropic / OpenAI own</strong><small>Frontier model execution and server-side prompt cache. DecaState cannot inspect those tensors.</small></div></div>
+          <div class="qkv-death"><div class="eyebrow">WHY “PROCESS DEATH” MATTERS</div><p><strong>Process A</strong> reads the prompt, saves K/V, and exits. Its RAM and PID disappear. <strong>Process B</strong> starts separately, validates the fingerprint, loads the file, and continues. The original prompt is not prefetched again.</p></div>
+          <div class="qkv-ownership"><div class="eyebrow">WEIGHTS → K/V → STORAGE</div><pre>MODEL WEIGHTS = permanent learned numbers
+KV CACHE      = temporary numbers for this processed conversation
+
+Local MLX:    weights + tokenizer → MLX/Apple GPU → K/V → DecaState file
+API model:    your prompt → internet → provider weights/GPU → provider K/V
+              DecaState sees usage fields, not the provider's private tensors</pre></div>
         </section>
         <section class="panel quickstart-panel"><div class="panel-heading"><div><div class="eyebrow">RUN IT YOURSELF · 3 COMMANDS</div><h2>From clone to forked agents in minutes.</h2></div><span class="verified">✓ real model · real state</span></div><div class="qs-grid">
           <button class="qs-cmd" onclick="copyCmd(this)"><small>1 · understand the repo once</small><code>decastate understand . --state-id repo</code><span class="qs-copy">⧉ copy</span></button>
@@ -63,6 +108,6 @@
       </main>
     </div>
     <div class="toast" id="toast">Claim copied to clipboard</div>
-    <script src="./app.js?v=6"></script>
+    <script src="./app.js?v=7"></script>
   </body>
 </html>

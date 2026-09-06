@@ -31,6 +31,8 @@ MAX_ENTRIES_SERVED = 120
 RATE_LIMIT = 10          # posts per IP per window
 RATE_WINDOW = 3600       # seconds
 HANDLE_RE = re.compile(r"^[A-Za-z0-9_\-]{2,24}$")
+EMAIL_RE = re.compile(r"^[^@\s]{1,64}@[^@\s]{1,255}\.[A-Za-z]{2,24}$")
+GOOGLE_CLIENT_ID = os.environ.get("DECASTATE_GOOGLE_CLIENT_ID", "")
 
 
 def hub_home() -> Path:
@@ -131,9 +133,36 @@ def _seed_if_empty() -> None:
     _regenerate(_load_entries())
 
 
+def _append_line(name: str, obj: dict) -> None:
+    with (hub_home() / name).open("a") as fh:
+        fh.write(json.dumps(obj) + "\n")
+
+
+def _verify_google_token(credential: str) -> dict | None:
+    """Verify a Google ID token server-side via Google's tokeninfo endpoint."""
+    import urllib.parse
+    import urllib.request
+    try:
+        url = ("https://oauth2.googleapis.com/tokeninfo?id_token="
+               + urllib.parse.quote(credential, safe=""))
+        with urllib.request.urlopen(url, timeout=10) as resp:
+            info = json.loads(resp.read())
+    except Exception:
+        return None
+    if info.get("aud") != GOOGLE_CLIENT_ID:
+        return None
+    if info.get("iss") not in ("accounts.google.com", "https://accounts.google.com"):
+        return None
+    if not info.get("email"):
+        return None
+    return {"email": info["email"], "name": info.get("name", ""),
+            "sub": info.get("sub", ""), "email_verified": info.get("email_verified")}
+
+
 class HubHandler(BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
     _rate: dict = {}
+    _sessions: dict = {}  # token -> user (in-memory; sessions reset on restart, fine for v0)
 
     def log_message(self, *_a):
         return
@@ -154,10 +183,88 @@ class HubHandler(BaseHTTPRequestHandler):
         if self.path.startswith("/api/health"):
             entries = _load_entries()
             self._send(200, {"ok": True, "receipts": len(entries)})
+        elif self.path.startswith("/api/auth/config"):
+            self._send(200, {"google_client_id": GOOGLE_CLIENT_ID or None})
+        elif self.path.startswith("/api/me"):
+            token = (self.headers.get("Authorization") or "").removeprefix("Bearer ").strip()
+            user = self._sessions.get(token)
+            self._send(200, {"user": user} if user else {"user": None})
         else:
             self._send(404, {"error": "not found"})
 
+    def _rate_ok(self, ip: str) -> bool:
+        now = time.time()
+        window = [t for t in self._rate.get(ip, []) if now - t < RATE_WINDOW]
+        if len(window) >= RATE_LIMIT:
+            return False
+        self._rate[ip] = window + [now]
+        return True
+
+    def _read_json(self) -> dict | None:
+        length = int(self.headers.get("Content-Length", 0) or 0)
+        if length <= 0 or length > MAX_BODY:
+            return None
+        try:
+            return json.loads(self.rfile.read(length))
+        except ValueError:
+            return None
+
+    def _handle_signup(self):
+        if not self._rate_ok(self._client_ip()):
+            self._send(429, {"error": "rate limited"})
+            return
+        payload = self._read_json()
+        if payload is None:
+            self._send(400, {"error": "invalid request"})
+            return
+        email = str(payload.get("email") or "").strip().lower()
+        if not EMAIL_RE.match(email):
+            self._send(400, {"error": "invalid email"})
+            return
+        eid = hashlib.sha256(email.encode()).hexdigest()[:16]
+        existing = set()
+        signups = hub_home() / "signups.jsonl"
+        if signups.exists():
+            for line in signups.open(errors="replace"):
+                try:
+                    existing.add(json.loads(line).get("id"))
+                except ValueError:
+                    pass
+        if eid not in existing:
+            _append_line("signups.jsonl", {
+                "id": eid, "email": email, "ts": time.time(),
+                "source": str(payload.get("source") or "site")[:40]})
+        self._send(200, {"ok": True, "note": "you're on the list — launch updates only, never shared"})
+
+    def _handle_google_auth(self):
+        if not GOOGLE_CLIENT_ID:
+            self._send(503, {"error": "google sign-in not configured yet"})
+            return
+        if not self._rate_ok(self._client_ip()):
+            self._send(429, {"error": "rate limited"})
+            return
+        payload = self._read_json()
+        credential = str((payload or {}).get("credential") or "")
+        if not credential:
+            self._send(400, {"error": "missing credential"})
+            return
+        user = _verify_google_token(credential)
+        if user is None:
+            self._send(401, {"error": "token verification failed"})
+            return
+        _append_line("users.jsonl", {**user, "ts": time.time()})
+        token = hashlib.sha256(os.urandom(32)).hexdigest()
+        self._sessions[token] = {"email": user["email"], "name": user["name"]}
+        self._send(200, {"ok": True, "token": token,
+                         "user": {"email": user["email"], "name": user["name"]}})
+
     def do_POST(self):
+        if self.path.startswith("/api/signup"):
+            self._handle_signup()
+            return
+        if self.path.startswith("/api/auth/google"):
+            self._handle_google_auth()
+            return
         if not self.path.startswith("/api/receipts"):
             self._send(404, {"error": "not found"})
             return

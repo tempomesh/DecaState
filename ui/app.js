@@ -201,3 +201,48 @@ function copyClaim(){
   navigator.clipboard?.writeText(claim);
   const toast=document.querySelector('#toast'); toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'),2200);
 }
+
+// ---- Auth + user capture (works on decastate.com; hides gracefully on pure-local) ----
+async function loadAuth(){
+  const area=document.getElementById('auth-area'); if(!area) return;
+  // restore session
+  const saved=localStorage.getItem('ds_user');
+  if(saved){ try{ renderSignedIn(JSON.parse(saved)); }catch(_e){} }
+  let cfg=null;
+  try{ const r=await fetch('/api/auth/config',{cache:'no-store'}); if(r.ok) cfg=await r.json(); }catch(_e){}
+  if(!cfg){ return; } // local static serve: no API — leave header clean
+  if(cfg.google_client_id && !saved){
+    const s=document.createElement('script'); s.src='https://accounts.google.com/gsi/client'; s.async=true;
+    s.onload=()=>{ try{
+      google.accounts.id.initialize({client_id:cfg.google_client_id, callback:async(resp)=>{
+        try{
+          const r=await fetch('/api/auth/google',{method:'POST',headers:{'content-type':'application/json'},
+            body:JSON.stringify({credential:resp.credential})});
+          const d=await r.json();
+          if(d.ok){ localStorage.setItem('ds_token',d.token); localStorage.setItem('ds_user',JSON.stringify(d.user)); renderSignedIn(d.user); }
+        }catch(_e){}
+      }});
+      const mount=document.createElement('div'); document.getElementById('auth-area').prepend(mount);
+      google.accounts.id.renderButton(mount,{theme:'filled_black',size:'medium',shape:'pill',text:'signin_with'});
+    }catch(_e){} };
+    document.head.appendChild(s);
+  }
+}
+function renderSignedIn(user){
+  const area=document.getElementById('auth-area'); if(!area) return;
+  area.innerHTML=`<span class="auth-user">${(user.name||user.email||'').replace(/[<>&]/g,'')}</span><button class="avatar" title="${(user.email||'').replace(/[<>&"]/g,'')}">${(user.email||'D')[0].toUpperCase()}</button>`;
+}
+async function doSignup(){
+  const email=(document.getElementById('su-email')||{}).value?.trim();
+  const note=document.getElementById('su-note'); if(!note) return;
+  if(!email||!email.includes('@')){ note.textContent='enter a valid email'; return; }
+  note.textContent='…';
+  try{
+    const r=await fetch('/api/signup',{method:'POST',headers:{'content-type':'application/json'},
+      body:JSON.stringify({email, source:'dashboard'})});
+    const d=await r.json();
+    note.textContent=d.ok?'✓ you\'re on the list':(d.error||'failed');
+    if(d.ok) document.getElementById('su-email').value='';
+  }catch(_e){ note.textContent='works on decastate.com (needs the hub API)'; }
+}
+loadAuth();
