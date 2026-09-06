@@ -62,8 +62,15 @@ PYEOF
 fi
 
 # --- 3. caddy container can reach host + firewall allows docker nets to 8788 ---
-grep -q "host-gateway" docker-compose.prod.yml || \
-  sed -i "s|- ./Caddyfile:/etc/caddy/Caddyfile:ro|- ./Caddyfile:/etc/caddy/Caddyfile:ro\n    extra_hosts:\n      - \"host.docker.internal:host-gateway\"|" docker-compose.prod.yml
+grep -q "host-gateway" docker-compose.prod.yml || python3 - <<PYEOF2
+t = open("docker-compose.prod.yml").read()
+anchor = "  caddy:\n    image: caddy:2-alpine\n"
+assert anchor in t, "caddy anchor not found"
+t = t.replace(anchor, anchor + "    extra_hosts:\n      - \"host.docker.internal:host-gateway\"\n", 1)
+open("docker-compose.prod.yml","w").write(t)
+print("extra_hosts added at correct position")
+PYEOF2
+sudo docker compose -f docker-compose.prod.yml config >/dev/null && echo "compose validates"
 sudo iptables -C INPUT -p tcp --dport 8788 -s 172.16.0.0/12 -j ACCEPT 2>/dev/null || \
   { sudo iptables -I INPUT -p tcp --dport 8788 -s 172.16.0.0/12 -j ACCEPT; sudo netfilter-persistent save; }
 
