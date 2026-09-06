@@ -39,6 +39,10 @@
     background:var(--accent);padding:9px 16px;border-radius:9px;text-decoration:none;white-space:nowrap;
     transition:transform .15s ease}
   .nav-cta:hover{transform:translateY(-1px)}
+  .nav-links{display:flex;align-items:center;gap:22px}
+  .nav-link{font-family:var(--mono);font-size:14px;color:var(--dim);text-decoration:none;transition:color .15s ease}
+  .nav-link:hover{color:var(--accent)}
+  @media(max-width:560px){.nav-links{gap:14px}.nav-link{display:none}}
 
   /* hero */
   .hero{padding-top:112px;padding-bottom:96px;position:relative}
@@ -157,7 +161,11 @@
 <div class="topbar">
   <div class="row">
     <div class="brand"><span class="mk">◈</span> DecaState</div>
-    <a class="nav-cta" href="https://github.com/tempomesh/DecaState">★ Star on GitHub</a>
+    <div class="nav-links">
+      <a class="nav-link" href="/savings.html">Savings</a>
+      <a class="nav-link" href="/ui/">Dashboard</a>
+      <a class="nav-cta" href="https://github.com/tempomesh/DecaState">★ Star on GitHub</a>
+    </div>
   </div>
 </div>
 
