@@ -218,6 +218,51 @@ def brag(
                       "saved_pct": receipt.get("saved_pct")}, indent=2))
 
 
+@app.command()
+def publish(
+    handle: str = typer.Option("anonymous", help="Display name for the public wall (2-24 chars)."),
+    transcripts: bool = typer.Option(False, "--transcripts",
+                                     help="Also scan local Claude Code transcripts."),
+    days: int = typer.Option(30, help="Window in days when scanning transcripts."),
+    hub: str = typer.Option("https://decastate.com", help="Hub base URL."),
+    yes: bool = typer.Option(False, "--yes", help="Skip the confirmation prompt."),
+) -> None:
+    """Publish your savings receipt to the public DecaState Hub wall (opt-in).
+
+    Only the summary leaves your machine: saved $, %, request count, top model
+    names, and your chosen handle. Never prompts, transcripts, code, or keys.
+    Published entries are labeled community-reported (not independently verified).
+    """
+    import urllib.error
+    import urllib.request
+
+    from decastate.gateway.proxy import audit_receipt
+
+    receipt = audit_receipt(transcripts=transcripts, window_days=days if transcripts else None)
+    top = sorted(receipt.get("by_model", {}).items(), key=lambda x: -x[1]["actual_usd"])[:3]
+    payload = {"handle": handle, "saved_usd": receipt.get("saved_usd", 0),
+               "saved_pct": receipt.get("saved_pct", 0), "requests": receipt.get("requests", 0),
+               "top_models": [m for m, _ in top], "source": receipt.get("source", "decastate audit")}
+    print("About to publish this — and ONLY this — to the public wall:")
+    print(json.dumps(payload, indent=2))
+    if not yes and input("Publish? [y/N] ").strip().lower() != "y":
+        print("cancelled — nothing sent")
+        raise typer.Exit(code=0)
+    req = urllib.request.Request(hub.rstrip("/") + "/api/receipts",
+                                 data=json.dumps(payload).encode(), method="POST",
+                                 headers={"content-type": "application/json",
+                                          "User-Agent": "decastate-publish/0.1"})
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            print(json.dumps(json.loads(resp.read()), indent=2))
+    except urllib.error.HTTPError as exc:
+        print(f"hub rejected it ({exc.code}): {exc.read().decode()[:200]}")
+        raise typer.Exit(code=1)
+    except urllib.error.URLError as exc:
+        print(f"hub unreachable: {exc.reason}")
+        raise typer.Exit(code=1)
+
+
 @app.command("gateway-selftest")
 def gateway_selftest() -> None:
     """Verify gateway plumbing (byte-identical forward + usage extraction) with a local echo."""

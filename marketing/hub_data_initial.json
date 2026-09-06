@@ -1,0 +1,56 @@
+{
+ "updated_at": "2026-09-06T08:27:53Z",
+ "totals": {
+  "combined_saved_usd": 121010.39,
+  "verified_saved_usd": 121010.39,
+  "community_saved_usd": 0,
+  "receipts": 3,
+  "verified_receipts": 3
+ },
+ "honesty": "verified = DecaState's own reproducible measurements; community = self-reported by users in reproducible format, not independently verified",
+ "entries": [
+  {
+   "handle": "decastate",
+   "saved_usd": 0.01,
+   "saved_pct": 78.4,
+   "requests": 4,
+   "top_models": [
+    "claude-haiku-4-5"
+   ],
+   "source": "2-request A/B pair (real billed)",
+   "ts": 1788683273.4863858,
+   "verified": true,
+   "kind": "verified (DecaState reproducible measurement)",
+   "id": "b4ca45d47331"
+  },
+  {
+   "handle": "decastate",
+   "saved_usd": 0.11,
+   "saved_pct": 78.4,
+   "requests": 20,
+   "top_models": [
+    "claude-haiku-4-5"
+   ],
+   "source": "10-request A/B session (real billed)",
+   "ts": 1788683273.486374,
+   "verified": true,
+   "kind": "verified (DecaState reproducible measurement)",
+   "id": "9ec14c222404"
+  },
+  {
+   "handle": "decastate",
+   "saved_usd": 121010.27,
+   "saved_pct": 84.2,
+   "requests": 49156,
+   "top_models": [
+    "claude-opus-4-8",
+    "claude-fable-5"
+   ],
+   "source": "founder 30-day audit (real Claude Code transcripts)",
+   "ts": 1788683273.48632,
+   "verified": true,
+   "kind": "verified (DecaState reproducible measurement)",
+   "id": "c726f9994971"
+  }
+ ]
+}
