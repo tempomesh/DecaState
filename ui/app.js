@@ -211,14 +211,18 @@ async function onGoogleCredential(resp){
     if(d.ok){ localStorage.setItem('ds_token',d.token); localStorage.setItem('ds_user',JSON.stringify(d.user)); renderSignedIn(d.user); }
   }catch(_e){}
 }
+function hideGate(){ const g=document.getElementById('auth-gate'); if(g) g.hidden=true; }
 function loadAuth(){
   const area=document.getElementById('auth-area'); if(!area) return;
+  const onHub=/(^|\.)decastate\.com$/.test(location.hostname);
+  const unlocked=localStorage.getItem('ds_user')||localStorage.getItem('ds_unlocked');
   const saved=localStorage.getItem('ds_user');
-  if(saved){ try{ renderSignedIn(JSON.parse(saved)); return; }catch(_e){} }
-  // instant path: public client ID inlined in <meta>; GSI script preloads in <head>
+  if(saved){ try{ renderSignedIn(JSON.parse(saved)); }catch(_e){} }
+  // GATE: on decastate.com the dashboard opens after Google sign-in or email signup
+  if(onHub && !unlocked){ const g=document.getElementById('auth-gate'); if(g) g.hidden=false; }
+  if(saved) return;
   const clientId=document.querySelector('meta[name="google-client-id"]')?.content;
   if(!clientId) return;
-  const onHub=/(^|\.)decastate\.com$/.test(location.hostname);
   let tries=0;
   (function init(){
     if(!window.google?.accounts?.id){ if(tries++<40) setTimeout(init,100); return; }
@@ -229,14 +233,34 @@ function loadAuth(){
         use_fedcm_for_prompt:true,        // new-generation browser-native One Tap (FedCM)
         itp_support:true, cancel_on_tap_outside:false
       });
-      const mount=document.createElement('div');
-      document.getElementById('auth-area').prepend(mount);
-      google.accounts.id.renderButton(mount,{theme:'filled_black',size:'medium',shape:'pill',text:'signin_with'});
+      const gate=document.getElementById('gate-google');
+      const target=(gate && !document.getElementById('auth-gate').hidden)?gate:null;
+      if(target){  // front door: big centered button in the gate
+        google.accounts.id.renderButton(target,{theme:'filled_black',size:'large',shape:'pill',text:'continue_with',width:280});
+      } else {
+        const mount=document.createElement('div');
+        document.getElementById('auth-area').prepend(mount);
+        google.accounts.id.renderButton(mount,{theme:'filled_black',size:'medium',shape:'pill',text:'signin_with'});
+      }
       if(onHub) google.accounts.id.prompt(); // One Tap chip, immediately
     }catch(_e){}
   })();
 }
+async function gateSignup(){
+  const email=(document.getElementById('gate-email')||{}).value?.trim();
+  const note=document.getElementById('gate-note'); if(!note) return;
+  if(!email||!email.includes('@')){ note.textContent='enter a valid email'; return; }
+  note.textContent='…';
+  try{
+    const r=await fetch('/api/signup',{method:'POST',headers:{'content-type':'application/json'},
+      body:JSON.stringify({email, source:'dashboard-gate'})});
+    const d=await r.json();
+    if(d.ok){ localStorage.setItem('ds_unlocked','1'); note.textContent='✓ welcome in'; setTimeout(hideGate,500); }
+    else note.textContent=d.error||'failed';
+  }catch(_e){ note.textContent='hub unreachable — try again'; }
+}
 function renderSignedIn(user){
+  hideGate();
   const area=document.getElementById('auth-area'); if(!area) return;
   area.innerHTML=`<span class="auth-user">${(user.name||user.email||'').replace(/[<>&]/g,'')}</span><button class="avatar" title="${(user.email||'').replace(/[<>&"]/g,'')}">${(user.email||'D')[0].toUpperCase()}</button>`;
 }

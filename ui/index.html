@@ -13,6 +13,18 @@
     <script src="https://accounts.google.com/gsi/client" async defer></script>
   </head>
   <body>
+    <div class="auth-gate" id="auth-gate" hidden>
+      <div class="auth-card">
+        <div class="auth-brand"><span class="brand-mark">◈</span> DecaState <span class="auth-dim">Dashboard</span></div>
+        <h2>Sign in to open the dashboard</h2>
+        <p>Live states, measured savings, and the cache-flow explainer — free, one tap.</p>
+        <div class="auth-gbtn" id="gate-google"></div>
+        <div class="auth-or">or get early access by email</div>
+        <div class="signup-row gatewide"><input id="gate-email" type="email" placeholder="you@dev.com" /><button onclick="gateSignup()">→</button></div>
+        <small class="signup-note" id="gate-note"></small>
+        <a class="auth-back" href="/">← back to decastate.com</a>
+      </div>
+    </div>
     <div class="app-shell">
       <aside class="sidebar">
         <div class="brand"><span class="brand-mark">◈</span><span>DecaState</span></div>
@@ -66,23 +78,16 @@
             <div class="qkv-arrow">→</div>
             <article class="qkv-step"><div class="qkv-step-top"><span class="qkv-num">04</span><span class="qkv-status">WAKE · CONTINUE</span></div><h3>“Continue with the architecture.”</h3><p>After process death, DecaState loads the saved state.</p><div class="qkv-pills"><span class="q-pill">Q₄</span><span class="reuse-pill">restores K₁…K₃ + V₁…V₃</span><span class="k-pill">adds K₄</span><span class="v-pill">adds V₄</span></div><div class="qkv-caption">No original prompt prefill again</div></article>
           </div>
-          <div class="qkv-ascii"><div class="eyebrow">THE SAME FLOW IN ONE VIEW</div><pre>Prompt 1: Understand repository
-      │
-      ▼
-MLX creates Q₁ → K₁ + V₁ ───────────────┐
-      │                                  │
-      ▼                                  │
-DecaState saves K₁ + V₁                 │
-                                         │
-Prompt 2: Find gateway ── Q₂ ── reads K₁ + V₁ ── adds K₂ + V₂
-                                         │
-Prompt 3: Explain state ─ Q₃ ─ reads K₁..K₂ + V₁..V₂ ─ adds K₃ + V₃
-                                         │
-Process dies / wakes                     │
-                                         ▼
-Prompt 4: Continue ────── Q₄ ── loads K₁..K₃ + V₁..V₃ ── answer
-
-Local proof: 24 layers × (Key + Value) = 48 tensors · float16 · 2,047 tokens</pre></div>
+          <div class="qkv-oneview"><div class="eyebrow">THE SAME FLOW IN ONE VIEW</div>
+            <div class="ov-rail">
+              <div class="ov-row"><span class="ov-dot"></span><div class="ov-body"><div class="ov-head"><b>Prompt 1</b><span>Understand repository</span></div><div class="ov-pills"><span class="q-pill">Q₁</span><span class="ov-arrow">creates</span><span class="k-pill">K₁</span><span class="v-pill">V₁</span><span class="ov-save">◈ saved to disk</span></div></div></div>
+              <div class="ov-row"><span class="ov-dot"></span><div class="ov-body"><div class="ov-head"><b>Prompt 2</b><span>Find the gateway</span></div><div class="ov-pills"><span class="q-pill">Q₂</span><span class="reuse-pill">reads K₁ V₁</span><span class="ov-arrow">+</span><span class="k-pill">K₂</span><span class="v-pill">V₂</span></div></div></div>
+              <div class="ov-row"><span class="ov-dot"></span><div class="ov-body"><div class="ov-head"><b>Prompt 3</b><span>Explain state</span></div><div class="ov-pills"><span class="q-pill">Q₃</span><span class="reuse-pill">reads K₁…K₂ V₁…V₂</span><span class="ov-arrow">+</span><span class="k-pill">K₃</span><span class="v-pill">V₃</span></div></div></div>
+              <div class="ov-break"><span></span><em>process dies · machine reboots · DecaState wakes the state</em><span></span></div>
+              <div class="ov-row last"><span class="ov-dot lime"></span><div class="ov-body"><div class="ov-head"><b>Prompt 4</b><span>Continue</span></div><div class="ov-pills"><span class="q-pill">Q₄</span><span class="reuse-pill lime">loads K₁…K₃ V₁…V₃</span><span class="ov-arrow">→</span><span class="ov-answer">answer · byte-exact · 0 tokens re-read</span></div></div></div>
+            </div>
+            <div class="ov-proof"><span class="check">✓</span> Local proof&nbsp;· 24 layers × (Key + Value) = <b>48 tensors</b> · float16 · 2,047 tokens</div>
+          </div>
           <div class="qkv-boundary"><span class="check">✓</span><div><strong>What DecaState owns</strong><small>Local MLX cache file, manifest, fingerprint, save, restore, and replay proof.</small></div><span class="boundary">PROVIDER KV IS DIFFERENT</span><div><strong>What Anthropic / OpenAI own</strong><small>Frontier model execution and server-side prompt cache. DecaState cannot inspect those tensors.</small></div></div>
           <div class="qkv-death"><div class="eyebrow">WHY “PROCESS DEATH” MATTERS</div><p><strong>Process A</strong> reads the prompt, saves K/V, and exits. Its RAM and PID disappear. <strong>Process B</strong> starts separately, validates the fingerprint, loads the file, and continues. The original prompt is not prefetched again.</p></div>
           <div class="qkv-ownership"><div class="eyebrow">WEIGHTS → K/V → STORAGE</div><pre>MODEL WEIGHTS = permanent learned numbers
@@ -110,6 +115,6 @@ API model:    your prompt → internet → provider weights/GPU → provider K/V
       </main>
     </div>
     <div class="toast" id="toast">Claim copied to clipboard</div>
-    <script src="./app.js?v=8"></script>
+    <script src="./app.js?v=9"></script>
   </body>
 </html>
