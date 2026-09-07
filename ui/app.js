@@ -262,7 +262,15 @@ async function gateSignup(){
 function renderSignedIn(user){
   hideGate();
   const area=document.getElementById('auth-area'); if(!area) return;
-  area.innerHTML=`<span class="auth-user">${(user.name||user.email||'').replace(/[<>&]/g,'')}</span><button class="avatar" title="${(user.email||'').replace(/[<>&"]/g,'')}">${(user.email||'D')[0].toUpperCase()}</button>`;
+  area.innerHTML=`<span class="auth-user">${(user.name||user.email||'').replace(/[<>&]/g,'')}</span>`+
+    `<button class="avatar" title="${(user.email||'').replace(/[<>&"]/g,'')}">${(user.email||'D')[0].toUpperCase()}</button>`+
+    `<button class="signout" onclick="signOut()" title="Sign out">Sign out</button>`;
+}
+function signOut(){
+  localStorage.removeItem('ds_user'); localStorage.removeItem('ds_token');
+  localStorage.removeItem('ds_unlocked');
+  try{ google.accounts.id.disableAutoSelect(); }catch(_e){}  // stop One Tap auto re-login
+  location.reload();  // gate returns for a fresh visit
 }
 async function doSignup(){
   const email=(document.getElementById('su-email')||{}).value?.trim();

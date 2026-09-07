@@ -53,3 +53,8 @@
 .signup-row.gatewide input{font-size:12px;padding:10px 11px}
 .auth-back{display:inline-block;margin-top:18px;font-size:11px;color:#89909e;text-decoration:none}
 .auth-back:hover{color:var(--accent)}
+.signout{margin-left:10px;font:10px var(--mono);color:#89909e;background:none;border:1px solid var(--line);border-radius:5px;padding:6px 9px;cursor:pointer}
+.signout:hover{color:var(--accent);border-color:#567246}
+nav a.xlink{border-top:1px solid #1c212b;margin-top:6px;padding-top:12px;border-radius:0}
+nav a.xlink i{margin-left:auto;font:11px var(--mono);color:#687180;font-style:normal}
+a.brand{text-decoration:none;color:inherit}
