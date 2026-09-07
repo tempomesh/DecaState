@@ -58,3 +58,6 @@
 nav a.xlink{border-top:1px solid #1c212b;margin-top:6px;padding-top:12px;border-radius:0}
 nav a.xlink i{margin-left:auto;font:11px var(--mono);color:#687180;font-style:normal}
 a.brand{text-decoration:none;color:inherit}
+
+.main pre{max-width:100%;overflow-x:auto}
+@media(max-width:720px){.ov-break{padding-left:0}.ov-break em{white-space:normal;line-height:1.5}}

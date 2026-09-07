@@ -9,10 +9,12 @@
 body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;line-height:1.55}
 .grid{position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(195,245,60,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(195,245,60,.035) 1px,transparent 1px);background-size:54px 54px}
 .wrap{position:relative;max-width:1100px;margin:0 auto;padding:56px 32px 90px}
-.brand{display:flex;justify-content:space-between;align-items:center;margin-bottom:60px}
+.brand{display:flex;justify-content:space-between;align-items:center;margin-bottom:60px;flex-wrap:wrap;gap:14px}
 .brand .l{font-weight:800;font-size:24px}.brand .l span{color:var(--lime)}
 .brand a{font-family:var(--mono);font-size:13px;color:#0a0d05;background:var(--lime);padding:9px 15px;border-radius:8px;text-decoration:none}
-.brand a.nvl{background:none;color:var(--dim);padding:0}.brand a.nvl:hover{color:var(--lime)}
+.brand a.l{background:none;color:var(--text);padding:0;font-family:inherit;font-size:24px;border-radius:0}
+.brand a.nvl{background:none;color:#b9c2d4;padding:0;font-size:14px}.brand a.nvl:hover{color:var(--lime)}
+@media(max-width:560px){.brand .l{font-size:20px}.brand a.nvl{font-size:13px}}
 .eyebrow{font-family:var(--mono);font-size:13px;letter-spacing:.26em;color:var(--lime)}
 .eyebrow.coral{color:var(--coral)}
 h1{font-family:var(--disp);font-weight:800;font-size:clamp(38px,6vw,68px);line-height:1.04;margin:16px 0 14px;letter-spacing:-.02em}
@@ -64,7 +66,7 @@ footer b{color:var(--lime)}
 </style>
 <div class="grid"></div>
 <div class="wrap">
-  <div class="brand"><a class="l" href="/" style="text-decoration:none;color:inherit"><span>◈</span> DecaState</a><div style="display:flex;gap:18px;align-items:center"><a class="nvl" href="/">Home</a><a class="nvl" href="/hub/">Hub</a><a class="nvl" href="/ui/">Dashboard</a><a href="https://github.com/tempomesh/DecaState">★ GitHub</a></div></div>
+  <div class="brand"><a class="l" href="/" style="text-decoration:none;color:inherit"><span>◈</span> DecaState</a><div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap"><a class="nvl" href="/">← Home</a><a class="nvl" href="/hub/">Hub</a><a class="nvl" href="/ui/">Dashboard</a><a href="https://github.com/tempomesh/DecaState">★ GitHub</a></div></div>
 
   <div class="eyebrow">API SAVINGS · MEASURED VS ILLUSTRATED · NOTHING INVENTED</div>
   <h1>What prompt caching is<br/>actually worth — <span class="em">per model.</span></h1>
