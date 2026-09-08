@@ -8,7 +8,10 @@ import uuid
 from contextlib import contextmanager
 from pathlib import Path
 from decastate.utils.hashing import sha256_file
-from mlx_lm.models.cache import save_prompt_cache
+
+# save_prompt_cache is imported lazily inside atomic_save_prompt_cache so that
+# importing this module (used by fork/manager) stays stdlib-only — the gateway,
+# guard, hub, and fork paths don't need MLX just to import.
 
 @contextmanager
 def state_lock(home: Path, state_id: str):
@@ -23,6 +26,7 @@ def state_lock(home: Path, state_id: str):
             fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
 
 def atomic_save_prompt_cache(path: Path, cache: list, metadata: dict) -> dict:
+    from mlx_lm.models.cache import save_prompt_cache  # lazy: only when actually saving MLX state
     path.parent.mkdir(parents=True, exist_ok=True)
     temp_path = path.parent / f".{path.stem}.{uuid.uuid4().hex}.safetensors"
     try:

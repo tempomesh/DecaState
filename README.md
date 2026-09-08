@@ -114,14 +114,20 @@ Every row above comes from a JSON file in [`benchmarks/results/`](benchmarks/res
 
 ---
 
-## Quickstart (3 minutes, Apple Silicon)
+## Quickstart
 
 ```bash
 git clone https://github.com/tempomesh/DecaState.git
 cd DecaState
 python3 -m venv .venv && source .venv/bin/activate
-pip install -e ".[mlx]"
+
+pip install -e .            # API tools: gateway · audit · guard · hub · publish (any OS)
+pip install -e ".[mlx]"     # + the local runtime: demo · fork · checkpoint (Apple Silicon)
 ```
+
+The base install is pure-Python (no heavy deps) and runs everywhere. The `[mlx]`
+extra adds the on-device state runtime and needs Apple Silicon. Every command
+tells you if it needs the extra — nothing crashes on import.
 
 Check your machine:
 

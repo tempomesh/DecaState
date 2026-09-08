@@ -10,12 +10,37 @@ from pathlib import Path
 import typer
 
 from decastate.cli.doctor import doctor_report
-from decastate.runtime.ollama import OllamaRuntime
-from decastate.state.capsule import StateCapsule
-from decastate.checkpoint.manager import CheckpointError, CheckpointManager
-from decastate.fork.manager import ForkError, ForkManager
-from decastate.state.workspace import NativeWorkspace, NativeWorkspaceError
-from mlx_lm.models.cache import load_prompt_cache, save_prompt_cache
+from decastate.runtime.ollama import OllamaRuntime      # stdlib-only
+from decastate.state.capsule import StateCapsule        # stdlib-only
+
+# The native MLX lifecycle modules are imported on demand so the pure-stdlib
+# commands (gateway, audit, guard, hub, publish, savings, run, doctor) work
+# everywhere — including Linux and installs without the optional [mlx] extra.
+CheckpointError = CheckpointManager = ForkError = ForkManager = None
+NativeWorkspace = NativeWorkspaceError = load_prompt_cache = save_prompt_cache = None
+
+
+def _load_mlx():
+    """Populate the MLX-backed names on first use; friendly error if the extra is missing."""
+    global CheckpointError, CheckpointManager, ForkError, ForkManager
+    global NativeWorkspace, NativeWorkspaceError, load_prompt_cache, save_prompt_cache
+    if CheckpointManager is not None:
+        return
+    try:
+        from mlx_lm.models.cache import load_prompt_cache as _lpc, save_prompt_cache as _spc
+        from decastate.checkpoint.manager import CheckpointError as _CE, CheckpointManager as _CM
+        from decastate.fork.manager import ForkError as _FE, ForkManager as _FM
+        from decastate.state.workspace import NativeWorkspace as _NW, NativeWorkspaceError as _NWE
+    except ModuleNotFoundError as exc:
+        raise typer.BadParameter(
+            f"'{exc.name}' is required for local-model commands. Install the runtime with:\n"
+            f"  pip install 'decastate[mlx]'   (Apple Silicon)\n"
+            f"The API commands (gateway · audit · guard · publish) work without it.") from exc
+    CheckpointError, CheckpointManager = _CE, _CM
+    ForkError, ForkManager = _FE, _FM
+    NativeWorkspace, NativeWorkspaceError = _NW, _NWE
+    load_prompt_cache, save_prompt_cache = _lpc, _spc
+
 
 app = typer.Typer(help="DecaState: local AI state runtime")
 
@@ -59,6 +84,7 @@ def understand(
     state_id: str | None = typer.Option(None, help="Optional stable state name."),
 ) -> None:
     """Understand a real repository once and persist its native MLX state."""
+    _load_mlx()
     repo = repo.resolve()
     state_id = state_id or f"repo-{repo.name}-{int(time.time())}"
     home = _home()
@@ -279,6 +305,7 @@ def demo(
     model: str = typer.Option("mlx-community/Qwen2.5-0.5B-Instruct-4bit"),
 ) -> None:
     """Understand a repository once, checkpoint, wake, and fork — all measured live."""
+    _load_mlx()
     from decastate.cli.demo_cmd import run_demo
 
     try:
@@ -294,6 +321,7 @@ def create_state(
     model: str = typer.Option("mlx-community/Qwen2.5-0.5B-Instruct-4bit"),
 ) -> None:
     """Build and persist a native MLX state from a context file."""
+    _load_mlx()
     try:
         print(json.dumps(NativeWorkspace.create(state_id, model, context_file).status(), indent=2))
     except (NativeWorkspaceError, OSError, KeyError) as exc:
@@ -307,6 +335,7 @@ def continue_state(
     max_tokens: int = typer.Option(32),
 ) -> None:
     """Continue a native MLX state and persist the updated state."""
+    _load_mlx()
     try:
         workspace = NativeWorkspace.from_env(state_id)
         print(workspace.continue_generation(prompt, max_tokens=max_tokens))
@@ -317,6 +346,7 @@ def continue_state(
 @app.command("status")
 def state_status(state_id: str = typer.Argument(...)) -> None:
     """Inspect a native MLX state workspace."""
+    _load_mlx()
     try:
         print(json.dumps(NativeWorkspace.from_env(state_id).status(), indent=2))
     except (NativeWorkspaceError, OSError, KeyError) as exc:
@@ -375,6 +405,7 @@ def checkpoint(
     checkpoint_name: str = typer.Argument(...),
 ) -> None:
     """Save the current native MLX live cache as an immutable checkpoint."""
+    _load_mlx()
     try:
         home, live_path, manifest = _native_workspace(state_id)
         cache, _ = load_prompt_cache(str(live_path), return_metadata=True)
@@ -389,6 +420,7 @@ def checkpoint(
 @app.command("checkpoints")
 def list_checkpoints(state_id: str = typer.Argument(...)) -> None:
     """List immutable checkpoints and their lineage."""
+    _load_mlx()
     try:
         home, _live_path, manifest = _native_workspace(state_id)
         print(json.dumps(CheckpointManager(home, state_id, manifest["model"]["id"]).list(), indent=2))
@@ -402,6 +434,7 @@ def rollback(
     checkpoint_name: str = typer.Argument(...),
 ) -> None:
     """Restore a named native checkpoint into the live state workspace."""
+    _load_mlx()
     try:
         home, live_path, manifest = _native_workspace(state_id)
         manager = CheckpointManager(home, state_id, manifest["model"]["id"])
@@ -423,6 +456,7 @@ def fork(
     branch_name: str | None = typer.Argument(None),
 ) -> None:
     """Create a physical-copy native MLX branch from the live state."""
+    _load_mlx()
     try:
         if branch_name is None:
             branch_name = state_id
