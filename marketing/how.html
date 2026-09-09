@@ -2,18 +2,40 @@
 <meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2714%27 fill=%27%2307090e%27/%3E%3Ctext x=%2732%27 y=%2745%27 font-size=%2738%27 text-anchor=%27middle%27 fill=%27%23c3f53c%27%3E%E2%97%88%3C/text%3E%3C/svg%3E" />
 <title>How DecaState Works</title>
+<script>try{var t=localStorage.getItem('ds-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Manrope:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
 <style>
-:root{--bg:#07090e;--panel:#0d1219;--line:#1c2230;--text:#e9edf5;--dim:#8b97b0;--dimmer:#5f6b85;--lime:#c3f53c;--coral:#ff8f88;--blue:#6fb7ff;--gold:#f5c451;--mono:'JetBrains Mono',monospace;--disp:'Bricolage Grotesque',sans-serif}
+:root{--bg:#07090e;--panel:#0d1219;--line:#1c2230;--text:#e9edf5;--dim:#8b97b0;--dimmer:#5f6b85;
+  --lime:#c3f53c;--lime-fill:#c3f53c;--ink:#0a0d05;--coral:#ff8f88;--blue:#6fb7ff;--gold:#f5c451;
+  --navlink:#b9c2d4;--text-soft:#c7d0e2;--grid-a:.03;
+  --node-bg:#0a0e15;--node-hero-bg:#10160c;--node-re-bg:#141b12;--node-re-bd:#33402e;--node-mono-fg:#cdd6e6;
+  --hero-bg:linear-gradient(180deg,#101610,#0d1219);--hero-border:#567246;--gold-bd:#4a4020;
+  --mono:'JetBrains Mono',monospace;--disp:'Bricolage Grotesque',sans-serif}
+@media (prefers-color-scheme: light){ :root:not([data-theme="dark"]){
+  --bg:#f7f8fa;--panel:#ffffff;--line:#e2e7f0;--text:#0c1017;--dim:#55617a;--dimmer:#8792a8;
+  --lime:#4a7a0d;--lime-fill:#c3f53c;--coral:#d05046;--blue:#2f6fd0;--gold:#8a6d12;
+  --navlink:#55617a;--text-soft:#2a3444;--grid-a:.05;
+  --node-bg:#f4f6fa;--node-hero-bg:#eef7db;--node-re-bg:#eef7db;--node-re-bd:#bcd98a;--node-mono-fg:#2a3444;
+  --hero-bg:linear-gradient(180deg,#f2f8ea,#ffffff);--hero-border:#bcd98a;--gold-bd:#e6d29a;
+}}
+:root[data-theme="light"]{
+  --bg:#f7f8fa;--panel:#ffffff;--line:#e2e7f0;--text:#0c1017;--dim:#55617a;--dimmer:#8792a8;
+  --lime:#4a7a0d;--lime-fill:#c3f53c;--coral:#d05046;--blue:#2f6fd0;--gold:#8a6d12;
+  --navlink:#55617a;--text-soft:#2a3444;--grid-a:.05;
+  --node-bg:#f4f6fa;--node-hero-bg:#eef7db;--node-re-bg:#eef7db;--node-re-bd:#bcd98a;--node-mono-fg:#2a3444;
+  --hero-bg:linear-gradient(180deg,#f2f8ea,#ffffff);--hero-border:#bcd98a;--gold-bd:#e6d29a;
+}
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;line-height:1.6}
-.grid{position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(195,245,60,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(195,245,60,.03) 1px,transparent 1px);background-size:54px 54px}
+.grid{position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(120,150,40,var(--grid-a)) 1px,transparent 1px),linear-gradient(90deg,rgba(120,150,40,var(--grid-a)) 1px,transparent 1px);background-size:54px 54px}
 .wrap{position:relative;max-width:920px;margin:0 auto;padding:40px 24px 100px}
 .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:52px;flex-wrap:wrap;gap:12px}
 .brand{font-weight:800;font-size:22px;text-decoration:none;color:var(--text)}.brand span{color:var(--lime)}
 .navl{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
-.navl a{font-family:var(--mono);font-size:13px;color:#b9c2d4;text-decoration:none}.navl a:hover{color:var(--lime)}
-.navl a.cta{color:#0a0d05;background:var(--lime);padding:8px 13px;border-radius:8px}
+.navl a{font-family:var(--mono);font-size:13px;color:var(--navlink);text-decoration:none}.navl a:hover{color:var(--lime)}
+.navl a.cta{color:var(--ink);background:var(--lime-fill);padding:8px 13px;border-radius:8px}
+.theme-tog{display:inline-grid;place-items:center;width:32px;height:32px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--dim);cursor:pointer;font-size:14px;line-height:1;padding:0}
+.theme-tog:hover{border-color:var(--lime);color:var(--lime)}
 .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.24em;color:var(--lime);text-transform:uppercase}
 h1{font-family:var(--disp);font-weight:800;font-size:clamp(36px,6vw,58px);line-height:1.04;letter-spacing:-.02em;margin:14px 0 16px}
 h1 .em{color:var(--lime)}
@@ -21,7 +43,7 @@ h2{font-family:var(--disp);font-weight:800;font-size:clamp(24px,4vw,34px);letter
 .lede{color:var(--dim);font-size:18px;max-width:64ch}
 section{margin-top:64px;scroll-margin-top:20px}
 .sec-eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.2em;color:var(--dimmer);text-transform:uppercase;margin-bottom:10px}
-p.body{color:#c7d0e2;font-size:16px;max-width:66ch;margin-top:12px}
+p.body{color:var(--text-soft);font-size:16px;max-width:66ch;margin-top:12px}
 p.body b{color:var(--text)}
 /* flow diagram */
 .flow{display:grid;gap:10px;margin-top:22px}
@@ -30,16 +52,16 @@ p.body b{color:var(--text)}
 .col{border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:20px}
 .col h3{font-family:var(--mono);font-size:12px;letter-spacing:.14em;margin-bottom:16px}
 .col.bad h3{color:var(--coral)}.col.good h3{color:var(--lime)}
-.node{border:1px solid var(--line);background:#0a0e15;border-radius:9px;padding:11px 14px;font-size:13.5px;text-align:center}
-.node.mono{font-family:var(--mono);font-size:12.5px;color:#cdd6e6;text-align:left;line-height:1.7}
+.node{border:1px solid var(--line);background:var(--node-bg);border-radius:9px;padding:11px 14px;font-size:13.5px;text-align:center}
+.node.mono{font-family:var(--mono);font-size:12.5px;color:var(--node-mono-fg);text-align:left;line-height:1.7}
 .node .k{color:var(--lime)}.node .n{color:var(--gold)}.node .d{color:var(--dimmer)}
-.node.hi{border-color:#567246;background:#10160c}
-.node.re{border-color:#33402e;background:#141b12;color:var(--lime)}
+.node.hi{border-color:var(--hero-border);background:var(--node-hero-bg)}
+.node.re{border-color:var(--node-re-bd);background:var(--node-re-bg);color:var(--lime)}
 .arw{text-align:center;color:var(--dimmer);font-family:var(--mono);font-size:14px;line-height:1}
 .split-row{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin:6px 0}
 .split-row .lbl{font-family:var(--mono);font-size:10px;color:var(--dimmer);text-align:center}
 .merge{text-align:center;color:var(--dimmer);font-family:var(--mono);font-size:13px;margin-top:4px}
-.callout{border:1px solid #567246;background:linear-gradient(180deg,#101610,#0d1219);border-radius:16px;padding:26px 28px;margin-top:26px}
+.callout{border:1px solid var(--hero-border);background:var(--hero-bg);border-radius:16px;padding:26px 28px;margin-top:26px}
 .callout .q{color:var(--coral);font-family:var(--mono);font-size:14px;line-height:1.7}
 .callout .a{color:var(--lime);font-family:var(--mono);font-size:14px;line-height:1.7;margin-top:14px}
 .pill-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
@@ -52,10 +74,10 @@ p.body b{color:var(--text)}
 .savebox .card{border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:22px}
 .savebox h4{font-family:var(--mono);font-size:12px;letter-spacing:.12em;margin-bottom:12px}
 .savebox .local h4{color:var(--blue)}.savebox .api h4{color:var(--lime)}
-.savebox ul{list-style:none;display:grid;gap:8px;font-size:14px;color:#c7d0e2}
+.savebox ul{list-style:none;display:grid;gap:8px;font-size:14px;color:var(--text-soft)}
 .savebox li:before{content:"→ ";color:var(--lime)}
 .savebox small{display:block;color:var(--dimmer);font-size:12px;margin-top:14px;line-height:1.6}
-.summary{border:1px solid var(--line);background:#0a0e15;border-radius:16px;padding:30px;margin-top:26px;text-align:center}
+.summary{border:1px solid var(--line);background:var(--node-bg);border-radius:16px;padding:30px;margin-top:26px;text-align:center}
 .summary .no{color:var(--coral);font-family:var(--disp);font-weight:800;font-size:clamp(20px,3.4vw,28px);line-height:1.3}
 .summary .yes{color:var(--lime);font-family:var(--disp);font-weight:800;font-size:clamp(20px,3.4vw,28px);line-height:1.3;margin-top:16px}
 .summary .foot{color:var(--dim);font-size:15px;margin-top:22px;max-width:60ch;margin-left:auto;margin-right:auto}
@@ -67,7 +89,7 @@ a.inline{color:var(--lime);text-decoration:none}
 <div class="wrap">
   <div class="top">
     <a class="brand" href="/"><span>◈</span> DecaState</a>
-    <div class="navl"><a href="/">← Home</a><a href="/savings.html">Savings</a><a href="/hub/">Hub</a><a href="/ui/">Dashboard</a><a class="cta" href="https://github.com/tempomesh/DecaState">★ GitHub</a></div>
+    <div class="navl"><a href="/">← Home</a><a href="/savings.html">Savings</a><a href="/hub/">Hub</a><a href="/ui/">Dashboard</a><a class="cta" href="https://github.com/tempomesh/DecaState">★ GitHub</a><button class="theme-tog" id="themeTog" type="button" aria-label="Toggle light/dark theme" title="Toggle light/dark">◐</button></div>
   </div>
 
   <div class="eyebrow">How it works · the honest version</div>
@@ -82,11 +104,11 @@ a.inline{color:var(--lime);text-decoration:none}
       <div class="col bad"><h3>REQUEST 1</h3>
         <div class="node mono">[system + repository + <span class="n">question 1</span>]</div><div class="arw">▼</div>
         <div class="node">GPU processes everything</div><div class="arw">▼</div>
-        <div class="node re" style="color:#e9edf5;border-color:#33402e;background:#0a0e15">Answer 1</div></div>
+        <div class="node re" style="color:var(--text);border-color:var(--node-re-bd);background:var(--node-bg)">Answer 1</div></div>
       <div class="col bad"><h3>REQUEST 2</h3>
         <div class="node mono">[system + repository + <span class="n">question 2</span>]</div><div class="arw">▼</div>
         <div class="node" style="color:var(--coral);border-color:rgba(255,143,136,.4)">GPU processes <b>everything again</b></div><div class="arw">▼</div>
-        <div class="node re" style="color:#e9edf5;border-color:#33402e;background:#0a0e15">Answer 2</div></div>
+        <div class="node re" style="color:var(--text);border-color:var(--node-re-bd);background:var(--node-bg)">Answer 2</div></div>
     </div>
   </section>
 
@@ -98,7 +120,7 @@ a.inline{color:var(--lime);text-decoration:none}
       <div class="split-row">
         <div class="node re">[system + repository]<div class="lbl" style="margin-top:6px;color:var(--dimmer)">cached prefix</div></div>
         <div class="arw">+</div>
-        <div class="node" style="color:var(--gold);border-color:#4a4020"><span class="n">new question 2</span><div class="lbl" style="margin-top:6px">new part</div></div>
+        <div class="node" style="color:var(--gold);border-color:var(--gold-bd)"><span class="n">new question 2</span><div class="lbl" style="margin-top:6px">new part</div></div>
       </div>
       <div class="split-row" style="grid-template-columns:1fr auto 1fr">
         <div class="arw">▼</div><div></div><div class="arw">▼</div>
@@ -187,4 +209,9 @@ a.inline{color:var(--lime);text-decoration:none}
 
   <footer><b>decastate.com</b> · The AI State Runtime · open source · MIT<br/>see it measured → <a class="inline" href="/savings.html">Savings</a> &nbsp;·&nbsp; real receipts → <a class="inline" href="/hub/">Hub</a> &nbsp;·&nbsp; <a class="inline" href="https://github.com/tempomesh/DecaState">read the code</a></footer>
 </div>
+<script>
+  (function(){var b=document.getElementById('themeTog');if(!b)return;
+    function cur(){var a=document.documentElement.getAttribute('data-theme');return a||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');}
+    b.addEventListener('click',function(){var n=cur()==='light'?'dark':'light';document.documentElement.setAttribute('data-theme',n);try{localStorage.setItem('ds-theme',n);}catch(e){}});})();
+</script>
 </body></html>

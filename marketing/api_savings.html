@@ -3,18 +3,49 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2714%27 fill=%27%2307090e%27/%3E%3Ctext x=%2732%27 y=%2745%27 font-size=%2738%27 text-anchor=%27middle%27 fill=%27%23c3f53c%27%3E%E2%97%88%3C/text%3E%3C/svg%3E" />
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Manrope:wght@500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<script>try{var t=localStorage.getItem('ds-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
 <style>
-:root{--bg:#07090e;--panel:#0d1219;--line:#1c2230;--text:#e9edf5;--dim:#8b97b0;--dimmer:#5f6b85;--lime:#c3f53c;--coral:#ff8f88;--mono:'JetBrains Mono',monospace;--disp:'Bricolage Grotesque',sans-serif}
+:root{--bg:#07090e;--panel:#0d1219;--line:#1c2230;--text:#e9edf5;--dim:#8b97b0;--dimmer:#5f6b85;
+  --lime:#c3f53c;--lime-fill:#c3f53c;--ink:#0a0d05;--coral:#ff8f88;--navlink:#b9c2d4;--grid-a:.035;
+  --hero-bg:linear-gradient(180deg,#101610,#0d1219);--hero-border:#567246;--code-bg:#0a0e15;
+  --chip-ok-bg:#141b12;--chip-ok-bd:#567246;--chip-ok-fg:#c3f53c;
+  --chip-warn-bg:#191509;--chip-warn-bd:#4a4020;--chip-warn-fg:#f5c451;
+  --chip-bad-bg:#191010;--chip-bad-bd:#4a3230;--chip-bad-fg:#ff8f88;
+  --node-bg:#0a0e15;--node-hero-bg:#10160c;--node-provider-bd:#3a2f2e;
+  --warn-bg:#191509;--warn-bd:#4a4020;--warn-fg:#d9c98f;--track-bg:#12161d;--flow-gen:#6fb7ff;
+  --mono:'JetBrains Mono',monospace;--disp:'Bricolage Grotesque',sans-serif}
+@media (prefers-color-scheme: light){ :root:not([data-theme="dark"]){
+  --bg:#f7f8fa;--panel:#ffffff;--line:#e2e7f0;--text:#0c1017;--dim:#55617a;--dimmer:#8792a8;
+  --lime:#4a7a0d;--lime-fill:#c3f53c;--coral:#d05046;--navlink:#55617a;--grid-a:.05;
+  --hero-bg:linear-gradient(180deg,#f2f8ea,#ffffff);--hero-border:#bcd98a;--code-bg:#f0f2f6;
+  --chip-ok-bg:#eef7db;--chip-ok-bd:#bcd98a;--chip-ok-fg:#3f6d0a;
+  --chip-warn-bg:#fbf1d6;--chip-warn-bd:#e6d29a;--chip-warn-fg:#8a6d12;
+  --chip-bad-bg:#fbe7e4;--chip-bad-bd:#eab3ad;--chip-bad-fg:#b63b30;
+  --node-bg:#f4f6fa;--node-hero-bg:#eef7db;--node-provider-bd:#e0c9c5;
+  --warn-bg:#fbf1d6;--warn-bd:#e6d29a;--warn-fg:#7a5f12;--track-bg:#e9edf3;--flow-gen:#2f6fd0;
+}}
+:root[data-theme="light"]{
+  --bg:#f7f8fa;--panel:#ffffff;--line:#e2e7f0;--text:#0c1017;--dim:#55617a;--dimmer:#8792a8;
+  --lime:#4a7a0d;--lime-fill:#c3f53c;--coral:#d05046;--navlink:#55617a;--grid-a:.05;
+  --hero-bg:linear-gradient(180deg,#f2f8ea,#ffffff);--hero-border:#bcd98a;--code-bg:#f0f2f6;
+  --chip-ok-bg:#eef7db;--chip-ok-bd:#bcd98a;--chip-ok-fg:#3f6d0a;
+  --chip-warn-bg:#fbf1d6;--chip-warn-bd:#e6d29a;--chip-warn-fg:#8a6d12;
+  --chip-bad-bg:#fbe7e4;--chip-bad-bd:#eab3ad;--chip-bad-fg:#b63b30;
+  --node-bg:#f4f6fa;--node-hero-bg:#eef7db;--node-provider-bd:#e0c9c5;
+  --warn-bg:#fbf1d6;--warn-bd:#e6d29a;--warn-fg:#7a5f12;--track-bg:#e9edf3;--flow-gen:#2f6fd0;
+}
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;line-height:1.55}
-.grid{position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(195,245,60,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(195,245,60,.035) 1px,transparent 1px);background-size:54px 54px}
+.grid{position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(120,150,40,var(--grid-a)) 1px,transparent 1px),linear-gradient(90deg,rgba(120,150,40,var(--grid-a)) 1px,transparent 1px);background-size:54px 54px}
 .wrap{position:relative;max-width:1100px;margin:0 auto;padding:56px 32px 90px}
 .brand{display:flex;justify-content:space-between;align-items:center;margin-bottom:60px;flex-wrap:wrap;gap:14px}
 .brand .l{font-weight:800;font-size:24px}.brand .l span{color:var(--lime)}
-.brand a{font-family:var(--mono);font-size:13px;color:#0a0d05;background:var(--lime);padding:9px 15px;border-radius:8px;text-decoration:none}
+.brand a{font-family:var(--mono);font-size:13px;color:var(--ink);background:var(--lime-fill);padding:9px 15px;border-radius:8px;text-decoration:none}
 .brand a.l{background:none;color:var(--text);padding:0;font-family:inherit;font-size:24px;border-radius:0}
-.brand a.nvl{background:none;color:#b9c2d4;padding:0;font-size:14px}.brand a.nvl:hover{color:var(--lime)}
+.brand a.nvl{background:none;color:var(--navlink);padding:0;font-size:14px}.brand a.nvl:hover{color:var(--lime)}
 @media(max-width:560px){.brand .l{font-size:20px}.brand a.nvl{font-size:13px}}
+.theme-tog{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:var(--panel);color:var(--dim);cursor:pointer;font-size:15px;line-height:1;padding:0}
+.theme-tog:hover{border-color:var(--lime);color:var(--lime)}
 .eyebrow{font-family:var(--mono);font-size:13px;letter-spacing:.26em;color:var(--lime)}
 .eyebrow.coral{color:var(--coral)}
 h1{font-family:var(--disp);font-weight:800;font-size:clamp(38px,6vw,68px);line-height:1.04;margin:16px 0 14px;letter-spacing:-.02em}
@@ -33,8 +64,8 @@ td .hi{color:var(--lime);font-weight:700}
 td .bad{color:var(--coral)}
 .note{color:var(--dimmer);font-size:13px;margin-top:14px;max-width:76ch;line-height:1.6}
 .badge{font-family:var(--mono);font-size:11px;letter-spacing:.1em;padding:5px 9px;border-radius:5px;vertical-align:middle;margin-left:10px}
-.badge.meas{color:var(--lime);border:1px solid #567246;background:#141b12}
-.badge.ill{color:#f5c451;border:1px solid #4a4020;background:#191509}
+.badge.meas{color:var(--chip-ok-fg);border:1px solid var(--chip-ok-bd);background:var(--chip-ok-bg)}
+.badge.ill{color:var(--chip-warn-fg);border:1px solid var(--chip-warn-bd);background:var(--chip-warn-bg)}
 /* scaling bars */
 .bars{display:grid;gap:14px;margin-top:8px}
 .brow{display:grid;grid-template-columns:110px 1fr;gap:14px;align-items:center}
@@ -42,7 +73,7 @@ td .bad{color:var(--coral)}
 .btrack{display:grid;gap:5px}
 .bbar{height:16px;border-radius:5px;position:relative}
 .bbar.wo{background:linear-gradient(90deg,#39424f,#232a36)}
-.bbar.wi{background:linear-gradient(90deg,var(--lime),#7fa826)}
+.bbar.wi{background:linear-gradient(90deg,var(--lime-fill),#7fa826)}
 .bbar span{position:absolute;left:calc(100% + 10px);top:-1px;font-family:var(--mono);font-size:12px;color:var(--dim);white-space:nowrap}
 .bbar.wi span{color:var(--lime)}
 /* architecture */
@@ -50,30 +81,30 @@ td .bad{color:var(--coral)}
 @media(max-width:840px){.arch{grid-template-columns:1fr}}
 .lane{border:1px solid var(--line);background:var(--panel);border-radius:16px;padding:24px}
 .lane h3{font-family:var(--mono);font-size:12px;letter-spacing:.2em;color:var(--lime);margin-bottom:18px}
-.node{border:1px solid var(--line);background:#0a0e15;border-radius:10px;padding:13px 16px;font-size:14px;text-align:center}
+.node{border:1px solid var(--line);background:var(--node-bg);border-radius:10px;padding:13px 16px;font-size:14px;text-align:center}
 .node b{display:block;font-size:15px}
 .node small{font-family:var(--mono);font-size:11px;color:var(--dimmer);display:block;margin-top:4px;line-height:1.5}
-.node.hero{border-color:#567246;background:#10160c}
+.node.hero{border-color:var(--hero-border);background:var(--node-hero-bg)}
 .node.hero b{color:var(--lime)}
-.node.provider{border-color:#3a2f2e}
+.node.provider{border-color:var(--node-provider-bd)}
 .arrow{text-align:center;color:var(--dimmer);font-family:var(--mono);font-size:12px;padding:7px 0}
 .arrow b{color:var(--dim)}
 .bound{margin-top:22px;font-family:var(--mono);font-size:13px;color:var(--dim);line-height:2}
 .bound b{color:var(--lime)}
-.warn{border:1px solid #4a4020;background:#191509;border-radius:12px;padding:16px 20px;margin-top:18px;font-size:13.5px;color:#d9c98f;line-height:1.6}
+.warn{border:1px solid var(--warn-bd);background:var(--warn-bg);border-radius:12px;padding:16px 20px;margin-top:18px;font-size:13.5px;color:var(--warn-fg);line-height:1.6}
 footer{margin-top:80px;text-align:center;font-family:var(--mono);font-size:12px;color:var(--dimmer);line-height:2}
 footer b{color:var(--lime)}
 </style>
 <div class="grid"></div>
 <div class="wrap">
-  <div class="brand"><a class="l" href="/" style="text-decoration:none;color:inherit"><span>◈</span> DecaState</a><div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap"><a class="nvl" href="/">← Home</a><a class="nvl" href="/hub/">Hub</a><a class="nvl" href="/ui/">Dashboard</a><a href="https://github.com/tempomesh/DecaState">★ GitHub</a></div></div>
+  <div class="brand"><a class="l" href="/" style="text-decoration:none;color:inherit"><span>◈</span> DecaState</a><div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap"><a class="nvl" href="/">← Home</a><a class="nvl" href="/hub/">Hub</a><a class="nvl" href="/ui/">Dashboard</a><a href="https://github.com/tempomesh/DecaState">★ GitHub</a><button class="theme-tog" id="themeTog" type="button" aria-label="Toggle light/dark theme" title="Toggle light/dark">◐</button></div></div>
 
   <div class="eyebrow">API SAVINGS · MEASURED VS ILLUSTRATED · NOTHING INVENTED</div>
   <h1>What prompt caching is<br/>actually worth — <span class="em">per model.</span></h1>
   <p class="lede">Every number on this page is either <b style="color:var(--text)">measured</b> (real billed requests, result file in the repo) or an <b style="color:var(--text)">illustration</b> from published provider pricing — and each table says which it is.</p>
 
   <section id="counter-hero" style="margin-top:44px">
-    <div class="panel" style="text-align:center;padding:44px 26px;border-color:#567246;background:linear-gradient(180deg,#101610,#0d1219)">
+    <div class="panel" style="text-align:center;padding:44px 26px;border-color:var(--hero-border);background:var(--hero-bg)">
       <div class="eyebrow" style="margin-bottom:8px">VERIFIED SAVINGS MEASURED THROUGH DECASTATE</div>
       <div id="counter" style="font-family:var(--disp);font-weight:800;font-size:clamp(56px,11vw,132px);color:var(--lime);letter-spacing:-.03em;line-height:1">$0</div>
       <div id="counter-sub" style="color:var(--dim);font-size:16px;margin-top:6px"></div>
@@ -180,6 +211,9 @@ footer b{color:var(--lime)}
   <footer><b>decastate.com</b> · open source · MIT<br/>measured claims ship with scripts and result files · illustrations are labeled · failed experiments get published too</footer>
 </div>
 <script>
+  (function(){var b=document.getElementById('themeTog');if(!b)return;
+    function cur(){var a=document.documentElement.getAttribute('data-theme');return a||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');}
+    b.addEventListener('click',function(){var n=cur()==='light'?'dark':'light';document.documentElement.setAttribute('data-theme',n);try{localStorage.setItem('ds-theme',n);}catch(e){}});})();
 // ---- The Glass Tube: live flow (local gateway first, real measured sample fallback) ----
 (async function(){
   let g=null, live=false;
@@ -194,27 +228,31 @@ footer b{color:var(--lime)}
   $('glass-model').textContent=`${live?'● live · ':'measured · '}${g.model||'—'} · status ${g.status||''}`;
   const cs=g.cache_state||'UNKNOWN', ss=g.saving_state||'not_claimed';
   const cEl=$('glass-cache'), sEl=$('glass-save');
-  const cCol={HIT:['#c3f53c','#567246','#141b12'],MISS:['#ff8f88','#4a3230','#191010'],UNKNOWN:['#f5c451','#4a4020','#191509']}[cs]||['#8b97b0','#2a3040','#12161d'];
+  const cCol={
+    HIT:['var(--chip-ok-fg)','var(--chip-ok-bd)','var(--chip-ok-bg)'],
+    MISS:['var(--chip-bad-fg)','var(--chip-bad-bd)','var(--chip-bad-bg)'],
+    UNKNOWN:['var(--chip-warn-fg)','var(--chip-warn-bd)','var(--chip-warn-bg)']
+  }[cs]||['var(--dim)','var(--line)','var(--track-bg)'];
   cEl.textContent='CACHE: '+cs; cEl.style.color=cCol[0]; cEl.style.border='1px solid '+cCol[1]; cEl.style.background=cCol[2];
   const verified=ss==='verified';
   sEl.textContent='SAVING: '+(verified?'VERIFIED':'NOT CLAIMED');
-  sEl.style.color=verified?'#c3f53c':'#f5c451'; sEl.style.border='1px solid '+(verified?'#567246':'#4a4020'); sEl.style.background=verified?'#141b12':'#191509';
+  sEl.style.color=verified?'var(--chip-ok-fg)':'var(--chip-warn-fg)'; sEl.style.border='1px solid '+(verified?'var(--chip-ok-bd)':'var(--chip-warn-bd)'); sEl.style.background=verified?'var(--chip-ok-bg)':'var(--chip-warn-bg)';
   const rows=[
-    ['reused from cache', g.reused_tokens, '#c3f53c', 'reused — not reprocessed'],
-    ['newly processed', g.new_tokens, '#f5c451', 'the only new input the model read'],
-    ['generated', g.generated_tokens, '#6fb7ff', 'the fresh answer'],
+    ['reused from cache', g.reused_tokens, 'var(--lime)', 'reused — not reprocessed'],
+    ['newly processed', g.new_tokens, 'var(--chip-warn-fg)', 'the only new input the model read'],
+    ['generated', g.generated_tokens, 'var(--flow-gen)', 'the fresh answer'],
   ];
   const max=Math.max(1,...rows.map(r=>r[1]||0));
   $('glass-flow').innerHTML=rows.map(([lbl,val,col,sub])=>`
     <div style="display:grid;grid-template-columns:150px 1fr auto;gap:14px;align-items:center">
       <div style="font-family:var(--mono);font-size:12px;color:var(--dim)">${lbl}</div>
-      <div style="height:22px;background:#12161d;border-radius:6px;overflow:hidden"><div class="gbar" data-w="${Math.max(3,(val||0)/max*100)}" style="height:100%;width:0;background:${col};transition:width 1.1s cubic-bezier(.2,.8,.2,1)"></div></div>
+      <div style="height:22px;background:var(--track-bg);border-radius:6px;overflow:hidden"><div class="gbar" data-w="${Math.max(3,(val||0)/max*100)}" style="height:100%;width:0;background:${col};transition:width 1.1s cubic-bezier(.2,.8,.2,1)"></div></div>
       <div style="font-family:var(--mono);font-size:13px;color:${col};font-weight:700;min-width:80px;text-align:right">${fmt(val)} tok</div>
     </div>`).join('');
   const io=new IntersectionObserver(es=>es.forEach(x=>{if(x.isIntersecting){document.querySelectorAll('.gbar').forEach(b=>b.style.width=b.dataset.w+'%');io.disconnect();}}),{threshold:.3});
   io.observe($('glass-flow'));
   const savingLine=(g.est_saving_usd!=null)?` · est. saving $${g.est_saving_usd} (verified)`:' · saving not claimed (provider exposed no reusable cache)';
-  $('glass-note').innerHTML=`prompt integrity: <b style="color:${g.prompt_integrity==='unchanged'?'#c3f53c':'#ff8f88'}">${g.prompt_integrity||'—'}</b>${savingLine}<br/>${(g.note||'').replace(/</g,'&lt;')}`;
+  $('glass-note').innerHTML=`prompt integrity: <b style="color:${g.prompt_integrity==='unchanged'?'var(--lime)':'var(--coral)'}">${g.prompt_integrity||'—'}</b>${savingLine}<br/>${(g.note||'').replace(/</g,'&lt;')}`;
 })();
 (async function(){
   let led=null;
