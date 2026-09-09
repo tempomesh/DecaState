@@ -102,14 +102,15 @@ footer b{color:var(--lime)}
 
   <section>
     <div class="eyebrow">THE REAL RESULT <span class="badge meas">MEASURED</span></div>
-    <h2>Real Anthropic bills, non-caching client</h2>
+    <h2>Real Anthropic bills — measured on both a cheap and a frontier model</h2>
     <div class="panel tablewrap"><table>
-      <thead><tr><th>Test</th><th>Direct</th><th>Through DecaState</th><th>Input-cost saving</th></tr></thead>
+      <thead><tr><th>Test</th><th>Uncached input</th><th>Cached input</th><th>Input-cost saving</th></tr></thead>
       <tbody>
-        <tr><td>2-request pair · claude-haiku-4-5</td><td>$0.026070</td><td>$0.017606</td><td><span class="hi">32.5%</span></td></tr>
-        <tr><td>10-request session · claude-haiku-4-5</td><td>$0.137822</td><td>$0.029735</td><td><span class="hi">78.4%</span></td></tr>
+        <tr><td>2-request pair · claude-haiku-4-5 <span style="color:var(--dimmer)">(A/B)</span></td><td>$0.026070</td><td>$0.017606</td><td><span class="hi">32.5%</span></td></tr>
+        <tr><td>10-request session · claude-haiku-4-5 <span style="color:var(--dimmer)">(A/B)</span></td><td>$0.137822</td><td>$0.029735</td><td><span class="hi">78.4%</span></td></tr>
+        <tr><td>1 real request · 996K ctx · claude-opus-5 <span style="color:var(--dimmer)">(prod)</span></td><td>$4.9837</td><td>$0.4984</td><td><span class="hi">90.0%</span></td></tr>
       </tbody></table></div>
-    <p class="note">Provider-reported usage fields, zero prompt bytes changed (SHA-256 per request). Measures <b>input-token cost</b> — output and tool charges must be added before any "total bill" claim. Reproduce: <code style="font-family:var(--mono);color:var(--lime)">scripts/api_session_savings_proof.py</code> · evidence: <code style="font-family:var(--mono);color:var(--lime)">benchmarks/results/api_session_savings.json</code>. Clients that already cache (Claude Code does): DecaState adds ~0 and measures instead.</p>
+    <p class="note">Provider-reported usage fields, zero prompt bytes changed (SHA-256 per request). Measures <b>input-token cost</b> — output and tool charges must be added before any "total bill" claim. <b>Haiku rows (A/B):</b> a real direct-vs-gateway <code style="font-family:var(--mono);color:var(--lime)">--inject-cache</code> test (<code style="font-family:var(--mono);color:var(--lime)">scripts/api_session_savings_proof.py</code>). <b>Opus row (prod):</b> one real request from a live Claude Code session where the provider cache reused 996,735 tokens — DecaState measured it (it didn't create it; Claude Code already caches). The frontier-model saving is larger because its input tokens cost more.</p>
   </section>
 
   <section>
