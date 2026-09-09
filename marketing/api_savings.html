@@ -222,7 +222,7 @@ footer b{color:var(--lime)}
   const el=document.getElementById('counter'), sub=document.getElementById('counter-sub');
   if(!led){ if(el) el.textContent='—'; return; }
   const target=led.total_saved_usd;
-  if(sub) sub.textContent=`across ${led.total_requests.toLocaleString()} real requests · ${led.entries.length} reproducible receipts · updated ${led.generated_at}`;
+  if(sub) sub.textContent=`across ${led.total_requests.toLocaleString()} real requests · ${led.entries.length} reproducible receipts`;
   const fmt=n=>'$'+Math.round(n).toLocaleString();
   const dur=1600, t0=performance.now();
   function tick(t){ const p=Math.min(1,(t-t0)/dur); const e=1-Math.pow(1-p,3);

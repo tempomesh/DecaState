@@ -91,7 +91,7 @@ footer b{color:var(--lime)}
     `<span>verified (reproducible): <b>$${t.verified_saved_usd.toLocaleString()}</b> · ${t.verified_receipts}</span>`+
     `<span>community-reported: <b>$${t.community_saved_usd.toLocaleString()}</b> · ${t.receipts-t.verified_receipts}</span>`;
   document.getElementById('honesty').textContent=d.honesty;
-  document.getElementById('updated').textContent='updated '+d.updated_at;
+  document.getElementById('updated').textContent='';
   // animated counter
   const el=document.getElementById('total'), target=t.combined_saved_usd, t0=performance.now();
   (function tick(now){const p=Math.min(1,(now-t0)/1500);const e=1-Math.pow(1-p,3);
