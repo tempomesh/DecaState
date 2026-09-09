@@ -201,6 +201,20 @@ def _build_report(raw_body, send_body, injected, body_sha, sent_sha,
     components = _component_hashes(raw_body)
     model = components.get("model")
     cache_read = int(usage.get("cache_read_input_tokens") or 0)
+    # Honest cache/saving state — the glass-tube discipline: never invent a saving.
+    #   HIT     provider reported reused cached tokens
+    #   MISS    provider reported usage, but nothing was cached
+    #   UNKNOWN provider exposed no usage at all (error, or fields absent) → not claimed
+    reported = any(usage.get(k) is not None for k in
+                   ("input_tokens", "output_tokens",
+                    "cache_read_input_tokens", "cache_creation_input_tokens"))
+    if not reported:
+        cache_state, saving_state = "UNKNOWN", "not_claimed"
+    elif cache_read > 0:
+        cache_state = "HIT"
+        saving_state = "verified" if PRICING_FULL.get(model or "") else "not_priced"
+    else:
+        cache_state, saving_state = "MISS", "no_saving"
     integrity = "unchanged" if body_sha == sent_sha else "ALTERED"
     if integrity == "ALTERED" and injected:
         try:
@@ -231,6 +245,8 @@ def _build_report(raw_body, send_body, injected, body_sha, sent_sha,
             "cache_read_input_tokens": usage.get("cache_read_input_tokens"),
         },
         "provider_cache_hit": cache_read > 0,
+        "cache_state": cache_state,
+        "saving_state": saving_state,
         "cache_injected": injected,
         "prompt_integrity": integrity,
         "saving": _estimate_saving_usd(model, usage),
@@ -336,6 +352,50 @@ def _audit_path() -> Path:
 def _append_audit(report: dict, path: Path) -> None:
     with path.open("a") as handle:
         handle.write(json.dumps(report) + "\n")
+
+
+def glass_flow(audit_path: Path | None = None) -> dict:
+    """The most recent real request as a 'glass tube' flow — for the live flow card.
+
+    Returns the token flow (reused / new / generated), the honest cache & saving
+    state, integrity, and the est. saving only when saving_state == 'verified'.
+    """
+    audit_path = audit_path or _audit_path()
+    last = None
+    if audit_path.exists():
+        for line in audit_path.read_text().splitlines():
+            if not line.strip():
+                continue
+            try:
+                r = json.loads(line)
+            except ValueError:
+                continue
+            if r.get("mode") == "selftest":
+                continue
+            last = r
+    if not last:
+        return {"available": False}
+    u = last.get("usage") or {}
+    reused = int(u.get("cache_read_input_tokens") or 0)
+    new_in = int(u.get("input_tokens") or 0)
+    out = int(u.get("output_tokens") or 0)
+    saving = last.get("saving") or {}
+    verified = last.get("saving_state") == "verified"
+    return {
+        "available": True,
+        "model": last.get("model"),
+        "status": last.get("status"),
+        "reused_tokens": reused,
+        "new_tokens": new_in,
+        "generated_tokens": out,
+        "cache_state": last.get("cache_state", "UNKNOWN"),
+        "saving_state": last.get("saving_state", "not_claimed"),
+        "prompt_integrity": last.get("prompt_integrity"),
+        "est_saving_usd": saving.get("net_input_saving_usd") if verified else None,
+        "invoice_usd": last.get("invoice_usd"),
+        "note": ("saving verified from provider-reported cached tokens"
+                 if verified else "saving not claimed — provider did not expose reusable cache"),
+    }
 
 
 def audit_receipt(audit_path: Path | None = None, transcripts: bool = False,
@@ -693,6 +753,8 @@ def make_handler(upstream: str, audit_path: Path, inject_cache: bool = False):
                 body = json.dumps(savings_summary(audit_path)).encode()
             elif self.path.startswith("/receipt"):
                 body = json.dumps(audit_receipt(audit_path)).encode()
+            elif self.path.startswith("/glass"):
+                body = json.dumps(glass_flow(audit_path)).encode()
             elif self.path.startswith("/states"):
                 body = json.dumps(list_states()).encode()
             elif self.path.startswith("/guard-recall"):

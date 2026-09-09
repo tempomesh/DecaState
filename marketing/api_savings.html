@@ -83,6 +83,23 @@ footer b{color:var(--lime)}
     </div>
   </section>
 
+  <section id="glass" style="margin-top:20px">
+    <div class="eyebrow">THE GLASS TUBE · LIVE FLOW</div>
+    <h2>See what was reused, what was new, and what you paid for</h2>
+    <p class="lede" style="font-size:15px">DecaState is the transparent layer between your app and the model. Every request becomes a receipt — and when the provider doesn't expose its cache, it says so instead of inventing a saving.</p>
+    <div class="panel" style="padding:30px 26px">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:22px">
+        <div style="font-family:var(--mono);font-size:12px;color:var(--dim)" id="glass-model">request …</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span id="glass-cache" style="font-family:var(--mono);font-size:12px;padding:5px 10px;border-radius:5px">CACHE …</span>
+          <span id="glass-save" style="font-family:var(--mono);font-size:12px;padding:5px 10px;border-radius:5px">SAVING …</span>
+        </div>
+      </div>
+      <div id="glass-flow" style="display:grid;gap:12px"></div>
+      <div id="glass-note" style="font-family:var(--mono);font-size:12px;color:var(--dimmer);margin-top:20px;border-top:1px solid var(--line);padding-top:14px"></div>
+    </div>
+  </section>
+
   <section>
     <div class="eyebrow">THE REAL RESULT <span class="badge meas">MEASURED</span></div>
     <h2>Real Anthropic bills, non-caching client</h2>
@@ -162,6 +179,42 @@ footer b{color:var(--lime)}
   <footer><b>decastate.com</b> · open source · MIT<br/>measured claims ship with scripts and result files · illustrations are labeled · failed experiments get published too</footer>
 </div>
 <script>
+// ---- The Glass Tube: live flow (local gateway first, real measured sample fallback) ----
+(async function(){
+  let g=null, live=false;
+  for(const port of [8799,8801,8787]){
+    try{const r=await fetch(`http://127.0.0.1:${port}/glass`,{cache:'no-store'});
+      if(r.ok){const d=await r.json(); if(d.available){g=d;live=true;break;}}}catch(_e){}
+  }
+  if(!g){ try{const r=await fetch('./glass_sample.json',{cache:'no-store'}); if(r.ok) g=await r.json();}catch(_e){} }
+  if(!g) return;
+  const $=id=>document.getElementById(id);
+  const fmt=n=>Number(n||0).toLocaleString();
+  $('glass-model').textContent=`${live?'● live · ':'measured · '}${g.model||'—'} · status ${g.status||''}`;
+  const cs=g.cache_state||'UNKNOWN', ss=g.saving_state||'not_claimed';
+  const cEl=$('glass-cache'), sEl=$('glass-save');
+  const cCol={HIT:['#c3f53c','#567246','#141b12'],MISS:['#ff8f88','#4a3230','#191010'],UNKNOWN:['#f5c451','#4a4020','#191509']}[cs]||['#8b97b0','#2a3040','#12161d'];
+  cEl.textContent='CACHE: '+cs; cEl.style.color=cCol[0]; cEl.style.border='1px solid '+cCol[1]; cEl.style.background=cCol[2];
+  const verified=ss==='verified';
+  sEl.textContent='SAVING: '+(verified?'VERIFIED':'NOT CLAIMED');
+  sEl.style.color=verified?'#c3f53c':'#f5c451'; sEl.style.border='1px solid '+(verified?'#567246':'#4a4020'); sEl.style.background=verified?'#141b12':'#191509';
+  const rows=[
+    ['reused from cache', g.reused_tokens, '#c3f53c', 'reused — not reprocessed'],
+    ['newly processed', g.new_tokens, '#f5c451', 'the only new input the model read'],
+    ['generated', g.generated_tokens, '#6fb7ff', 'the fresh answer'],
+  ];
+  const max=Math.max(1,...rows.map(r=>r[1]||0));
+  $('glass-flow').innerHTML=rows.map(([lbl,val,col,sub])=>`
+    <div style="display:grid;grid-template-columns:150px 1fr auto;gap:14px;align-items:center">
+      <div style="font-family:var(--mono);font-size:12px;color:var(--dim)">${lbl}</div>
+      <div style="height:22px;background:#12161d;border-radius:6px;overflow:hidden"><div class="gbar" data-w="${Math.max(3,(val||0)/max*100)}" style="height:100%;width:0;background:${col};transition:width 1.1s cubic-bezier(.2,.8,.2,1)"></div></div>
+      <div style="font-family:var(--mono);font-size:13px;color:${col};font-weight:700;min-width:80px;text-align:right">${fmt(val)} tok</div>
+    </div>`).join('');
+  const io=new IntersectionObserver(es=>es.forEach(x=>{if(x.isIntersecting){document.querySelectorAll('.gbar').forEach(b=>b.style.width=b.dataset.w+'%');io.disconnect();}}),{threshold:.3});
+  io.observe($('glass-flow'));
+  const savingLine=(g.est_saving_usd!=null)?` · est. saving $${g.est_saving_usd} (verified)`:' · saving not claimed (provider exposed no reusable cache)';
+  $('glass-note').innerHTML=`prompt integrity: <b style="color:${g.prompt_integrity==='unchanged'?'#c3f53c':'#ff8f88'}">${g.prompt_integrity||'—'}</b>${savingLine}<br/>${(g.note||'').replace(/</g,'&lt;')}`;
+})();
 (async function(){
   let led=null;
   try{ const r=await fetch('./savings_ledger.json',{cache:'no-store'}); if(r.ok) led=await r.json(); }catch(_e){}

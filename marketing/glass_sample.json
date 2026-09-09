@@ -1,0 +1,14 @@
+{
+  "available": true,
+  "model": "claude-haiku-4-5",
+  "status": 200,
+  "reused_tokens": 11238,
+  "new_tokens": 15,
+  "generated_tokens": 40,
+  "cache_state": "HIT",
+  "saving_state": "verified",
+  "prompt_integrity": "unchanged",
+  "est_saving_usd": 0.010114,
+  "note": "real measured request \u00b7 saving verified from provider-reported cached tokens",
+  "source": "benchmarks/results/api_cache_proof.json"
+}
