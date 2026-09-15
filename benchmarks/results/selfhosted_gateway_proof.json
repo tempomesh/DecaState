@@ -1,0 +1,40 @@
+{
+  "proof": "self-hosted model measured through the DecaState gateway, no code changes",
+  "ran_at": "2026-09-15T09:54:26",
+  "request1_usage": {
+    "completion_tokens": 10,
+    "prompt_tokens": 1448,
+    "total_tokens": 1458,
+    "prompt_tokens_details": {
+      "cached_tokens": 1441
+    }
+  },
+  "request2_usage": {
+    "completion_tokens": 10,
+    "prompt_tokens": 1448,
+    "total_tokens": 1458,
+    "prompt_tokens_details": {
+      "cached_tokens": 1441
+    }
+  },
+  "glass_receipt": {
+    "model": "llama3.2",
+    "cache_state": "HIT",
+    "saving_state": "not_priced",
+    "reused_tokens": 1441,
+    "new_tokens": 7,
+    "generated_tokens": 10,
+    "prompt_integrity": "unchanged"
+  },
+  "assertions": {
+    "req2_reused_cache": true,
+    "cache_state_hit": true,
+    "integrity_unchanged": true,
+    "no_invented_dollars": true
+  },
+  "honesty": [
+    "A self-hosted model has no per-token bill: the receipt shows reused tokens and refuses to price them (saving_state=not_priced).",
+    "The real self-hosted win is prompt-phase time/compute \u2014 measured separately in llamacpp_state_proof.json."
+  ],
+  "passed": true
+}
