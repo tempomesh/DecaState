@@ -1,6 +1,6 @@
 # Architecture
 
-The initial implementation is local-only. The current runnable path is Ollama-backed using an existing local model, with explicit metadata-only capsules. Runtime-native MLX persistence and cross-model bridges remain gated research work.
+The implementation is local-first. Runtime-native MLX persistence is proven and shipped (save/wake/checkpoint/rollback/fork — see `make phase1` and `benchmarks/results/`), and a second proven backend drives llama.cpp over llama-server's slot save/restore API (`decastate/backends/llamacpp.py`). An earlier Ollama-backed path with metadata-only capsules remains as a demo. Cross-model bridges remain gated research work. The launch-level overview lives in [../ARCHITECTURE.md](../ARCHITECTURE.md).
 
 Native MLX state is now also stored as immutable checkpoint objects. Checkpoint manifests record model/runtime fingerprints, context position, lineage, provenance, and the serialized MLX-LM prompt-cache object. Rollback loads the native cache directly; it does not replay prompt history.
 
