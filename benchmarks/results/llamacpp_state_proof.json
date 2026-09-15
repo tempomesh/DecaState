@@ -1,0 +1,51 @@
+{
+  "backend": "llamacpp",
+  "protocol": "understand\u2192kill\u2192wake\u2192fork",
+  "started_at": "2026-09-15T09:51:20",
+  "fingerprint": {
+    "backend": "llamacpp",
+    "server_build": "b10150-dee2a846b",
+    "model_path": "/Users/ashish/.ollama/models/blobs/sha256-dde5aa3fc5ffc17176b5e8bdc82f587b24b2678c6c66101bf7da77af9f7ccdff",
+    "model_bytes": 2019377376,
+    "n_ctx_per_slot": 4096
+  },
+  "understand": {
+    "prefill_tokens": 3772,
+    "prefill_ms": 4148.5,
+    "state_tokens": 3772,
+    "state_bytes": 432664192,
+    "state_sha256": "98050726b9b91e72\u2026"
+  },
+  "warm_same_process": {
+    "prompt_tokens_processed": 4,
+    "prompt_ms": 36.4
+  },
+  "process_killed": true,
+  "control_new_process_no_restore": {
+    "prompt_tokens_processed": 3772,
+    "prompt_ms": 4200.5
+  },
+  "wake_after_death": {
+    "restored_tokens": 3772,
+    "restore_wall_s": 0.23,
+    "prompt_tokens_processed": 4,
+    "prompt_ms": 26.0
+  },
+  "fork": {
+    "branch_a_prompt_tokens": 9,
+    "branch_b_prompt_tokens": 9
+  },
+  "determinism_same_answer_after_wake": true,
+  "headline": {
+    "tokens_reused_on_wake": 3768,
+    "reprefill_avoided_pct": 99.9,
+    "prompt_phase_speedup_vs_cold": 161.3
+  },
+  "honesty": [
+    "All token/time numbers are llama-server's own reported timings.",
+    "State files are llama.cpp build-sensitive; wake enforces a build+model+ctx fingerprint and SHA-256 integrity, it does not make files portable across builds.",
+    "Determinism compared at temperature=0 with a fixed seed on one machine; not claimed across hardware.",
+    "restore_wall_s includes reading 0.43GB from local disk."
+  ],
+  "finished_at": "2026-09-15T09:51:33"
+}
