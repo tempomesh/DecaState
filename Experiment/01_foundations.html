@@ -1,0 +1,2115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LLM Foundations Before Step 2</title>
+  <style>
+    :root { color-scheme: light; }
+    body { max-width: 980px; margin: 0 auto; padding: 32px 22px 60px; font-family: Arial, sans-serif; color: #111; background: #fff; line-height: 1.55; }
+    h1 { border-bottom: 3px solid #111; padding-bottom: 12px; }
+    h2 { margin-top: 42px; border-bottom: 1px solid #777; padding-bottom: 6px; }
+    h3 { margin-top: 28px; }
+    pre { padding: 16px; border: 1px solid #777; background: #fafafa; overflow-x: auto; font: 13px/1.5 "Courier New", monospace; }
+    code { font-family: "Courier New", monospace; }
+    .note { border-left: 4px solid #111; padding: 10px 14px; background: #f4f4f4; }
+    .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .card { border: 1px solid #777; padding: 14px; }
+    .label { font-weight: bold; text-transform: uppercase; letter-spacing: .08em; font-size: 12px; }
+    table { width: 100%; border-collapse: collapse; margin: 18px 0 24px; }
+    th, td { border: 1px solid #777; padding: 9px 10px; text-align: left; vertical-align: top; }
+    th { background: #f4f4f4; }
+    @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } body { padding: 22px 14px 45px; } }
+  </style>
+</head>
+<body>
+  <h1>LLM Foundations Before Step 2</h1>
+  <p class="note"><strong>Purpose:</strong> understand tokenizer, prefix, prefill, cache hit/miss, local restore, API caching, and Q/K/V before implementing Step 2. The old context may be reused; the new question and answer are still processed.</p>
+
+  <h2 id="toy-progress-map">Toy LLM progress map — read this first</h2>
+  <p class="note"><a href="#codex-deep-fundamentals"><strong>New: jump to Codex Deep Fundamentals</strong></a> — attention types, MHA/GQA/MQA, dense vs MoE, training/backpropagation, GPU memory, and the DecaState boundary.</p>
+  <p>This is the permanent roadmap for our educational miniature model. Steps
+  1–12 are implemented as small Python lessons. The toy model explains the
+  ideas; the real Qwen/MLX experiments are separate.</p>
+  <table>
+    <thead><tr><th>Step</th><th>What we build or learn</th><th>Status</th><th>Direct link</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Text → tokens → token IDs → embeddings</td><td>Done</td><td><a href="01_tokens_embeddings.py">Python lesson</a></td></tr>
+      <tr><td>2</td><td>Embeddings → Q/K/V projections</td><td>Done</td><td><a href="02_embeddings_qkv.py">Python lesson</a></td></tr>
+      <tr><td>3</td><td>Q/K scores → softmax → weighted V attention</td><td>Done</td><td><a href="03_attention.py">Python lesson</a></td></tr>
+      <tr><td>4</td><td>Attention → residual → normalization → MLP</td><td>Done</td><td><a href="04_transformer_layer.py">Python lesson</a></td></tr>
+      <tr><td>5</td><td>Hidden vector → logits → next-token probabilities</td><td>Done</td><td><a href="05_logits_next_token.py">Python lesson</a></td></tr>
+      <tr><td>6</td><td>Loss → gradients → weight updates</td><td>Done</td><td><a href="06_training_loss_backprop.py">Python lesson</a></td></tr>
+      <tr><td>7</td><td>Train tiny model → freeze weights → inference</td><td>Done</td><td><a href="07_tiny_train_then_infer.py">Python lesson</a></td></tr>
+      <tr><td>8</td><td>Fine-tuning memory: loss, GPU buckets, and mitigations</td><td>Done</td><td><a href="08_finetuning_memory.py">Python lesson</a></td></tr>
+      <tr><td>9</td><td>Connect multiple transformer layers into one forward pass</td><td>Done</td><td><a href="09_multi_layer_forward.py">Python lesson</a></td></tr>
+      <tr><td>10</td><td>Train the toy Q/K/V and attention weights</td><td>Done</td><td><a href="10_train_qkv_attention.py">Python lesson</a></td></tr>
+      <tr><td>11</td><td>Generate several tokens continuously</td><td>Done</td><td><a href="11_tiny_generation_loop.py">Python lesson</a></td></tr>
+      <tr><td>12</td><td>Add, save, and restore a toy KV cache</td><td>Done</td><td><a href="12_toy_kv_cache_save_restore.py">Python lesson</a></td></tr>
+      <tr><td>13</td><td>Advanced fundamentals: causal mask, MHA/GQA/MQA, MoE, and memory</td><td>Done</td><td><a href="13_advanced_fundamentals.py">Python lesson</a></td></tr>
+      <tr><td>14</td><td>Attention types: self, causal, bidirectional, local, and cross</td><td>Done</td><td><a href="14_attention_types.py">Python lesson</a></td></tr>
+      <tr><td>15</td><td>MHA, GQA, MQA, and KV-cache memory math</td><td>Done</td><td><a href="15_mha_gqa_mqa.py">Python lesson</a></td></tr>
+      <tr><td>16</td><td>Dense MLP versus MoE router and experts</td><td>Done</td><td><a href="16_dense_vs_moe.py">Python lesson</a></td></tr>
+      <tr><td>17</td><td>Training versus inference memory and optimization</td><td>Done</td><td><a href="17_training_inference_memory.py">Python lesson</a></td></tr>
+    </tbody>
+  </table>
+  <p>Run completed lessons from the project root:</p>
+  <pre>make step1
+make step2
+make step3
+make step4
+make step5
+make step6
+make step7
+make step8
+make step9
+make step10
+make step11
+make step12</pre>
+  <pre>make step13
+make step14
+make step15
+make step16
+make step17</pre>
+  <pre>Steps 1–12: our transparent learning model
+Real Qwen/MLX: loaded by experiments/phase1_native_state.py
+DecaState: saves/restores the real model's native inference state</pre>
+
+  <h3>Weight coverage in our toy lessons</h3>
+  <table>
+    <thead><tr><th>Step</th><th>Weight or parameter</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Embedding table</td><td>Converts token IDs into small vectors; hand-written here</td></tr>
+      <tr><td>2</td><td><code>WQ</code>, <code>WK</code>, <code>WV</code></td><td>Creates Query, Key, and Value views</td></tr>
+      <tr><td>3</td><td>No new learned weight</td><td>Calculates attention from Q, K, and V</td></tr>
+      <tr><td>4</td><td><code>W_MLP</code></td><td>Applies the tiny feed-forward transformation</td></tr>
+      <tr><td>5</td><td>Output weights</td><td>Converts the hidden vector into token logits</td></tr>
+      <tr><td>6</td><td>Output weights</td><td>Updates weights using loss and gradients</td></tr>
+      <tr><td>7</td><td>Output weights</td><td>Trains, freezes, and uses them for inference</td></tr>
+      <tr><td>8</td><td>Training memory accounting</td><td>Shows where weights, gradients, optimizer state, activations, and buffers fit</td></tr>
+      <tr><td>9</td><td>Existing layer weights</td><td>Runs the transformer block repeatedly to show depth</td></tr>
+      <tr><td>10</td><td><code>WQ</code>, <code>WK</code>, <code>WV</code></td><td>Learns attention projections from a tiny example</td></tr>
+      <tr><td>11</td><td>Existing model weights</td><td>Generates tokens one at a time using the forward path</td></tr>
+      <tr><td>12</td><td>No new model weight</td><td>Saves/restores temporary toy K/V state; weights remain separate and fixed</td></tr>
+      <tr><td>13</td><td>Router scores and memory formulas</td><td>Demonstrates attention access rules, K/V sharing, MoE selection, and memory buckets</td></tr>
+      <tr><td>14</td><td>Causal-mask rules</td><td>Shows which tokens can see which other tokens</td></tr>
+      <tr><td>15</td><td>KV-head layout</td><td>Shows why MHA/GQA/MQA use different cache sizes</td></tr>
+      <tr><td>16</td><td>Router scores</td><td>Shows dense MLP versus selected MoE experts</td></tr>
+      <tr><td>17</td><td>Training bookkeeping</td><td>Shows gradients/optimizer state versus inference K/V state</td></tr>
+    </tbody>
+  </table>
+  <p>The toy lessons do <strong>not</strong> yet include every real Qwen
+  parameter. A full model also has positional/RoPE parameters, attention output
+  projections, MLP gate/up/down projections, normalization parameters, and
+  these weights repeated across every transformer layer. The real MLX runtime
+  loads those complete weights internally.</p>
+
+  <h2>One-picture explanation: the model is a bread stack</h2>
+  <pre>                 ONE TOKEN JOURNEY
+
+"I" → [token ID 1] → [embedding numbers]
+                              │
+                              ▼
+        ┌──────────────────────────────────┐
+        │ SLICE 24                         │
+        │ attention + MLP                  │
+        │ uses trained weights             │
+        │ makes meaning more complete      │
+        └──────────────────────────────────┘
+                              ▲
+        ┌──────────────────────────────────┐
+        │ SLICE 3                          │
+        │ attention + MLP                  │
+        │ uses trained weights             │
+        │ passes improved numbers upward   │
+        └──────────────────────────────────┘
+                              ▲
+        ┌──────────────────────────────────┐
+        │ SLICE 2                          │
+        │ attention + MLP                  │
+        │ uses trained weights             │
+        └──────────────────────────────────┘
+                              ▲
+        ┌──────────────────────────────────┐
+        │ SLICE 1                          │
+        │ Q/K/V attention + MLP            │
+        │ uses WQ/WK/WV and other weights  │
+        └──────────────────────────────────┘
+                              ▲
+             embeddings for BOS, I, like, tea
+
+        ... slices 4 through 23 are between these slices ...
+
+                              │
+                              ▼
+                 output weights → next token
+
+PERMANENT MODEL WEIGHTS       TEMPORARY K/V CACHE
+trained recipe                working notes for this prompt
+each slice uses them          each slice creates K/V</pre>
+
+  <h2>1. From your computer to the model</h2>
+  <pre>YOU TYPE: "I like tea"
+       |
+       v
+APP / CODING AGENT
+       |
+       v
+TOKENIZER: text -> token pieces -> token IDs
+       |
+       v
+EMBEDDINGS: token IDs -> vectors of numbers
+       |
+       v
+TRANSFORMER: attention, Q/K/V, feed-forward layers
+       |
+       v
+NEXT-TOKEN PREDICTION: generate the answer</pre>
+
+  <h2>2. Tokenizer</h2>
+  <p>A tokenizer is a text-to-number tool. It is not the LLM.</p>
+  <pre>"I like tea"
+      |
+      v
+[BOS, I, like, tea]
+      |
+      v
+[0,   1,  2,    3]
+      |
+      v
+[embedding, embedding, embedding, embedding]</pre>
+  <div class="grid">
+    <div class="card"><span class="label">BOS</span><br>Beginning Of Sequence. Marks the start.</div>
+    <div class="card"><span class="label">UNK</span><br>Unknown fallback for text the tokenizer cannot represent.</div>
+  </div>
+  <p>Different models use different tokenizers, so Qwen, Claude, and OpenAI can count the same sentence differently. Tokenization itself does not create a billing discount.</p>
+
+  <h2>3. Transformer as a stack of bread slices</h2>
+  <pre>                         OUTPUT
+                           ▲
+                 ┌─────────────────┐
+                /  SLICE 24        /│
+               / attention + MLP  / │
+              └─────────────────┘  │
+              │  hidden vectors    │
+              └────────────────────┘
+                 ┌─────────────────┐
+                /  SLICE 3         /│
+               / attention + MLP  / │
+              └─────────────────┘  │
+              │  hidden vectors    │
+              └────────────────────┘
+                 ┌─────────────────┐
+                /  SLICE 2         /│
+               / attention + MLP  / │
+              └─────────────────┘  │
+              │  hidden vectors    │
+              └────────────────────┘
+                 ┌─────────────────┐
+                /  SLICE 1         /│
+               / attention + MLP  / │
+              └─────────────────┘  │
+              │  token vectors     │
+              └────────────────────┘
+                           ▲
+                    input embeddings</pre>
+  <p>For the tested Qwen2.5-0.5B model, the stack has 24 transformer layers.
+  In simple language, the same token information passes through 24 trained
+  workers.</p>
+  <pre>token vectors
+     │
+     ▼
+worker 1 improves the information
+     │
+     ▼
+worker 2 improves it again
+     │
+     ▼
+worker 3 improves it again
+    ...
+     │
+     ▼
+worker 24 produces the final understanding
+     │
+     ▼
+choose the next token</pre>
+  <pre>ONE TRANSFORMER SLICE
+
+input hidden vectors
+        │
+        ├── WQ/WK/WV weights → Q, K, V
+        ├── attention calculation
+        ├── residual + normalization
+        ├── MLP/feed-forward weights
+        └── output hidden vectors → next slice</pre>
+  <pre>Each layer receives numbers.
+It uses learned weights to ask:
+  "Which earlier words matter right now?"
+  "What information should I carry forward?"
+  "How should I improve this meaning?"
+Then it passes improved numbers to the next layer.</pre>
+
+  <h3>Zoom: token vectors entering the stack</h3>
+  <p>This four-number table is a teaching example, not the full Qwen vector size.</p>
+  <pre>position   token     token ID   embedding
+   0       &lt;BOS&gt;        0       [0.0, 0.0, 0.0, 1.0]
+   1       I            1       [1.0, 0.0, 0.0, 0.1]
+   2       like         2       [0.0, 1.0, 0.0, 0.2]
+   3       tea          3       [0.0, 0.0, 1.0, 0.3]
+
+                 token positions →
+              0          1          2          3
+          &lt;BOS&gt;         I       like        tea
+              │          │          │          │
+              └──────────┴──────────┴──────────┘
+                         │
+                         ▼
+                 BREAD SLICE 1 → Q/K/V
+                         │
+                         ▼
+                 BREAD SLICE 2 → new Q/K/V
+                         │
+                        ...
+                         │
+                         ▼
+                 BREAD SLICE 24
+                         │
+                         ▼
+                  next-token scores</pre>
+
+  <h3>Where do the model weights come from?</h3>
+  <pre>TRAINING TIME                         INFERENCE TIME
+text examples                         load trained weights
+     │                                          │
+     ▼                                          ▼
+prediction + error                    token IDs + embeddings
+     │                                          │
+     ▼                                          ▼
+backprop updates weights              use WQ/WK/WV/MLP weights
+     │                                          │
+     ▼                                          ▼
+save model checkpoint                 calculate Q/K/V and answer
+
+model weights = permanent learned recipe
+K/V cache     = temporary notes from this conversation</pre>
+
+  <h3>Complete model-weight map</h3>
+  <pre>MODEL CHECKPOINT = the trained recipe
+
+┌──────────────────────────────────────────────────────────────┐
+│ 1. TOKEN EMBEDDING TABLE                                     │
+│    token ID → starting vector                                │
+├──────────────────────────────────────────────────────────────┤
+│ 2. TRANSFORMER LAYER 1                                       │
+│    attention: WQ, WK, WV, output projection                  │
+│    normalization weights + MLP/feed-forward weights           │
+├──────────────────────────────────────────────────────────────┤
+│ 3. TRANSFORMER LAYER 2                                       │
+│    attention + normalization + MLP weights                    │
+├──────────────────────────────────────────────────────────────┤
+│                         ...                                   │
+├──────────────────────────────────────────────────────────────┤
+│ 4. TRANSFORMER LAYER 24                                      │
+│    attention + normalization + MLP weights                    │
+├──────────────────────────────────────────────────────────────┤
+│ 5. OUTPUT WEIGHTS                                             │
+│    final hidden vector → next-token scores                    │
+└──────────────────────────────────────────────────────────────┘</pre>
+
+  <h3>One bread slice in more detail</h3>
+  <pre>hidden input
+    │
+    ├── normalization weights
+    ├── WQ ──► Q       ┌────────────────┐
+    ├── WK ──► K ─────►│ attention      │
+    └── WV ──► V ─────►│ Q compares K;  │
+                        │ weighted V     │
+                        └──────┬─────────┘
+                               │
+                 attention output projection
+                               │
+                        residual connection
+                               │
+                        normalization weights
+                               │
+                    MLP/feed-forward weights
+                               │
+                        residual connection
+                               │
+                        hidden output</pre>
+
+  <pre>embedding + layer 1 weights   → K1/V1
+hidden state + layer 2 weights → K2/V2
+                              ...
+hidden state + layer 24 weights → K24/V24
+
+weights = reused learned recipe
+K/V      = new working state for each conversation</pre>
+
+  <h2>4. Same example in technical AI language</h2>
+  <p>Example: <code>"I like tea"</code>. The current token is
+  <code>"tea"</code>.</p>
+  <pre>token embeddings
+      │
+      ▼
+┌─────────────────────────────────────────┐
+│ TRANSFORMER LAYER                       │
+│ 1. create Q, K, V                       │
+│ 2. Q compares with K                    │
+│ 3. softmax → attention percentages      │
+│ 4. percentages mix the V vectors        │
+│ 5. residual + normalization              │
+│ 6. MLP/feed-forward transformation      │
+│ 7. residual + normalization              │
+└─────────────────────────────────────────┘
+      │
+      ▼
+improved hidden vectors → next layer</pre>
+
+  <pre>tea embedding
+     │
+     ├── × WQ → Q(tea)
+     ├── × WK → K(I), K(like), K(tea)
+     └── × WV → V(I), V(like), V(tea)
+                  │
+                  ▼
+          Q(tea) compares with every K
+                  │
+                  ▼
+             attention scores
+                  │
+                  ▼
+                softmax
+                  │
+                  ▼
+        attention percentages × V
+                  │
+                  ▼
+             attention output</pre>
+
+  <pre>Illustrative numbers:
+Q(tea) × K(I)       = 1.0
+Q(tea) × K(like)    = 1.5
+Q(tea) × K(tea)     = 2.0
+
+softmax:
+I       → 20%
+like    → 30%
+tea     → 50%
+
+attention result = 20% × V(I) + 30% × V(like) + 50% × V(tea)</pre>
+
+  <pre>TECHNICAL TRANSLATION
+look around       = self-attention
+ask what matters  = Query (Q)
+match information = Key (K)
+carry information = Value (V)
+think             = MLP/feed-forward network
+learned habits    = model weights
+worker            = transformer layer
+24 workers        = 24 transformer layers
+
+embeddings
+    ↓
+Layer 1: Q/K/V → attention → MLP
+    ↓
+Layer 2: Q/K/V → attention → MLP
+    ↓
+...
+    ↓
+Layer 24: Q/K/V → attention → MLP
+    ↓
+output weights → next-token scores → next token</pre>
+
+  <h2>5. Attention calculation: Q × Kᵀ → softmax → V</h2>
+  <pre>attention(Q, K, V) = softmax(Q × Kᵀ / √d) × V
+
+Current token: tea
+Q(tea) = [1, 1]
+K(I)    = [1, 0]
+K(like) = [0, 1]
+K(tea)  = [1, 1]
+
+Q × K(I)     = 1×1 + 1×0 = 1
+Q × K(like)  = 1×0 + 1×1 = 1
+Q × K(tea)   = 1×1 + 1×1 = 2
+
+raw scores = [1, 1, 2]
+√d = √2 ≈ 1.414
+scaled scores ≈ [0.707, 0.707, 1.414]
+
+softmax(xᵢ) = eˣⁱ / Σ eˣʲ
+I       → 24.8%
+like    → 24.8%
+tea     → 50.3%
+
+V(I)    = [1, 0]
+V(like) = [0, 1]
+V(tea)  = [1, 1]
+
+MATRIX FORM:
+attention weights = [0.248  0.248  0.504]     shape: 1 × 3
+V = [1  0]                                     shape: 3 × 2
+    [0  1]
+    [1  1]
+
+weights × V
+= [0.248  0.248  0.504] × [1  0]
+                              [0  1]
+                              [1  1]
+
+attention output
+= 24.8%×[1,0] + 24.8%×[0,1] + 50.3%×[1,1]
+≈ [0.75, 0.75]
+
+Q(tea)
+  ├── K(I)     → 24.8%
+  ├── K(like)  → 24.8%
+  └── K(tea)   → 50.3%
+                    │
+                    ▼
+              mix the V values
+                    │
+                    ▼
+             new meaning vector</pre>
+
+  <pre>ZOOM: WEIGHTED VALUE MIXER
+
+attention percentages          Value vectors
+
+24.8% ───────────────────────► V(I)    = [1, 0]
+24.8% ───────────────────────► V(like) = [0, 1]
+50.3% ───────────────────────► V(tea)  = [1, 1]
+   │                               │
+   └──────────────┬────────────────┘
+                  ▼
+first number:  0.248 + 0.000 + 0.503 ≈ 0.75
+second number: 0.000 + 0.248 + 0.503 ≈ 0.75
+
+ATTENTION OUTPUT = [0.75, 0.75]
+
+ATTENTION OUTPUT [0.75, 0.75]
+              │
+              ▼
+      RESIDUAL CONNECTION
+      add the original input
+              │
+              ▼
+       NORMALIZATION
+       keep numbers stable
+              │
+              ▼
+          MLP ROOM
+       transform the meaning
+              │
+              ▼
+      RESIDUAL CONNECTION
+      add the earlier signal
+              │
+              ▼
+       NORMALIZATION
+              │
+              ▼
+       OUTPUT OF LAYER 1
+              │
+              ▼
+        INPUT TO LAYER 2</pre>
+
+  <h2>6. Complete transformer-layer walkthrough</h2>
+  <h3>Plain-English overview: what the model is trying to do</h3>
+  <p>Imagine writing a story one word at a time. Before choosing the next word,
+  you look at what you have already written so the new word fits the story.</p>
+  <pre>"I like tea"
+       │
+       ▼
+the model asks: "What should come next, given everything so far?"
+
+1. LOOK AROUND
+   Attention asks which earlier words matter right now.
+   For "tea", it looks at "I", "like", and "tea".
+
+2. KEEP THE ORIGINAL MEANING
+   Residual connections add new context to the original signal.
+   Like adding spices without throwing away the meal.
+
+3. TIDY THE NUMBERS
+   Normalization keeps values in a healthy range.
+
+4. THINK AND REFINE
+   MLP/feed-forward transforms the combined information.</pre>
+  <pre>Layer 1   → basic word relationships
+Layer 2   → improved local meaning
+Layer 3   → more combined context
+  ...
+middle    → topic, relationships, deeper patterns
+  ...
+Layer 24  → rich final representation
+              │
+              ▼
+       output weights choose next-token probabilities</pre>
+  <p class="note">This is a teaching picture. Real models do not have one
+  layer dedicated only to grammar or one layer dedicated only to reasoning;
+  useful patterns are distributed across many layers.</p>
+  <p>This is a tiny hand-calculation for one token, <code>tea</code>. Real Qwen
+  layers use larger vectors, multiple heads, learned biases, and
+  model-specific MLP activation/order.</p>
+  <pre>1. Look around       → attention gathers context
+2. Keep original     → residual preserves the input
+3. Tidy numbers      → normalization stabilizes values
+4. Think/refine      → MLP transforms the result
+5. Keep original     → second residual preserves the signal
+6. Tidy again        → second normalization
+7. Pass upstairs     → output becomes Layer 2 input</pre>
+  <pre>input x(tea)       = [1.0, 2.0]
+attention output a = [0.75, 0.75]
+
+RESIDUAL 1
+x_res1 = [1.0, 2.0] + [0.75, 0.75] = [1.75, 2.75]
+
+NORMALIZATION 1
+mean = 2.25
+variance = 0.25
+standard deviation = 0.5
+x_norm1 = [-1.0, 1.0]
+
+MLP / FEED-FORWARD
+W_mlp = [2  0]
+        [1  1]
+linear = [-1.0, 1.0] × W_mlp = [-1.0, 1.0]
+ReLU(x) = max(0, x)
+MLP output = [0.0, 1.0]
+
+RESIDUAL 2
+x_res2 = [-1.0, 1.0] + [0.0, 1.0] = [-1.0, 2.0]
+
+NORMALIZATION 2
+mean = 0.5
+variance = 2.25
+standard deviation = 1.5
+layer output = [-1.0, 1.0]</pre>
+  <pre>input x                 [1.0, 2.0]
+    │
+    ▼
+attention output a      [0.75, 0.75]
+    │
+    ▼
+residual 1              [1.75, 2.75]
+    │
+    ▼
+normalization 1         [-1.0, 1.0]
+    │
+    ▼
+MLP / feed-forward      [0.0, 1.0]
+    │
+    ▼
+residual 2              [-1.0, 2.0]
+    │
+    ▼
+normalization 2         [-1.0, 1.0]
+    │
+    ▼
+Layer 1 output → Layer 2 input</pre>
+  <p><strong>MLP</strong> means Multi-Layer Perceptron. Attention gathers
+  information from other tokens; the MLP processes each token’s gathered
+  representation using learned weights.</p>
+  <p class="note"><strong>Teaching note:</strong> this example uses ReLU and
+  shows attention before the first normalization for clarity. Real Transformer
+  implementations commonly use pre-normalization and GELU/SwiGLU-style MLPs,
+  but the roles remain the same.</p>
+
+  <h3>Expanded worksheet: every calculation in one place</h3>
+  <pre>STEP 0: INPUT EMBEDDING
+x_tea = [1.0, 2.0]
+attention output a_tea = [0.75, 0.75]
+
+STEP 1: LOOK AROUND
+Q/K/V attention compares tea with I, like, and tea.
+attention percentages: 25% I, 25% like, 50% tea (rounded)
+a_tea = [0.75, 0.75]
+
+STEP 2: RESIDUAL CONNECTION 1
+x_res1 = x_tea + a_tea
+       = [1.0, 2.0] + [0.75, 0.75]
+       = [1.75, 2.75]
+
+STEP 3: LAYER NORMALIZATION 1
+mean = 2.25
+variance = 0.25
+standard deviation = 0.5
+x_norm1 = [-1.0, 1.0]
+
+STEP 4: MLP / FEED-FORWARD
+Option B teaching matrix:
+W_mlp = [2  0]
+        [1  1]
+linear = [-1.0, 1.0] × W_mlp = [-1.0, 1.0]
+ReLU([-1.0, 1.0]) = [0.0, 1.0]
+
+STEP 5: RESIDUAL CONNECTION 2
+x_res2 = [-1.0, 1.0] + [0.0, 1.0] = [-1.0, 2.0]
+
+STEP 6: LAYER NORMALIZATION 2
+mean = 0.5
+variance = 2.25
+standard deviation = 1.5
+x_out = [-1.0, 1.0]</pre>
+  <pre>FINAL LAYER 1 SUMMARY
+input x(tea)          [1.0, 2.0]
+      ↓
+attention output      [0.75, 0.75]
+      ↓
+residual 1            [1.75, 2.75]
+      ↓
+LayerNorm 1           [-1.0, 1.0]
+      ↓
+MLP                   [0.0, 1.0]
+      ↓
+residual 2            [-1.0, 2.0]
+      ↓
+LayerNorm 2           [-1.0, 1.0]
+      ↓
+Layer 1 output        [-1.0, 1.0]
+      ↓
+input to Layer 2</pre>
+
+  <h3>After the layer: how one new answer token is created</h3>
+  <pre>6. CREATE NEW HIDDEN VECTOR
+   Layer 24 output becomes the current meaning vector
+                         │
+                         ▼
+7. CALCULATE NEXT-TOKEN PROBABILITIES
+   output weights compare it with vocabulary choices
+                         │
+                         ▼
+   "the" → 40%   "is" → 30%   "and" → 10%   ...
+                         │
+                         ▼
+8. SELECT A TOKEN: "is"
+                         │
+                         ▼
+9. CREATE K/V FOR THAT TOKEN
+   K(is), V(is) are calculated in every layer
+                         │
+                         ▼
+10. APPEND TO CACHE
+    old K/V + K(is), V(is)
+                         │
+                         ▼
+    use the larger cache for the next token</pre>
+
+  <pre>old K/V cache
+      │
+      ▼
+attention + MLP through all layers
+      │
+      ▼
+new hidden vector
+      │
+      ▼
+output weights → probabilities
+      │
+      ▼
+select "is"
+      │
+      ▼
+calculate K(is), V(is)
+      │
+      ▼
+append K(is), V(is)
+      │
+      └──────────────────► generate next token</pre>
+
+  <pre>SIGMOID IS DIFFERENT
+
+sigmoid(x) = 1 / (1 + e⁻ˣ)
+sigmoid(2) ≈ 0.88
+
+softmax = competing percentages that add to about 100%
+sigmoid = independent strength between 0 and 1</pre>
+
+  <h3>Master walkthrough: self-attention with “I like tea”</h3>
+  <p>These are small teaching values for the current token
+  <code>tea</code>, not the full Qwen dimensions.</p>
+  <pre>Q = [1, 1]
+
+K(I)    = [1, 0]
+K(like) = [0, 1]
+K(tea)  = [1, 1]
+
+V(I)    = [1, 0]
+V(like) = [0, 1]
+V(tea)  = [1, 1]</pre>
+
+  <h4>1. Matrix multiplication: Q × Kᵀ</h4>
+  <pre>Q        = [1  1]                 shape: 1 × 2
+
+Kᵀ       = [1  0  1]             shape: 2 × 3
+           [0  1  1]
+
+Q × Kᵀ   = [1  1  2]             shape: 1 × 3
+
+I:    1×1 + 1×0 = 1
+like: 1×0 + 1×1 = 1
+tea:  1×1 + 1×1 = 2</pre>
+
+  <h4>2. Scaling</h4>
+  <pre>standard scaled attention divides by √dₖ
+dₖ = 2, so √2 ≈ 1.414
+
+[1, 1, 2] / 1.414
+≈ [0.707, 0.707, 1.414]</pre>
+
+  <h4>3. Softmax percentages</h4>
+  <pre>softmax(xᵢ) = eˣⁱ / Σ eˣʲ
+
+e⁰·⁷⁰⁷ ≈ 2.028
+e⁰·⁷⁰⁷ ≈ 2.028
+e¹·⁴¹⁴ ≈ 4.112
+sum = 8.168
+
+I:    2.028 / 8.168 ≈ 0.248 = 24.8%
+like: 2.028 / 8.168 ≈ 0.248 = 24.8%
+tea:  4.112 / 8.168 ≈ 0.503 = 50.3%</pre>
+
+  <h4>4. Mix the Value vectors</h4>
+  <pre>[0.248  0.248  0.503] × [1  0]
+                         [0  1]
+                         [1  1]
+
+V(I):    0.248 × [1,0] = [0.248, 0.000]
+V(like): 0.248 × [0,1] = [0.000, 0.248]
+V(tea):  0.503 × [1,1] = [0.503, 0.503]
+
+first number:  0.248 + 0.000 + 0.503 = 0.751
+second number: 0.000 + 0.248 + 0.503 = 0.751
+
+ATTENTION OUTPUT ≈ [0.75, 0.75]</pre>
+
+  <pre>Q × Kᵀ → raw similarities
+      ↓
+divide by √dₖ → stable scores
+      ↓
+softmax → attention percentages
+      ↓
+percentages × V → contextual meaning vector
+
+Attention(Q,K,V) = softmax(Q × Kᵀ / √dₖ) × V</pre>
+  <h3>Matrix-layout clarification</h3>
+  <p>Here the key vectors are columns, so the teaching calculation is
+  <code>Q × K</code>. Many textbooks store keys as rows and write
+  <code>Q × Kᵀ</code>. Both produce the same scores.</p>
+  <pre>Q = [1  1]                         shape: 1 × 2
+
+K(I)    = [1]       K(like) = [0]       K(tea) = [1]
+          [0]                [1]                [1]
+
+K = [1  0  1]                       shape: 2 × 3
+    [0  1  1]
+
+Q × K = [1  1] × [1  0  1]
+                  [0  1  1]
+      = [1  1  2]                   shape: 1 × 3
+
+I:    (1×1) + (1×0) = 1
+like: (1×0) + (1×1) = 1
+tea:  (1×1) + (1×1) = 2
+
+VISIBLE BOXES
+
+Q = ┌─────┬─────┐
+    │  1  │  1  │  row 1
+    └─────┴─────┘
+       col1  col2
+
+K = ┌─────┬─────┬─────┐
+    │  1  │  0  │  1  │  row 1
+    ├─────┼─────┼─────┤
+    │  0  │  1  │  1  │  row 2
+    └─────┴─────┴─────┘
+       col1  col2  col3
+        I    like   tea
+
+Q × K = ┌─────┬─────┬─────┐
+         │  1  │  1  │  2  │  row 1
+         └─────┴─────┴─────┘
+            I    like   tea
+
+Alternative row layout:
+K_rows = [1  0]
+         [0  1]
+         [1  1]                      shape: 3 × 2
+
+Q × K_rowsᵀ = [1  1] × [1  0  1]
+                           [0  1  1]
+             = [1  1  2]</pre>
+
+  <h2>6. Transformer as a 3D building</h2>
+  <p>Imagine the model as a 24-floor building. Each floor is one transformer
+  layer.</p>
+  <pre>                              ROOF
+                    next-token scores/output
+                         ┌──────────────┐
+                        /  FLOOR 24    /│
+                       / attention    / │
+                      / + MLP        /  │
+                     └──────────────┘   │
+                     │ hidden state  │   │
+                     └──────────────┘  /
+                         ┌──────────────┐
+                        /  FLOOR 3     /│
+                       / attention    / │
+                      / + MLP        /  │
+                     └──────────────┘   │
+                     │ hidden state  │   │
+                     └──────────────┘  /
+                         ┌──────────────┐
+                        /  FLOOR 2     /│
+                       / attention    / │
+                      / + MLP        /  │
+                     └──────────────┘   │
+                     │ hidden state  │   │
+                     └──────────────┘  /
+                         ┌──────────────┐
+                        /  FLOOR 1     /│
+                       / attention    / │
+                      / + MLP        /  │
+                     └──────────────┘   │
+                     │ token vectors │   │
+                     └──────────────┘  /
+                           FOUNDATION
+                    BOS, I, like, tea vectors</pre>
+
+  <pre>ONE FLOOR = ONE TRANSFORMER LAYER
+
+ATTENTION ROOM
+  Q asks: what should I look at?
+  K says: what does each token offer?
+  V carries: what information is useful?
+
+MLP ROOM
+  transforms the collected information
+
+PIPE TO NEXT FLOOR
+  passes the improved hidden vector</pre>
+
+  <pre>BLUEPRINT ROOM                         TEMPORARY NOTE ROOM
+model weights                          K/V cache
+WQ, WK, WV, MLP weights                K and V for this prompt
+learned during training                created during inference
+used on every request                  changes per conversation</pre>
+
+  <h3>Small hand-calculation inside one floor</h3>
+  <p>These are teaching numbers, not the full Qwen dimensions.</p>
+  <pre>Current token: tea
+
+Q(tea) = [1, 1]
+K(I)   = [1, 0]       V(I)    = [1, 0]
+K(like)= [0, 1]       V(like) = [0, 1]
+K(tea) = [1, 1]       V(tea)  = [1, 1]
+
+Q · K(I)     = 1×1 + 1×0 = 1
+Q · K(like)  = 1×0 + 1×1 = 1
+Q · K(tea)   = 1×1 + 1×1 = 2
+
+softmax: 1 → 21%, 1 → 21%, 2 → 58%
+
+attention output
+= 21%×[1,0] + 21%×[0,1] + 58%×[1,1]
+≈ [0.79, 0.79]
+
+Q/K/V → attention output → MLP → next floor</pre>
+
+  <pre>Floor 1:  K1/V1 for old tokens
+Floor 2:  K2/V2 for old tokens
+   ...
+Floor 24: K24/V24 for old tokens
+
+DecaState saves the local room notes (K/V),
+not the building blueprint (model weights).</pre>
+
+  <h3>One transformer layer, zoomed in</h3>
+  <pre>COMMON LANGUAGE                         TECHNICAL NAME
+
+look around at other words       →      Q/K/V attention
+keep original understanding     →      residual connection
+tidy and stabilize numbers      →      normalization
+think about what was found      →      MLP/feed-forward network</pre>
+  <pre>INPUT: hidden vector for "tea"
+                         │
+                         ▼
+┌────────────────────────────────────────┐
+│ 1. LOOK AROUND                         │
+│    Which words matter to tea?          │
+│    Q(tea) compares with K(I),          │
+│    K(like), and K(tea).                │
+│    percentages mix V(I), V(like),     │
+│    and V(tea).                         │
+└───────────────────┬────────────────────┘
+                    ▼
+             attention output
+                    │
+                    ▼
+┌────────────────────────────────────────┐
+│ 2. KEEP THE ORIGINAL                   │
+│    add the original input back         │
+│    so useful information is not lost   │
+└───────────────────┬────────────────────┘
+                    ▼
+┌────────────────────────────────────────┐
+│ 3. TIDY THE NUMBERS                    │
+│    normalization keeps values stable   │
+└───────────────────┬────────────────────┘
+                    ▼
+┌────────────────────────────────────────┐
+│ 4. THINK ABOUT THE RESULT              │
+│    MLP transforms the meaning          │
+│    using learned weights               │
+└───────────────────┬────────────────────┘
+                    ▼
+             improved "tea" vector
+                    │
+                    ▼
+                next layer</pre>
+  <pre>Q/K/V attention
+       +
+residual connection + normalization
+       +
+MLP/feed-forward network
+       = ONE TRANSFORMER LAYER</pre>
+
+  <h3>Isometric view of one floor</h3>
+  <p>Ignore the other 23 floors for a moment. One transformer floor looks like
+  this:</p>
+  <pre>                 ONE TRANSFORMER FLOOR
+                    ISOMETRIC VIEW
+
+                         OUTPUT TO FLOOR 2
+                              ▲
+                              │
+        ┌─────────────────────┴─────────────────────┐
+       /│                                            /│
+      / │              MLP ROOM                    / │
+     /  │       transforms information             /  │
+    └───┼─────────────────────────────────────────┘   │
+    │   │                                             │
+    │   │          RESIDUAL + NORMALIZATION           │
+    │   └─────────────────────────────────────────────┘
+    │  /                                              /
+    │ /          ATTENTION ROOM                      /
+    │/     Q compares with K; selects V             /
+    └──────────────────────────────────────────────┘
+     │           Q / K / V SPLITTER                │
+     └─────────────────────────────────────────────┘
+      ▲
+      │
+ INPUT TOKENS: BOS, I, like, tea</pre>
+
+  <pre>INPUT → Q/K/V SPLITTER → ATTENTION ROOM → MLP ROOM → OUTPUT
+
+tea vector
+   │
+   ├── WQ → Q(tea)
+   ├── WK → K(tea)
+   └── WV → V(tea)
+
+                 ┌──────────────────────────┐
+                 │ ATTENTION FLOOR          │
+                 │ Q/K/V + MLP              │
+                 └─────────────┬────────────┘
+                               │
+                               ▼
+                 ┌──────────────────────────┐
+                 │ K/V STORAGE RACK         │
+                 │ K(BOS), V(BOS)           │
+                 │ K(I),   V(I)             │
+                 │ K(like),V(like)          │
+                 │ K(tea), V(tea)           │
+                 └──────────────────────────┘</pre>
+
+  <pre>FLOOR 24: attention + MLP + K/V rack
+    ▲
+FLOOR 3:  attention + MLP + K/V rack
+    ▲
+FLOOR 2:  attention + MLP + K/V rack
+    ▲
+FLOOR 1:  attention + MLP + K/V rack
+    ▲
+token embeddings</pre>
+
+  <h2>7. “I like tea” → next question, side by side</h2>
+  <p>Assume the second request continues the same conversation:</p>
+  <pre>Request 1: "I like tea"
+Request 2: "Why do I like it?"</pre>
+  <table>
+    <tr><th>Stage</th><th>Request 1: first reading</th><th>Request 2: continuing</th></tr>
+    <tr><td>Input</td><td>BOS, I, like, tea</td><td>old conversation + Why, do, I, like, it, ?</td></tr>
+    <tr><td>Embeddings</td><td>vectors for first tokens</td><td>reuse old state; vectors for new tokens</td></tr>
+    <tr><td>Q/K/V</td><td>Q, K, V for first tokens</td><td>new Q, K, V; old K/V already exists</td></tr>
+    <tr><td>Attention</td><td>Q(tea) compares with earlier K</td><td>new Q compares with old and new K/V</td></tr>
+    <tr><td>MLP</td><td>transforms attention result</td><td>transforms new attention result</td></tr>
+    <tr><td>Cache</td><td>save K/V for every layer/token</td><td>append new K/V to every layer</td></tr>
+    <tr><td>Work avoided</td><td>none on first request</td><td>old prompt prefill can be skipped</td></tr>
+    <tr><td>Output</td><td>predict next token</td><td>answer the new question</td></tr>
+  </table>
+  <pre>REQUEST 1: BUILD THE BUILDING NOTES
+
+I    → embedding → Layer 1 Q/K/V → Layer 2 → ... → Layer 24
+like → embedding → Layer 1 Q/K/V → Layer 2 → ... → Layer 24
+tea  → embedding → Layer 1 Q/K/V → Layer 2 → ... → Layer 24
+                                                   │
+                                                   ▼
+                                  save K/V notes for old tokens
+
+REQUEST 2: USE OLD NOTES + ADD NEW TOKENS
+
+old K/V: BOS, I, like, tea ──► reuse
+new tokens: Why, do, I, like, it, ?
+                            │
+                            ▼
+                    create new Q/K/V
+                            │
+                            ▼
+             new Q compares with old K and new K
+                            │
+                            ▼
+                  attention → MLP → answer</pre>
+  <p>The old K/V is not an answer. It is numerical attention state that lets
+  the new question look back at the earlier conversation without rebuilding it.</p>
+
+  <h2>8. API Provider GPU–K/V Cache: How They Work Together</h2>
+  <p>For an API model, the GPU, model weights, inference runtime, and K/V cache
+  operate as one provider-side inference machine.</p>
+  <pre>YOUR COMPUTER
+Claude Code / Codex / application
+        |
+        | HTTPS request
+        v
+PROVIDER API FRONT DOOR
+        |
+        v
+REQUEST ROUTER
+        |
+        v
+MODEL INFERENCE RUNTIME
+        |
+        +-- model weights
+        +-- GPU memory
+        +-- K/V cache
+        +-- GPU computation kernels
+        |
+        v
+generated response</pre>
+
+  <pre>PROVIDER GPU MEMORY
+
+model weights: WQ, WK, WV, MLP weights
+K/V cache:    K and V for old tokens
+activations:  current token calculations</pre>
+
+  <h3>First request: creating the provider cache</h3>
+  <pre>full prompt: system + tools + files + question
+                         |
+                         v
+GPU PREFILL
+  read model weights
+  calculate embeddings
+  calculate Q/K/V
+  perform attention
+  write K/V into GPU memory
+                         |
+                         v
+              K/V cache for the prompt
+                         |
+                         v
+                    generate answer</pre>
+
+  <h3>Finding the next token</h3>
+  <pre>OLD K/V CACHE
+      |
+      v
+create Q for current position
+      |
+      v
+Q compares with K(I), K(like), K(tea)
+      |
+      v
+attention percentages mix V values
+      |
+      v
+new hidden state → next-token probabilities
+      |
+      v
+choose next token: "is"
+      |
+      v
+calculate K(is), V(is)
+      |
+      v
+append K(is), V(is) to the cache
+      |
+      v
+repeat for the next token</pre>
+
+  <pre>WITHOUT CACHE                  WITH CACHE
+recompute old prompt           read old K/V
+        |                              |
+        v                              v
+generate next token            compute current token
+        |                              |
+        v                              v
+repeat                          append new K/V
+                                       |
+                                       v
+                                    repeat</pre>
+
+  <h3>Provider prompt-cache lookup</h3>
+  <pre>same system + tools + files + new question
+                         |
+                         v
+              provider cache manager
+                         |
+                    +----+----+
+                    |         |
+                   HIT       MISS
+                    |         |
+               reuse K/V    prefill prefix
+                    |         |
+                    +----+----+
+                         v
+                 process new question
+                         |
+                         v
+                    generate answer</pre>
+  <p>DecaState does not directly see or control provider tensors. It can make
+  the prefix stable, route the request, and measure provider-reported usage.
+  The provider runtime loads or reuses K/V, while the GPU reads old K/V and
+  writes new K/V.</p>
+
+  <h3>Detailed ASCII: the complete provider-side loop</h3>
+  <pre>YOUR COMPUTER
+Claude Code / Codex / application
+        │
+        │ HTTPS request:
+        │ system + tools + files + question
+        ▼
+PROVIDER API FRONT DOOR
+        │
+        ▼
+REQUEST ROUTER
+        │
+        ▼
+MODEL INFERENCE RUNTIME
+        │
+        ├── model weights
+        ├── GPU memory
+        ├── K/V cache
+        └── GPU computation kernels
+        │
+        ▼
+PROVIDER GPU
+        │
+        ├── tokenizer: text → token IDs
+        ├── embeddings: IDs → vectors
+        ├── transformer layers
+        ├── attention: Q × K → weights → V
+        ├── prefill: create/read K/V state
+        └── decode: generate answer tokens
+        │
+        ▼
+RESPONSE + USAGE DATA
+        │
+        ▼
+YOUR COMPUTER</pre>
+
+  <pre>PROVIDER GPU MEMORY
+
+┌─────────────────────────────────────────────┐
+│ MODEL WEIGHTS                               │
+│ WQ, WK, WV, MLP, normalization, output     │
+├─────────────────────────────────────────────┤
+│ K/V CACHE                                   │
+│ K and V for previously processed tokens     │
+├─────────────────────────────────────────────┤
+│ TEMPORARY ACTIVATIONS                       │
+│ current token calculations                  │
+└─────────────────────────────────────────────┘</pre>
+
+  <pre>FIRST REQUEST: CREATE THE PROVIDER K/V CACHE
+
+full prompt
+system + tools + files + question
+        │
+        ▼
+GPU PREFILL
+        │
+        ├── read model weights
+        ├── calculate embeddings
+        ├── calculate Q/K/V
+        ├── perform attention
+        └── write K/V into GPU memory
+        │
+        ▼
+K/V CACHE FOR THE PROMPT
+        │
+        ▼
+GENERATE ANSWER</pre>
+
+  <pre>NEXT TOKEN LOOP
+
+OLD K/V CACHE
+I, like, tea
+        │
+        │ GPU reads old K/V
+        ▼
+CREATE Q FOR CURRENT POSITION
+        │
+        ▼
+Q compares with K(I), K(like), K(tea)
+        │
+        ▼
+attention percentages
+        │
+        ▼
+mix V(I), V(like), V(tea)
+        │
+        ▼
+new hidden state → next-token probabilities
+        │
+        ▼
+choose next token: "is"
+        │
+        ▼
+calculate K(is), V(is)
+        │
+        ▼
+append K(is), V(is) to the cache
+        │
+        ▼
+repeat for the next token</pre>
+
+  <pre>WITHOUT CACHE                  WITH CACHE
+recompute old prompt           read old K/V
+        │                              │
+        ▼                              ▼
+generate next token            compute current token
+        │                              │
+        ▼                              ▼
+repeat                          append new K/V
+                                       │
+                                       ▼
+                                    repeat</pre>
+
+  <pre>LATER API REQUEST
+
+same system + tools + files + new question
+        │
+        ▼
+PROVIDER CACHE MANAGER
+        │
+   ┌────┴────┐
+   │         │
+  HIT       MISS
+   │         │
+reuse      prefill
+old K/V    full prefix
+   │         │
+   └────┬────┘
+        ▼
+process new question
+        │
+        ▼
+generate answer</pre>
+
+  <pre>THE GPU/CACHE CONNECTION
+
+model weights → GPU calculations → K/V cache
+                                      ↑     │
+                                      │     │
+                         GPU reads old     │
+                         GPU appends new ──┘</pre>
+  <p>The provider runtime coordinates this. The model does not independently
+  decide to reuse memory; the runtime supplies old K/V to the GPU and tells the
+  GPU where to append new K/V.</p>
+
+  <h2>9. Prefix</h2>
+  <pre>[system instructions + repository files] + [new question]
+ \_______________________________/       \____________/
+             stable prefix                 new part</pre>
+  <p>The prefix is the unchanged beginning of the request. Tools, system instructions, model version, or earlier serialized content changing can cause a miss.</p>
+
+  <h2>4. Prefill and decode</h2>
+  <div class="grid">
+    <div class="card"><span class="label">Prefill</span><p>Read the existing prompt and create K/V attention state.</p><pre>old tokens
+   |
+   v
+read all
+   |
+   v
+create K/V</pre></div>
+    <div class="card"><span class="label">Decode</span><p>Generate the answer one token at a time using existing K/V.</p><pre>old K/V + new position
+          |
+          v
+     next token</pre></div>
+  </div>
+
+  <h3>Prefill versus decode: two different kinds of work</h3>
+  <pre>PREFILL = read the input prompt
+DECODE  = write the answer, one token at a time
+
+INPUT PROMPT                              OUTPUT ANSWER
+system + repo + question                  token 1 -> token 2 -> token 3 -> ...
+        |                                  
+        v                                  
+   PREFILL PHASE                    DECODE PHASE
+   process many input tokens        process each new output token
+   create K/V state                 append each token to K/V state
+
+Example:
+Input:  100,000 tokens
+Output: 500 tokens
+
+PREFILL: 100,000 input tokens become K/V state
+DECODE:  500 answer tokens are generated one by one
+
+WITHOUT CACHE
+old 100,000 input tokens -> prefill again
+new question              -> prefill
+500 answer tokens         -> decode
+
+WITH CACHE
+old 100,000 input tokens -> reuse old K/V
+new question             -> prefill
+500 answer tokens        -> decode</pre>
+  <p><strong>Key boundary:</strong> prefix caching saves repeated input
+  processing. It does not automatically make output tokens free or eliminate
+  the work of generating the answer.</p>
+  <pre>TOKEN / COST MAP
+
+old input tokens  -> cache can reduce repeated processing/cost
+new input tokens  -> still processed
+output tokens     -> still generated; usually still billed
+reasoning tokens  -> provider/model-specific
+
+Possible saving levers:
+1. Stable prefix caching  -> avoid repeated old-input prefill
+2. Local K/V restore      -> skip old prefill after process death
+3. Smaller new context    -> send fewer files and tool outputs
+4. Shorter answer policy  -> generate fewer output tokens when suitable
+5. Speculative decoding   -> may improve local speed; billing is provider-specific
+
+DecaState report:
+input tokens avoided:       100,000
+output tokens generated:        500
+provider saving:            verified / unknown
+answer quality:             measured separately</pre>
+
+  <h2>5. API model: provider decision</h2>
+  <pre>YOUR COMPUTER
+  prompt
+    |
+    v
+Claude Code / Codex / application
+    |
+    v
+optional DecaState gateway
+    |
+    v  HTTPS
+PROVIDER CACHE MANAGER
+    |
+    +-- Does the stable prefix match?
+          |
+      +---+---+
+      |       |
+     YES      NO
+      |       |
+  cache hit  cache miss
+      |       |
+  reuse K/V  prefill old prefix
+      |       |
+      +---+---+
+          |
+          v
+ process new question
+          |
+          v
+ generate new answer</pre>
+  <p>The cache manager, not the language model, makes the hit/miss decision. The provider owns the private model weights, accelerator, and raw K/V tensors.</p>
+
+  <h2>6. Local MLX: DecaState decision</h2>
+  <pre>PROCESS A
+load model -> prefill repository -> create K/V
+                         |
+                         v
+              save native-cache.safetensors
+                         |
+                         v
+                    Process A exits
+
+PROCESS B
+load same model -> validate fingerprint -> load K/V file
+                                           |
+                                           v
+                              process only new question
+                                           |
+                                           v
+                                    generate answer</pre>
+  <p>Process death means Process A really exits: its RAM and PID disappear. Process B is a separate operating-system process and restores from the file.</p>
+
+  <h2>7. Q, K, and V</h2>
+  <pre>Q = Query  -> what the current token is looking for
+K = Key    -> signals describing earlier tokens
+V = Value  -> information carried by earlier tokens
+
+hidden state
+     |
+     +-- x WQ -> Q
+     +-- x WK -> K
+     +-- x WV -> V
+     |
+     v
+new Q compares with old K, then uses old V
+     |
+     v
+predict next token</pre>
+  <p>The actual Q/K/V are floating-point arrays, not English labels. The labels are teaching analogies.</p>
+
+  <h2>8. Where the saving happens</h2>
+  <pre>LOCAL MODEL
+without restore: recompute old prefill + generate answer
+with restore:    load old K/V + generate answer
+                 saving = local GPU work, time, energy
+
+API MODEL
+without cache:  old input processed/billed normally
+with cache:     old input reused/billed as cached input
+                 new question/output still processed/billed</pre>
+  <p>An API token is a text-processing and billing unit, not literally an electricity unit. More tokens generally mean more computation.</p>
+
+  <h2>9. What does “token cost” mean?</h2>
+  <p>A token is a small piece of text according to a model's tokenizer. It is both an input unit and an accounting unit on an API bill.</p>
+  <pre>YOUR REQUEST
+  system instructions       -> input tokens
+  repository/files           -> input tokens
+  user question              -> input tokens
+  cached repeated prefix     -> cached input tokens
+
+MODEL WORK
+  visible answer             -> output tokens
+  hidden reasoning           -> reasoning tokens, if used
+  tool/search/file content   -> tool or input tokens
+
+TOTAL API COST
+  = normal input cost
+  + cached-input cost
+  + output cost
+  + reasoning/tool/search charges when applicable</pre>
+  <pre>WITHOUT CACHE                         WITH CACHE
+old context: normal price             old context: cached price
+new question: normal price            new question: normal price
+answer: output price                  answer: output price</pre>
+  <p>The cache discounts repeated input. It does not make the new question or the newly generated answer free.</p>
+
+  <h2>10. Model weights create temporary K/V</h2>
+  <pre>PERMANENT MODEL WEIGHTS
+  WQ, WK, WV, and other learned numbers
+                 |
+                 v
+          hidden state vectors
+                 |
+       +---------+---------+
+       |         |         |
+   x WQ      x WK      x WV
+       |         |         |
+       v         v         v
+       Q         K         V
+       \         |         /
+        \        |        /
+         +-- attention --+
+                 |
+                 v
+          temporary K/V state</pre>
+  <p>Weights are what the model learned during training. K/V is what the model has processed in this conversation.</p>
+
+  <h2>11. Request 1 versus request 2</h2>
+  <pre>REQUEST 1
+[system + repository + question 1]
+ \___________ prefill all __________/
+              |
+              v
+          create old K/V
+              |
+              v
+          generate answer 1
+
+REQUEST 2
+[system + repository] + [question 2]
+ \_____ stable prefix ____/  \new/
+             |
+             v
+       cache manager checks prefix
+             |
+        +----+----+
+        |         |
+       HIT       MISS
+        |         |
+   reuse old   prefill old
+      K/V      prefix again
+        |         |
+        +----+----+
+             |
+             v
+       process question 2
+             |
+             v
+       generate answer 2</pre>
+  <p>The model does not decide that it already knows the answer. The runtime or provider cache manager decides that the old attention state can be reused.</p>
+
+  <h2>12. Local and API paths side by side</h2>
+  <pre>LOCAL MLX + DECASTATE                 API MODEL
+----------------------                ----------------------
+prompt on your computer               prompt on your computer
+          |                                      |
+          v                                      v
+local tokenizer                         client / gateway
+          |                                      |
+          v                                      v
+local model weights                     HTTPS over internet
+          |                                      |
+          v                                      v
+Apple GPU + MLX                         provider cache manager
+          |                                      |
+          v                                      +-- hit: reuse K/V
+create K/V                              +-- miss: prefill
+          |                                      |
+          v                                      v
+save native-cache.safetensors           provider GPU creates/uses K/V
+          |                                      |
+          v                                      v
+Process B restores                      answer + usage returned</pre>
+
+  <h2>13. Process A / Process B: local versus API</h2>
+  <p>The word “restore” means something different in these two worlds.</p>
+  <h3>Local MLX: DecaState directly restores native K/V</h3>
+  <pre>PROCESS A: local save                         PROCESS B: local wake
+---------------------                         --------------------
+load model weights                            load same model weights
+        |                                             |
+        v                                             v
+prefill repository + question                read manifest.json
+        |                                             |
+        v                                             v
+MLX creates native K/V                       validate model/fingerprint
+        |                                             |
+        v                                             v
+save native-cache.safetensors                load native K/V tensors
+        |                                             |
+        v                                             v
+Process A exits                               skip old prefix prefill
+                                                     |
+                                                     v
+                                              process new question
+                                                     |
+                                                     v
+                                              continue generation</pre>
+  <p>Process A and Process B are separate operating-system processes. The local
+  DecaState runtime owns the saved file and can directly validate and restore it.</p>
+
+  <h3>Claude/OpenAI API: the provider owns the K/V cache</h3>
+  <pre>PROCESS A: first API request                  PROCESS B: later API request
+----------------------------                  ----------------------------
+build stable prefix                           build the same stable prefix
+        |                                             |
+        v                                             v
+DecaState can count/hash it                    DecaState can count/hash it
+        |                                             |
+        v                                             v
+send HTTPS request                             send HTTPS request
+        |                                             |
+        v                                             v
+provider prefill                               provider checks its cache
+        |                                             |
+        v                                      +------+------+
+provider creates private K/V                  |             |
+        |                                    HIT           MISS
+        v                                      |             |
+provider returns answer                 reuse private   prefill prefix
+                                           provider K/V    again
+                                                   \       /
+                                                    v     v
+                                                  new question
+                                                       |
+                                                       v
+                                                 provider answer</pre>
+  <p>Process B does not download or restore the provider’s K/V file. The
+  provider decides whether its private cache is available and whether the
+  prefix matches. DecaState can stabilize the prefix, request supported cache
+  behavior, measure usage fields, and explain the result—but cannot force a
+  provider cache hit.</p>
+
+  <h3>How the state grows from Question 1 to Question 10</h3>
+  <p>When a conversation continues, the K/V state grows by appending new
+  tokens. The old state is not recalculated just because a new question was
+  added.</p>
+  <pre>Question 1:
+SYSTEM + REPO + Q1 + ANSWER1
+\──────────── K/V state 1 ────────────/
+
+Question 2:
+SYSTEM + REPO + Q1 + ANSWER1 + Q2 + ANSWER2
+\────────────────── K/V state 2 ──────────────────/
+
+Question 10:
+SYSTEM + REPO + Q1 ... + Q9 + ANSWER9 + Q10
+\──────────────────────── K/V state 10 ────────────────────────/
+
+K/V state 10 = K/V state 1 + new K/V for later questions and answers
+
+For Question 10:
+old K/V through Question 9 -> reuse old state
+Question 10                 -> compute new tokens
+old K/V + new K/V           -> answer 10</pre>
+
+  <p>If an earlier message changes, reuse stops at that point:</p>
+  <pre>Q1 + Q2 + Q3 + Q4 + Q5
+\──────── valid cached prefix ────────/
+
+Q1 + Q2 + Q3 CHANGED + Q4 + Q5
+\──── reusable ────/ \── recompute ──/
+
+new question appended  -> reuse old K/V and extend it
+earlier message edited  -> recompute from the changed point
+model changed           -> old K/V invalid; prefill everything</pre>
+  <p>For API models, the provider may reuse the longest matching prefix if its
+  private cache still exists. For local MLX, DecaState can directly maintain
+  and extend the native K/V state.</p>
+
+  <pre>LOCAL MLX                         CLAUDE / OPENAI API
+---------                         ------------------
+DecaState owns K/V                provider owns K/V
+DecaState validates restore       provider decides hit/miss
+DecaState loads tensors           DecaState sends request
+local GPU computes continuation   provider GPU computes continuation
+local file proves restore         usage fields prove reported reuse</pre>
+
+  <h2>14. Full zoomed flow</h2>
+  <pre>1. USER TYPES
+   "Explain the login bug"
+        |
+        v
+2. TOKENIZER
+   text -> token pieces -> token IDs
+        |
+        v
+3. EMBEDDING LOOKUP
+   token IDs -> vectors
+        |
+        v
+4. TRANSFORMER LAYER
+   vectors -> Q/K/V using learned weights
+        |
+        v
+5. ATTENTION
+   Q compares with K -> percentages -> weighted V
+        |
+        v
+6. PREFILL / KV STATE
+   old input becomes reusable K/V
+        |
+        +------------------------------+
+        |                              |
+        v                              v
+7A. LOCAL SAVE                     7B. API CACHE
+    DecaState writes file              provider keeps private cache
+        |                              |
+        v                              v
+8. NEW QUESTION                    8. NEW QUESTION
+    load old K/V + new tokens          provider hit/miss + new tokens
+        |                              |
+        +--------------+---------------+
+                       v
+9. DECODE
+   generate answer one token at a time
+                       |
+                       v
+10. RESPONSE
+    answer returns to user</pre>
+
+  <h2>15. Ownership</h2>
+  <pre>DecaState local runtime: saves/restores local MLX K/V
+Provider cache manager:  decides API cache hit/miss
+LLM model:               creates Q/K/V and generates answer
+User:                    writes prompt and receives answer</pre>
+
+  <h2>16. Toy LLM progress map</h2>
+  <p>This is the permanent checklist for the small learning model. It is
+  separate from the real Qwen/MLX experiments, so a teaching machine is never
+  confused with the production model. Steps 1–12 are now implemented.</p>
+  <h3>Completed</h3>
+  <pre>Step 1  text -> tokens -> embeddings
+Step 2  embeddings -> Q/K/V
+Step 3  Q/K/V -> attention percentages -> weighted V
+Step 4  attention -> residual -> normalization -> MLP
+Step 5  layer output -> logits -> next-token probabilities
+Step 6  loss -> gradients -> weight updates
+Step 7  train tiny model -> freeze weights -> inference
+Step 8  fine-tuning memory -> mitigation choices
+Step 9  multiple transformer layers
+Step 10 train toy Q/K/V attention weights
+Step 11 generate tokens one at a time
+Step 12 save/restore toy K/V cache</pre>
+  <pre>Step 13 advanced attention types, KV layouts, MoE, and memory</pre>
+
+  <p>The detailed Python lessons are:</p>
+  <pre>Experiment/01_tokens_embeddings.py
+Experiment/02_embeddings_qkv.py
+Experiment/03_attention.py
+Experiment/04_transformer_layer.py
+Experiment/05_logits_next_token.py
+Experiment/06_training_loss_backprop.py
+Experiment/07_tiny_train_then_infer.py
+Experiment/08_finetuning_memory.py
+Experiment/09_multi_layer_forward.py
+Experiment/10_train_qkv_attention.py
+Experiment/11_tiny_generation_loop.py
+Experiment/12_toy_kv_cache_save_restore.py</pre>
+
+  <p>Run them from the project root:</p>
+  <pre>make step1
+make step2
+make step3
+make step4
+make step5
+make step6
+make step7
+make step8
+make step9
+make step10
+make step11
+make step12</pre>
+
+  <h3>What we have now</h3>
+  <pre>We have a transparent toy LLM-like learning path.
+We can show training changing weights.
+We can freeze those weights and run inference.
+We understand token, embedding, Q/K/V, attention, residual,
+normalization, MLP, logit, loss, gradient, fine-tuning memory,
+generation, and KV persistence.</pre>
+
+  <h3>What this toy model is not</h3>
+  <pre>It is not Qwen.
+It does not contain a full trained transformer.
+It does not have real model-scale weights.
+It does not use the GPU or MLX.
+It does not prove production language quality.</pre>
+
+  <h3>Completed toy-model steps</h3>
+  <pre>Step 8   fine-tuning memory and mitigation strategies
+Step 9   connect multiple transformer layers into one forward pass
+Step 10  train the toy Q/K/V and attention weights
+Step 11  generate several tokens continuously
+Step 12  save and restore the toy KV cache</pre>
+
+  <h3>Where the real LLM begins</h3>
+  <p>The real model begins in the MLX experiments when they load
+  <code>mlx-community/Qwen2.5-0.5B-Instruct-4bit</code>.</p>
+  <pre>toy lessons                         real DecaState experiment
+------------                         ------------------------
+hand-made numbers                   real Qwen model weights
+small Python lists                  real tokenizer
+CPU teaching math                   MLX/Metal inference
+no production cache                 real native K/V cache
+                                      DecaState save/restore</pre>
+  <p class="note">The toy curriculum explains what the real model does. The
+  MLX experiments prove DecaState can save and restore state from the real
+  model.</p>
+
+  <h2>17. How does a model choose 24 layers?</h2>
+  <h3>What does “24 layers” mean?</h3>
+  <pre>token embeddings
+      │
+      ▼
+Layer 1 → Layer 2 → ... → Layer 24
+                                      │
+                                      ▼
+                           output head → next token
+
+Each layer:
+Q/K/V attention → residual + normalization → MLP/feed-forward</pre>
+  <p>The runtime does not decide during inference whether to use 24 or 30
+  layers. The model configuration already defines the number, and inference
+  runs the layers in order.</p>
+
+  <h3>Our real Qwen model</h3>
+  <p>Our tested checkpoint is <code>Qwen2.5-0.5B-Instruct-4bit</code>. Its
+  published configuration specifies 24 hidden layers, hidden size 896, 14
+  attention heads, and 2 key/value heads. See the <a href="https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct/blob/main/config.json">official Qwen configuration</a>.</p>
+  <pre>24 layers ≠ 24 tokens
+24 layers ≠ 24 attention heads
+24 layers ≠ 24 weights
+
+24 layers = 24 repeated transformer blocks</pre>
+
+  <h3>Why use more layers?</h3>
+  <pre>Layer 1   notices local relationships in “I like tea”
+Layer 2   improves the combined meaning
+Layer 3   connects more context
+  ...
+Layer 24  produces a rich representation for prediction</pre>
+  <p>More layers can provide more capacity, but they also add sequential
+  computation, latency, memory, training difficulty, and serving cost.</p>
+  <pre>MORE LAYERS
+    │
+    ├── potentially richer transformations
+    ├── more capacity
+    ├── more sequential processing
+    ├── slower inference
+    ├── larger KV cache
+    ├── harder optimization
+    └── higher serving cost</pre>
+
+  <h3>Depth, width, heads, and experts</h3>
+  <pre>DEPTH       number of transformer layers
+WIDTH       hidden-vector size inside each layer
+HEADS       parallel attention subspaces
+MLP SIZE    feed-forward capacity inside a layer
+EXPERTS     specialist MLPs in a mixture-of-experts model</pre>
+  <p>Architects balance quality, latency, memory, training cost, and serving
+  cost using scaling experiments, quality benchmarks, hardware limits, and
+  cost targets.</p>
+
+  <h3>Different model families</h3>
+  <table><tr><th>Model</th><th>Published depth</th><th>Important detail</th></tr>
+  <tr><td>Qwen2.5-0.5B-Instruct</td><td>24</td><td>Dense small model used in our MLX proof</td></tr>
+  <tr><td>DeepSeek-V3</td><td>61 main hidden layers</td><td>Also documents a separate MTP module; inspect the configuration fields</td></tr>
+  <tr><td>Kimi-K2-Instruct</td><td>61</td><td>MoE model with 384 routed experts and 8 active per token</td></tr></table>
+  <p>Sources: <a href="https://github.com/deepseek-ai/DeepSeek-V3/blob/main/README_WEIGHTS.md">DeepSeek-V3 weight structure</a> and <a href="https://huggingface.co/moonshotai/Kimi-K2-Instruct/blob/main/config.json">Kimi-K2 configuration</a>.</p>
+
+  <h3>Dense versus mixture-of-experts</h3>
+  <pre>DENSE
+token → Layer 1 full MLP → Layer 2 full MLP → Layer 3 full MLP
+
+MOE
+token → router chooses specialists
+             ├── Expert 12
+             ├── Expert 87
+             └── Expert 201
+                         │
+                         ▼
+                    combine results</pre>
+  <p>An MoE model may have many total parameters while activating only some
+  experts for each token. Experts are not additional sequential layers.</p>
+
+  <h3>Why deeper models need more KV-cache memory</h3>
+  <pre>Layer 1  → K₁/V₁
+Layer 2  → K₂/V₂
+Layer 3  → K₃/V₃
+  ...
+Layer 24 → K₂₄/V₂₄
+
+KV CACHE = K/V state from every transformer layer</pre>
+  <p>More layers generally mean more K/V tensors to store. DecaState saves and
+  restores the native state across the model’s layers, not just one K/V pair.</p>
+  <pre>The best model is not the one with the most layers.
+The best model meets the quality target within the hardware,
+latency, memory, training, and serving-cost budget.</pre>
+
+  <h2>18. What the 12 steps cover — and what they do not</h2>
+  <p>The 12-step toy curriculum is the core mechanical path from text to
+  attention to generation and KV persistence. It is not yet the complete study
+  of modern LLMs. We started with a dense transformer because it is the clearest
+  baseline; MoE is a later variation inside the MLP part of some layers.</p>
+
+  <h3>Why dense and MoE were not in the first simple layer</h3>
+  <pre>Q/K/V attention
+      ↓
+residual + normalization
+      ↓
+MLP/feed-forward network</pre>
+  <p>That first diagram assumes the <strong>dense baseline</strong>:</p>
+  <pre>DENSE MLP
+every token uses the same MLP weights
+
+hidden vector → up/gate projections → activation → down projection
+             → updated hidden vector</pre>
+  <p>An MoE model changes mainly the MLP part:</p>
+  <pre>MOE MLP
+hidden vector → router chooses a few experts
+                    ├── Expert 12: MLP weights
+                    ├── Expert 87: MLP weights
+                    └── Expert 201: MLP weights
+                              │
+                              ▼
+                       weighted combination</pre>
+  <p>The attention path still exists. The difference is that a router selects
+  specialist MLPs instead of activating one shared dense MLP for every token.
+  We postponed this to make the first dense attention path understandable.</p>
+
+  <h3>Complete expert roadmap</h3>
+  <table><tr><th>Area</th><th>Topics</th><th>Status</th></tr>
+  <tr><td>Foundation core</td><td>Tokenizer, embeddings, Q/K/V, attention, residuals, normalization, dense MLP, logits, training, generation, KV cache</td><td>Steps 1–12 complete</td></tr>
+  <tr><td>Architecture</td><td>Causal masking, RoPE, multi-head/GQA/MQA, SwiGLU, MoE routing, depth/width budgets</td><td>Next curriculum</td></tr>
+  <tr><td>Training science</td><td>Teacher forcing, full backpropagation, AdamW, schedules, initialization, data quality, evaluation</td><td>Next curriculum</td></tr>
+  <tr><td>Systems</td><td>GPU tensors, parallelism, memory, quantization, speculative decoding, serving</td><td>Next curriculum</td></tr>
+  <tr><td>Reliability/product</td><td>Factuality, safety, tool security, benchmarks, routing, caching, DecaState orchestration</td><td>Next curriculum</td></tr></table>
+
+  <h3>The complete roadmap in one ASCII view</h3>
+  <pre>FOUNDATION CORE
+text → tokens → embeddings → Q/K/V → attention → dense MLP
+     → logits → loss/gradients → training → generation → KV state
+
+ARCHITECTURE
+causal mask → RoPE → heads/GQA → SwiGLU → MoE router → model scaling
+
+TRAINING
+teacher forcing → backprop → AdamW → schedules → data/evaluation
+
+SYSTEMS
+GPU memory → parallelism → quantization → speculative decoding → serving
+
+PRODUCT
+quality → safety → tools → benchmarks → routing → DecaState lifecycle</pre>
+
+  <h3>What “expert” means</h3>
+  <pre>For every component, answer:
+1. What problem does it solve?
+2. What tensors enter and leave?
+3. Which weights or decisions does it use?
+4. What does it cost in memory, compute, and latency?
+5. How do we test correctness and quality?</pre>
+  <p>The current 12 steps give us the vocabulary and the core forward/inference
+  mechanics. Step 13 now introduces causal masking, attention layouts, and MoE;
+  the next lesson is Step 14: positional encoding and RoPE.</p>
+
+  <h2 id="codex-deep-fundamentals">19. Codex Deep Fundamentals — attention, MoE, training, and memory</h2>
+  <p class="lead">This section fills in the missing map. The first 12 lessons used a tiny dense transformer so the arithmetic was easy to see. Real LLMs add different kinds of attention, different MLP designs, training machinery, and GPU memory optimizations.</p>
+
+  <h3>19.1 The complete transformer block</h3>
+  <pre>tokens: “I like tea”
+        │
+        ▼
+embedding + position information
+        │
+        ▼
+┌──────────────────────────────────────────────┐
+│ ONE TRANSFORMER LAYER                        │
+│  attention: look at useful earlier tokens    │
+│       ↓                                      │
+│  output projection + residual + normalization│
+│       ↓                                      │
+│  dense MLP OR MoE router + selected experts  │
+│       ↓                                      │
+│  residual + normalization                    │
+└──────────────────────────────────────────────┘
+        │
+        ▼
+repeat for Layer 2 ... Layer 24 ... final layer
+        │
+        ▼
+logits → probabilities → next token</pre>
+  <p><strong>Attention</strong> mixes information between token positions. <strong>The MLP</strong> changes each position's representation using learned transformations. <strong>Residuals</strong> carry old information forward. <strong>Normalization</strong> keeps numerical scales stable.</p>
+
+  <h3>19.2 “Attention” has two meanings</h3>
+  <pre>ATTENTION OPERATION = Q/K/V math inside a layer
+ATTENTION TYPE      = the rule deciding which positions may interact</pre>
+  <table><tr><th>Type</th><th>Plain meaning</th><th>Common use</th></tr>
+  <tr><td><strong>Self-attention</strong></td><td>Tokens look at tokens in the same sequence.</td><td>Most transformer models.</td></tr>
+  <tr><td><strong>Causal self-attention</strong></td><td>A token may look only left, never into the future.</td><td>Decoder LLMs.</td></tr>
+  <tr><td><strong>Bidirectional self-attention</strong></td><td>A token may look left and right.</td><td>BERT-style encoders.</td></tr>
+  <tr><td><strong>Cross-attention</strong></td><td>One sequence asks questions about another sequence.</td><td>Encoder-decoder models.</td></tr>
+  <tr><td><strong>Local/window</strong></td><td>Look only within a nearby window.</td><td>Long-context efficiency.</td></tr>
+  <tr><td><strong>Sparse</strong></td><td>Look at selected positions instead of every position.</td><td>Long-context designs.</td></tr></table>
+  <pre>CAUSAL MASK for “I like tea”
+             I   like  tea  next?
+I            yes  no    no    no
+like         yes  yes   no    no
+tea          yes  yes   yes   no</pre>
+  <p>The normal chat LLM path is usually <strong>causal self-attention</strong>. The causal mask is a runtime rule, not a conscious decision by the model.</p>
+
+  <h3>19.3 MHA, GQA, and MQA: three ways to store K/V</h3>
+  <pre>MHA — Multi-Head Attention
+32 Q heads → 32 K heads + 32 V heads
+
+GQA — Grouped-Query Attention
+32 Q heads → 8 K heads + 8 V heads
+four Q heads share one K/V head
+
+MQA — Multi-Query Attention
+32 Q heads → 1 K head + 1 V head
+all Q heads share one K/V pair</pre>
+  <pre>Same prompt, same layers, same token count:
+MHA  ████████████████████  largest K/V cache
+GQA  █████                smaller cache, compromise
+MQA  ██                   smallest cache, maximum sharing
+
+K/V bytes ≈ 2 × layers × tokens × KV_heads × head_dimension × bytes/value</pre>
+  <p>For the illustrative 32-layer, 8,192-token, 32-Q-head, 128-dimension, BF16 example: MHA is about 4 GiB, GQA with 8 KV heads about 1 GiB, and MQA with 1 KV head about 128 MiB. These are K/V-only teaching numbers; weights, activations, buffers, allocator overhead, and batching also need memory.</p>
+
+  <h3>19.4 One “I like tea” attention calculation</h3>
+  <pre>Q(tea) = [1, 1]
+K(I)    = [1, 0]   V(I)    = [1, 0]
+K(like) = [0, 1]   V(like) = [0, 1]
+K(tea)  = [1, 1]   V(tea)  = [1, 1]
+
+Q × Kᵀ = [1, 1] × ┌─────┬─────┬─────┐
+                    │  1  │  0  │  1  │  row 1
+                    ├─────┼─────┼─────┤
+                    │  0  │  1  │  1  │  row 2
+                    └─────┴─────┴─────┘
+                       I    like  tea
+                = [1, 1, 2]
+
+softmax → I 24.8%, like 24.8%, tea 50.4%
+output = .248[1,0] + .248[0,1] + .504[1,1]
+       = [0.752, 0.752]</pre>
+  <p>The percentages are produced by dot products, scaling, softmax, and learned weights. They are not human-written labels.</p>
+
+  <h3>19.5 Dense MLP versus MoE</h3>
+  <pre>DENSE MLP
+token 1 ─┐
+token 2 ─┼──► same up/gate → activation → down weights
+token 3 ─┘
+
+MOE MLP
+hidden vector → learned router scores experts
+                    ├── Expert 4   selected
+                    ├── Expert 19  selected
+                    ├── Expert 80  not selected
+                    └── Expert 121 not selected
+                              │
+                              ▼
+                       weighted combination</pre>
+  <p>MoE usually replaces the dense MLP in some layers; attention still exists. The router is a small learned function. Training teaches routing through gradients; during inference the router performs arithmetic and selects a few specialist MLPs. MoE can have many total parameters while using fewer active parameters per token, with extra routing and communication complexity.</p>
+
+  <h3>19.6 Training versus inference</h3>
+  <pre>TRAINING: prompt → forward pass → loss → backpropagation → optimizer updates weights
+INFERENCE: prompt → forward pass → probabilities → next token → repeat
+
+Training stores gradients, optimizer state, and saved activations.
+Inference keeps weights fixed while temporary activations and K/V grow.</pre>
+  <p>Backpropagation is how the model learns which weights contributed to an error. It is not run to answer every normal user question.</p>
+
+  <h3>19.7 GPU memory and DecaState boundary</h3>
+  <pre>INFERENCE GPU
+┌──────────────────────────────────────────┐
+│ fixed model weights                      │
+│ temporary activations                    │
+│ growing K/V attention cache              │
+│ runtime buffers / batching               │
+└──────────────────────────────────────────┘
+
+LOCAL MLX: provider/model runtime creates K/V; DecaState can save/restore it.
+API: provider owns weights/GPU/KV; DecaState can prepare stable prefixes,
+route, and measure, but cannot directly read or save server-side K/V.</pre>
+  <p><strong>Product boundary:</strong> local means direct native state control; API means cache-aware orchestration and transparent measurement.</p>
+
+  <h3>19.8 Expert checklist</h3>
+  <pre>For every component ask:
+1. What problem does it solve?
+2. Is it a learned weight, runtime rule, or temporary state?
+3. What enters and leaves it?
+4. What does it cost in compute, memory, latency, and quality?
+5. Is it used in training, inference, or both?
+6. How do we test the claim?</pre>
+  <p>This is the missing connection. Keep asking what happens to <code>I like tea</code>: attention type controls who may look at whom; MHA/GQA/MQA controls K/V sharing; dense/MoE controls MLP capacity; backpropagation teaches weights; inference uses fixed weights to create temporary K/V and produce tokens.</p>
+</body>
+</html>

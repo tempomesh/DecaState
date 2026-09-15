@@ -4,6 +4,10 @@
 inference state. Three planes, one discipline: every claim maps to a script
 and a results file.
 
+*This is the overview; implementation-level detail (checkpoint manifests,
+fingerprints, lineage, storage layout) lives in
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).*
+
 ```
              YOUR APP · CODING AGENT · RAG · CI · AGENT SWARM
                                 │  one line to switch

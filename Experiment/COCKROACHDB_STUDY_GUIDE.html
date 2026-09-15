@@ -1,0 +1,812 @@
+<meta charset="utf-8">
+<title>Technical Acumen — Study Guide</title>
+<style>
+  :root{--ink:#1c2430;--muted:#5a6472;--faint:#8b95a3;--line:#d7dde5;--panel:#f5f6f8;}
+  *{box-sizing:border-box}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;color:var(--ink);
+    background:#fff;margin:0;line-height:1.6;font-size:15px}
+  .wrap{max-width:880px;margin:0 auto;padding:30px 26px 60px}
+  h1{font-size:27px;margin:0 0 4px}
+  .sub{color:var(--muted);margin:0 0 6px;font-size:15px}
+  h2{font-size:20px;margin:36px 0 6px;padding-top:14px;border-top:2px solid var(--ink)}
+  h3{font-size:16px;margin:20px 0 6px;font-weight:700}
+  p{margin:8px 0}
+  .lead{color:var(--muted)}
+  code{background:var(--panel);padding:1px 5px;border-radius:4px;font-size:13.5px;font-family:ui-monospace,Menlo,Consolas,monospace}
+  pre{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:13px 15px;
+    overflow-x:auto;font-size:12.5px;line-height:1.55;font-family:ui-monospace,Menlo,Consolas,monospace}
+  .analogy{background:var(--panel);border-left:3px solid var(--ink);border-radius:0 6px 6px 0;padding:10px 15px;margin:12px 0}
+  .warn{background:#fff;border:1px solid var(--ink);border-radius:8px;padding:11px 15px;margin:14px 0;font-size:14.5px}
+  .qa{border:1px solid var(--line);border-radius:9px;padding:2px 16px 8px;margin:12px 0}
+  .qa .q{font-weight:700;margin:12px 0 4px}
+  .qa .q::before{content:"Q. ";color:var(--muted);font-weight:800}
+  .qa .a{margin:2px 0 10px;color:#2b3644}
+  .qa .a::before{content:"A. ";color:var(--muted);font-weight:800}
+  .crdb{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--ink);border-radius:0 6px 6px 0;padding:9px 13px;margin:9px 0;font-size:14px}
+  table{width:100%;border-collapse:collapse;font-size:14px;margin:10px 0}
+  th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+  th{background:var(--panel);font-size:12px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted)}
+  .toc{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:14px 18px;margin:16px 0;columns:2;font-size:14px}
+  .toc a{color:var(--ink);text-decoration:none;display:block;margin:3px 0}
+  .toc a:hover{text-decoration:underline}
+  .pill{display:inline-block;background:var(--ink);color:#fff;border-radius:4px;padding:1px 8px;font-size:11.5px;font-weight:600}
+  .key{font-weight:700}
+  ul{margin:8px 0 8px 4px;padding-left:20px}
+  li{margin:4px 0}
+  .diagram{font-size:12px;line-height:1.4}
+</style>
+<div class="wrap">
+
+<h1>Technical Acumen — Study Guide</h1>
+<p class="sub">CockroachDB Sales Engineer · final round. From zero to confident, in plain language.</p>
+<p class="lead">This round is a <b>conversation</b>, not a quiz. They watch <i>how you think</i>. You don't need to be perfect — you need to reason clearly, use simple analogies, and tie ideas to customer value. Read this top-to-bottom once, then skim the bold bits before the interview.</p>
+
+<div class="toc">
+<a href="#codex-segment">Codex Segment · visual foundations</a>
+<a href="#p0">0 · How to win this round</a>
+<a href="#p1">1 · The 6 foundations (start here)</a>
+<a href="#p2">2 · Databases: SQL vs NoSQL</a>
+<a href="#p3">3 · Distributed systems</a>
+<a href="#p4">4 · Consistency & CAP</a>
+<a href="#p5">5 · Database optimization</a>
+<a href="#p6">6 · Cloud architecture</a>
+<a href="#p7">7 · Migrations</a>
+<a href="#p8">8 · Infrastructure & automation</a>
+<a href="#p9">9 · CockroachDB — must-know facts</a>
+<a href="#p10">10 · Scenario frameworks</a>
+<a href="#p11">11 · Curveballs + glossary</a>
+<a href="#p12">12 · Coding exercises + interview drills</a>
+</div>
+
+<!-- ============================================ -->
+<h2 id="codex-segment">Codex Segment · CockroachDB from zero, visually</h2>
+<p class="lead"><b>Why this section exists:</b> the guide below is the original study material. This added Codex segment is a second explanation layer: start with pictures, then attach the technical words. It connects directly to the MOVR, HAProxy, three-node, node-failure, and range experiments you already ran.</p>
+
+<h3>1. The whole product in one picture</h3>
+<p>Think of CockroachDB as <b>one SQL database made from several computers</b>. The application does not need to know which computer owns a row.</p>
+<pre class="diagram">YOUR APPLICATION
+       │  SQL: INSERT / SELECT / UPDATE
+       ▼
+HAProxy :26256   (one stable front door)
+       │
+       ├──────────────► Node 1 :26257
+       ├──────────────► Node 2 :26258
+       └──────────────► Node 3 :26259
+                              │
+                              ▼
+                    ranges → replicas → Raft
+                              │
+                              ▼
+                    one logical database</pre>
+<div class="analogy"><b>Common-language version:</b> HAProxy is the receptionist. The nodes are three offices. CockroachDB decides which office is responsible for the requested drawer of data, and keeps trusted copies in other offices.</div>
+
+<h3>2. What happens to one request?</h3>
+<pre class="diagram">1. App sends SQL
+        │
+        ▼
+2. HAProxy chooses a healthy SQL node
+        │
+        ▼
+3. CockroachDB finds the range containing the row
+        │
+        ▼
+4. Leaseholder handles the range request
+        │
+        ▼
+5. Raft replicates a write to the other replicas
+        │
+        ▼
+6. Quorum confirms: 2 of 3 replicas agree
+        │
+        ▼
+7. Commit becomes official; response returns to the app</pre>
+<p><b>Important:</b> the client does not wait for every replica if a majority is enough. With RF=3, two healthy replicas can commit safely. The third replica later catches up.</p>
+
+<h3>3. Your MOVR experiment mapped to the product</h3>
+<pre class="diagram">Python MOVR client
+       │
+       ▼
+HAProxy :26256  ← stable address used by the app
+       │
+       ▼
+CockroachDB cluster: Node 1 + Node 2 + Node 3
+       │
+       ▼
+MOVR tables are split into ranges
+       │
+       ▼
+Each range has 3 replicas on different nodes
+       │
+       ├── hard-kill Node 1
+       │
+       ▼
+Node 2 + Node 3 still form a majority
+       │
+       ▼
+SQL continues → failed range becomes under-replicated
+       │
+       ▼
+CockroachDB repairs/rebalances when capacity returns</pre>
+<div class="analogy"><b>Your strongest interview sentence:</b> “I validated this hands-on: the application kept using the HAProxy endpoint after a node failure, the surviving replicas retained quorum, and the cluster reported the affected ranges as under-replicated until repair.”</div>
+
+<h3>4. Table, ranges, replicas, and leaseholder</h3>
+<p>A table is not kept as one giant object on one server. CockroachDB divides the keyspace into smaller <b>ranges</b>. Each range is replicated.</p>
+<pre class="diagram">Logical table: rides
+┌─────────────────────────────────────────────────────────────┐
+│ keys 0000 ... 9999                                           │
+└─────────────────────────────────────────────────────────────┘
+          split into ranges
+             │
+   ┌──────────┼──────────┐
+   ▼          ▼          ▼
+Range 1    Range 2    Range 3
+keys 0-99  100-199    200-299
+   │          │          │
+   ▼          ▼          ▼
+R1 copies:  R2 copies:  R3 copies:
+N1 N2 N3    N2 N3 N1    N3 N1 N2
+
+The leaseholder is the replica that currently coordinates normal access
+for that range. It is a role for a range, not a permanent “master node”.</pre>
+<p><b>Do not say:</b> “Node 1 is the master for the whole database.” <b>Say:</b> “Each range has a leaseholder, and leaseholders are distributed across the cluster.” A leaseholder and Raft leader are closely related coordination roles, but they are not the same concept to memorize as one global master.</p>
+
+<h3>5. Write path: the contract gets signed by a majority</h3>
+<pre class="diagram">UPDATE rides SET status = 'finished' WHERE id = 42
+        │
+        ▼
+Leaseholder / Raft leader proposes the change
+        │
+        ├── replica on Node 1: append log entry, ACK
+        ├── replica on Node 2: append log entry, ACK
+        └── replica on Node 3: slow/down
+        │
+        ▼
+2 of 3 = quorum
+        │
+        ▼
+Commit is safe → reply to client
+        │
+        ▼
+Node 3 catches up later</pre>
+<div class="analogy"><b>Paper analogy:</b> two of three notaries sign the same contract. The contract is valid even if the third notary is temporarily unavailable.</div>
+
+<h3>6. Read path: find the correct drawer</h3>
+<pre class="diagram">SELECT * FROM rides WHERE id = 42
+        │
+        ▼
+Find the range whose key interval contains 42
+        │
+        ▼
+Contact that range's leaseholder
+        │
+        ▼
+Read using the requested consistency rules
+        │
+        ▼
+Return the row to the application</pre>
+<p>For a normal strongly consistent read, the system must respect the committed ordering of writes. For special read patterns, CockroachDB also supports techniques such as follower reads, which trade some freshness for lower latency.</p>
+
+<h3>7. What node failure really means</h3>
+<pre class="diagram">RF = 3
+
+ONE NODE FAILS                         TWO NODES FAIL
+┌──────┐ ┌──────┐ ┌──────┐             ┌──────┐ ┌──────┐ ┌──────┐
+│ N1   │ │ N2   │ │ N3   │             │ N1 X │ │ N2 X │ │ N3   │
+│  X   │ │  OK  │ │  OK  │             │ down │ │ down │ │ only │
+└──────┘ └──────┘ └──────┘             └──────┘ └──────┘ └──────┘
+              │                                  │
+              ▼                                  ▼
+        2/3 quorum: YES                    1/3 quorum: NO
+        serve safely                       refuse unsafe writes
+        repair later                       preserve consistency</pre>
+<p><b>Hard kill:</b> the node disappears suddenly; the cluster detects the failure and may temporarily be under-replicated. <b>Graceful drain:</b> the node first moves work away, so planned maintenance is cleaner.</p>
+
+<h3>8. CAP and the network partition picture</h3>
+<pre class="diagram">NETWORK SPLIT
+
+       Node 1  ─────X─────  Node 2 + Node 3
+       minority              majority
+
+Node 1 cannot prove it has the latest truth.
+  → it refuses unsafe writes.
+
+Nodes 2 + 3 have a quorum.
+  → they can continue consistent writes.
+
+This is the “CP” choice: consistency and partition tolerance,
+with availability sacrificed on the side without quorum.</pre>
+<p>That is not a bug. Returning a successful write from the isolated minority could create two different truths. CockroachDB chooses safety over pretending both sides are writable.</p>
+
+<h3>9. Transaction conflict and error 40001</h3>
+<pre class="diagram">Transaction A reads/changes row 42
+Transaction B changes the same logical data
+             │
+             ▼
+Serializable ordering detects a conflict
+             │
+             ▼
+One transaction is retried/aborted with SQLSTATE 40001
+             │
+             ▼
+Application retries the WHOLE transaction
+             │
+             ▼
+One complete, correct result</pre>
+<div class="warn"><b>Interview rule:</b> retry the entire transaction, not only the final statement. The application should use bounded retries and idempotent behavior so a retry cannot create a duplicate business action.</div>
+
+<h3>10. Performance: indexes, hotspots, and the trade-off</h3>
+<pre class="diagram">Without a useful index:                  With a useful index:
+query → scan row 1 → row 2 → ... → row N  query → index → matching rows
+             slow                                  much less work
+
+Sequential key writes:
+all new writes → same “rightmost” range → hotspot
+
+Distributed key / hash-sharded index:
+writes → spread across several ranges → more parallelism</pre>
+<p>An index is not free: it speeds reads but adds storage and write work. A good answer names the workload first: read/write ratio, access pattern, cardinality, hot keys, and latency target.</p>
+
+<h3>11. How to answer almost any technical scenario</h3>
+<pre class="diagram">CLARIFY  → What is the business goal? Reads or writes? One region or global?
+    │
+    ▼
+DRAW     → Client → gateway → range → replicas → quorum
+    │
+    ▼
+INVARIANT→ What must never break? Correctness, durability, latency, RPO?
+    │
+    ▼
+FAILURE  → What if a node, AZ, region, or network link fails?
+    │
+    ▼
+SECURITY → Who can access it? TLS? least privilege? audit?
+    │
+    ▼
+MEASURE  → p95/p99 latency, throughput, errors, under-replication, recovery time</pre>
+<p>This is the same evidence-first habit you used in DecaState: state what is known, state the failure mode, test the claim, and do not promise what was not measured.</p>
+
+<h3>12. Rapid-fire answers for Monday</h3>
+<div class="qa">
+<p class="q">What happens when one node dies?</p><p class="a">With RF=3, two replicas can still form quorum. Traffic may continue through the healthy nodes; the affected ranges are temporarily under-replicated and the cluster repairs them when possible.</p>
+<p class="q">What happens when two of three nodes die?</p><p class="a">The remaining node has no majority, so it cannot safely commit new writes for those ranges. This protects consistency; it is not a successful-availability scenario.</p>
+<p class="q">Why use HAProxy?</p><p class="a">It gives the application one stable endpoint, health-checks backends, and routes traffic away from unhealthy nodes. It is an entry point, not the database's consensus layer.</p>
+<p class="q">What is a leaseholder?</p><p class="a">The replica currently coordinating access for one range. It is not a global master, and the role can move.</p>
+<p class="q">What is 40001?</p><p class="a">A serializable transaction retry error. Retry the complete transaction with a safe, bounded retry policy.</p>
+<p class="q">How do you prove recovery?</p><p class="a">Run real traffic, record the failure time, verify SQL behavior, inspect node and range health, confirm quorum/under-replication, then confirm the replica returns to the desired state after repair.</p>
+</div>
+
+<h3>13. DecaState analogy — useful only as a memory aid</h3>
+<pre class="diagram">CockroachDB                         Your DecaState work
+────────────────────────────────────────────────────────────
+ranges                              pieces of a larger state
+replicas                             durable copies
+Raft/quorum                          verified agreement before commit
+leaseholder                          current coordinator for a range
+HAProxy                              stable entry point
+node failure + repair                process death + restore
+evidence/health metrics              measured proof, not a claim
+
+The products are different. The shared learning pattern is:
+distribute work → preserve state → survive failure → verify recovery.</pre>
+<p><b>Do not present DecaState as part of CockroachDB.</b> Use the analogy only to remember distributed-systems ideas: state, ownership, replication, failure, recovery, and evidence.</p>
+
+<h3>14. Monday memory card</h3>
+<pre class="diagram">CockroachDB = SQL over a distributed, replicated key-value layer.
+
+DATA      → split into ranges
+SAFETY    → replicate ranges with Raft
+AGREEMENT → commit only after quorum
+OWNERSHIP → leaseholder coordinates each range
+FAILURE   → one node can fail with RF=3; two may lose quorum
+CONSISTENCY→ serializable by default; retry 40001 safely
+SCALE     → add nodes, rebalance ranges, avoid hotspots
+PROOF     → measure traffic, health, ranges, latency, and repair
+
+One sentence:
+“I would start from the workload, draw the request path, identify the
+range and quorum behavior, then test failure recovery and measure the result.”</pre>
+
+<!-- ============================================ -->
+<h2 id="p0">0 · How to win this round</h2>
+<ul>
+<li><b>Think out loud.</b> Say your assumptions. "I'd assume this is read-heavy, so…" They grade reasoning, not memory.</li>
+<li><b>Use analogies.</b> Explaining a hard idea simply is the #1 SE skill. This guide gives you one per concept — steal them.</li>
+<li><b>Tie to value.</b> End answers with "…which means the customer gets X" (no downtime, no data loss, lower cost).</li>
+<li><b>Use your take-home.</b> "I actually saw this when I killed a region…" — real hands-on beats theory.</li>
+<li><b>On a curveball you don't know:</b> "I haven't hit that exactly — here's how I'd reason about it…" Composure &gt; recall.</li>
+<li><b>Trade-offs, always.</b> There's rarely one right answer. "It depends — if X then A, if Y then B" is the senior answer.</li>
+</ul>
+
+<!-- ============================================ -->
+<h2 id="p1">1 · The 6 foundations (understand these and everything clicks)</h2>
+
+<h3>① What is a distributed database?</h3>
+<p>A normal database lives on <b>one computer</b>. A distributed database spreads the same data across <b>many computers (nodes)</b> that work together as one.</p>
+<div class="analogy"><b>Analogy:</b> One database = one librarian at one desk. If they're sick, the library closes. A distributed database = many librarians in many buildings, each holding copies of every book. Lose a building, the library stays open.</div>
+<pre class="diagram">   OLD WAY: one server              COCKROACHDB: many nodes, one database
+   ┌────────────┐                   ┌──────┐  ┌──────┐  ┌──────┐
+   │   server   │                   │ node │  │ node │  │ node │
+   │   (data)   │                   │  1   │  │  2   │  │  3   │
+   └────────────┘                   └──────┘  └──────┘  └──────┘
+   dies  →  ALL DOWN                one dies  →  other two keep serving
+                                    \______ acts as ONE database ______/</pre>
+<p><b>Why do it?</b> Three reasons: <span class="key">survive failures</span> (a node dies, others carry on), <span class="key">scale</span> (add computers to handle more traffic), and <span class="key">go global</span> (put data near users worldwide).</p>
+
+<h3>② Replication — keeping copies</h3>
+<p>Every piece of data is stored as <b>multiple copies (replicas)</b> on different nodes — usually 3. If one copy is lost, the others remain.</p>
+<div class="analogy"><b>Analogy:</b> You keep 3 photocopies of an important contract in 3 different filing cabinets. Lose one cabinet, you still have the contract.</div>
+<pre class="diagram">   Row  "Rider #42"  is kept as 3 copies:
+
+     Node 1           Node 2           Node 3
+   ┌─────────┐      ┌─────────┐      ┌─────────┐
+   │ copy #42│      │ copy #42│      │ copy #42│
+   └─────────┘      └─────────┘      └─────────┘
+   lose ANY one node  →  2 copies remain  →  data safe</pre>
+<p><span class="pill">Term</span> <b>Replication factor (RF)</b> = how many copies. RF=3 means 3 copies. RF=5 (multi-region) survives losing a whole region.</p>
+
+<h3>③ Consensus & quorum — how copies agree</h3>
+<p>If there are 3 copies of a number and you change it, how do all 3 agree on the new value — especially if one is temporarily offline? Answer: a <b>majority must agree</b> before a change is official. That majority is a <span class="key">quorum</span>.</p>
+<div class="analogy"><b>Analogy:</b> A 3-person committee. A decision is final only when <b>2 of 3</b> agree. If 1 member is away, the other 2 still decide. If 2 are away, the 1 left can't decide alone — so it waits, rather than guess.</div>
+<pre class="diagram">   A write is saved only when a MAJORITY agrees:
+
+   Node 1  agree ─┐
+   Node 2  agree ─┼──►  2 of 3  →  WRITE SAVED  (node 3 can be down)
+   Node 3  down  ─┘
+
+   But if 2 of 3 are down:
+   Node 1  agree ─────►  only 1 of 3  →  WRITE REFUSED
+   Node 2  down          (no majority → it waits, stays correct)
+   Node 3  down</pre>
+<p><span class="pill">Term</span> <b>Raft</b> is the specific "rulebook" (algorithm) CockroachDB uses for this. One replica is the <b>leader</b>; it proposes changes, and once a majority confirms, it's committed. If the leader dies, the others elect a new one in seconds.</p>
+<div class="crdb"><b>CockroachDB:</b> data is split into chunks called <b>ranges</b>; each range has 3 (or 5) replicas kept in sync by Raft. Quorum = majority = 2 of 3. This is why it survives a node dying with <b>zero data loss</b>.</div>
+
+<h3>④ The leaseholder — who answers requests</h3>
+<p>For each range, one replica is chosen as the <b>leaseholder</b> — the "manager" that handles all reads and coordinates writes for that data. It keeps things fast and consistent (one source of truth).</p>
+<div class="analogy"><b>Analogy:</b> Three cashiers all have the same price list, but one is the "lead cashier" who rings up every sale for aisle 5 — so there's never a disagreement about the price.</div>
+<pre class="diagram">              request for this data
+                      │
+                      ▼
+          ┌───────────────────────┐
+          │  Node 2   ★LEASEHOLDER │  ← answers reads,
+          └───────────────────────┘    runs the writes
+                 │ keeps in sync (Raft)
+          ┌──────┴───────┐   ┌──────────────┐
+          │   Node 1     │   │   Node 3     │  ← follower copies
+          │  (follower)  │   │  (follower)  │    (standby, in sync)
+          └──────────────┘   └──────────────┘</pre>
+
+<h3>⑤ Consistency — do I see the truth?</h3>
+<p><b>Strong/serializable consistency</b> = everyone always sees the latest, correct data, and transactions never step on each other. <b>Eventual consistency</b> = copies catch up "eventually," so you might briefly read stale data.</p>
+<div class="analogy"><b>Analogy:</b> Strong = a bank: your balance is always exactly right the instant after a transaction. Eventual = a social media like-count: it might say 99 then 101 a second later. Fine for likes, <b>not</b> for money.</div>
+<div class="crdb"><b>CockroachDB</b> is <b>serializable</b> (the strongest) — transactions behave as if they ran one at a time, in a line. No double-spends, no split-brain.</div>
+
+<h3>⑥ Sharding / partitioning — splitting big data</h3>
+<p>When data is too big for one node, you split it into pieces across nodes. <b>Sharding/partitioning</b> = deciding which piece goes where.</p>
+<div class="analogy"><b>Analogy:</b> A giant phone book split into volumes: A–M in one, N–Z in another. Look up "Smith" → go straight to N–Z.</div>
+<pre class="diagram">   Big table split into "ranges", spread across nodes:
+
+   RIDES table
+   ┌──────────┬──────────┬──────────┬──────────┐
+   │ range A  │ range B  │ range C  │ range D  │
+   └────┬─────┴────┬─────┴────┬─────┴────┬─────┘
+        ▼          ▼          ▼          ▼
+     Node 1     Node 2     Node 3     Node 1
+   (each range is also copied 3×; CockroachDB balances them for you)</pre>
+<div class="crdb"><b>CockroachDB does this automatically</b> (ranges auto-split and rebalance). In older systems you had to shard <b>manually in your app code</b> — painful. That's a big CRDB selling point: "no manual sharding."</div>
+
+<!-- ============================================ -->
+<h2 id="p2">2 · Databases — SQL vs NoSQL</h2>
+<table>
+<tr><th></th><th>SQL (relational)</th><th>NoSQL</th></tr>
+<tr><td>Examples</td><td>Postgres, MySQL, CockroachDB</td><td>MongoDB (document), Cassandra (wide-column), DynamoDB (key-value), Redis (cache)</td></tr>
+<tr><td>Schema</td><td>Fixed tables, columns, relationships</td><td>Flexible / schema-less</td></tr>
+<tr><td>Consistency</td><td>Strong (ACID)</td><td>Often eventual (BASE)</td></tr>
+<tr><td>Best for</td><td>Money, orders, anything relational + transactions</td><td>Huge scale, simple lookups, flexible data</td></tr>
+</table>
+<pre class="diagram">   SQL (fixed tables + relationships)   NoSQL (flexible shape)
+   ┌────┬───────┬──────────┐            {
+   │ id │ name  │ city     │              "id": 42,
+   ├────┼───────┼──────────┤              "name": "Sam",
+   │ 42 │ Sam   │ London   │              "orders": [ ... ],
+   │ 43 │ Priya │ Mumbai   │              "anything": "goes"
+   └────┴───────┴──────────┘            }
+   relationships + transactions         huge scale, simple lookups
+   strong consistency                   often "eventually" consistent</pre>
+<div class="analogy"><b>ACID</b> (SQL's promise) in plain words: <b>A</b>tomic (all-or-nothing — a transfer either fully happens or not at all), <b>C</b>onsistent (rules never broken), <b>I</b>solated (transactions don't corrupt each other), <b>D</b>urable (once saved, it survives a crash).</div>
+<pre class="diagram">   ACID "Atomic" = all-or-nothing.  Transfer $100 from A to B:
+
+      [ take $100 from A ]  AND  [ give $100 to B ]
+         both succeed  →  SAVED ✔
+         either fails  →  BOTH undone   (you never lose the $100)</pre>
+
+<div class="qa">
+<div class="q">When would you pick NoSQL over SQL?</div>
+<div class="a">When you need massive scale with simple access patterns and can tolerate eventual consistency — e.g. a product catalog, IoT sensor data, or a session store. Pick SQL when you have relationships and need transactions and correctness — e.g. payments, orders, inventory.</div>
+<div class="q">Where does CockroachDB fit?</div>
+<div class="a">"It's <b>NewSQL</b> — it gives you NoSQL-style horizontal scale and resilience, but keeps SQL, ACID, and strong consistency. You stop having to choose between 'scalable' and 'correct.'"</div>
+<div class="q">Why not just use Postgres?</div>
+<div class="a">Postgres is one machine — great, but it doesn't scale horizontally or survive its own failure without bolt-ons (replicas, failover scripts). CockroachDB is Postgres-compatible <i>and</i> distributed, HA, and multi-region out of the box.</div>
+</div>
+
+<!-- ============================================ -->
+<h2 id="p3">3 · Distributed systems</h2>
+
+<div class="qa">
+<div class="q">How do you keep data consistent across many nodes?</div>
+<div class="a">Consensus. A write commits only when a <b>majority (quorum) of replicas agree</b> — CockroachDB uses <b>Raft</b>. So even if a node dies mid-write, there's a single agreed truth.</div>
+<div class="q">What happens when a node fails?</div>
+<div class="a">Its copies are down to 2-of-3, but a majority still exists, so reads/writes continue (a new leaseholder is elected in seconds). The system then re-replicates the missing copies onto healthy nodes to get back to 3. <b>Degraded briefly, never down; no data lost.</b></div>
+<div class="q">What's clock skew and why does it matter?</div>
+<div class="a">Computers' clocks are never perfectly in sync. In a distributed DB you must order events correctly across nodes despite this.</div>
+</div>
+<div class="crdb"><b>CockroachDB</b> uses <b>Hybrid Logical Clocks (HLC)</b> — a mix of real time + a counter — to order events even when physical clocks disagree slightly. (Google Spanner uses atomic clocks/TrueTime; CRDB achieves it in software.)</div>
+
+<h3>Node failure: hard-kill vs graceful (a favourite question)</h3>
+<pre class="diagram">   HARD-KILL (a crash)               GRACEFUL (planned removal)
+   node dies with no warning         node moves its copies OUT first
+   ┌──────┐                          ┌──────┐ copies→ ┌────┐ ┌────┐
+   │  ✘   │  its copies vanish       │  →   │────────►│ N1 │ │ N2 │
+   └──────┘                          └──────┘         └────┘ └────┘
+   under-replicated SPIKES           under-replicated STAYS 0
+   CockroachDB rebuilds → heals      node leaves clean, zero risk
+   (survived a failure)              (safe maintenance)</pre>
+<div class="analogy"><b>Idempotency</b> (common term): an operation you can safely repeat with the same result. "Set balance to $100" is idempotent; "add $100" is not (repeat it and you double-pay). In distributed systems you design retries to be idempotent so a retry doesn't cause damage.</div>
+
+<!-- ============================================ -->
+<h2 id="p4">4 · Consistency & CAP (they love this one)</h2>
+<p><b>CAP theorem</b> says: when the network splits (nodes can't talk), you can only keep <b>two</b> of Consistency, Availability, Partition-tolerance. Partitions happen in the real world, so really you choose: <b>stay Consistent (refuse) or stay Available (risk wrong data).</b></p>
+<div class="analogy"><b>Analogy:</b> Two halves of a company lose phone contact. Do you (A) let both halves keep approving expenses independently — fast, but they might approve the same budget twice? Or (C) freeze approvals until they reconnect — safe, but slower? CockroachDB picks <b>C (freeze / refuse)</b>.</div>
+<pre class="diagram">   Network splits — the two sides can't talk:
+
+      [ Node1   Node2 ]   ✂   [ Node3 ]
+          MAJORITY               minority
+
+   CockroachDB (CP) = chooses correctness:
+      MAJORITY side  →  keeps serving      ✔
+      minority side  →  REFUSES writes     ✘   (won't risk wrong data)</pre>
+<div class="crdb"><b>CockroachDB is CP</b> — it chooses Consistency. In a partition, the side without a majority stops serving writes rather than risk split-brain. That's why, when you kill 2 of 3 nodes, writes are <b>refused</b> — deliberately. For money/bookings, refusing is the <i>correct</i> failure.</div>
+<p><span class="pill">Bonus</span> <b>PACELC</b>: extends CAP — "if Partition, choose A or C; Else (normal times), choose Latency or Consistency." CRDB leans Consistency.</p>
+
+<div class="qa">
+<div class="q">Isolation levels — what are they?</div>
+<div class="a">How much transactions are protected from each other. From weakest to strongest: Read Uncommitted → Read Committed → Repeatable Read → <b>Serializable</b> (strongest — as if one at a time). CockroachDB defaults to Serializable, so you never get subtle concurrency bugs.</div>
+<div class="q">What's a serialization error (40001) and how does an app handle it?</div>
+<div class="a">When two transactions conflict under serializable isolation, one is told to retry (error 40001). The app should <b>catch it and retry the transaction with a small backoff</b>. Most drivers/ORMs have a helper. It's the price of strong safety — and it prevents the double-action bug.</div>
+</div>
+
+<!-- ============================================ -->
+<h2 id="p5">5 · Database optimization</h2>
+<h3>Indexes — the #1 topic</h3>
+<div class="analogy"><b>Analogy:</b> An index is the alphabetical index at the back of a book. Without it, to find "Smith" you read every page (a <b>full table scan</b>). With it, you jump straight to the page.</div>
+<pre class="diagram">   Find "Smith":
+
+   NO index  (full scan)            WITH index
+   row1? row2? ... row 9,999?       jump straight to "S" → found
+   reads EVERY row  →  slow         reads a few rows  →  fast</pre>
+<ul>
+<li><b>When they help:</b> queries that filter or sort on a column (<code>WHERE</code>, <code>ORDER BY</code>, joins).</li>
+<li><b>Cost:</b> every index must be updated on every write — so too many indexes slow down inserts.</li>
+<li><b>Covering index:</b> includes all columns a query needs, so it never has to touch the table at all — fastest.</li>
+<li><b>Composite index:</b> on multiple columns (order matters — like sorting by last name, then first name).</li>
+</ul>
+<div class="qa">
+<div class="q">A query is slow. How do you debug it?</div>
+<div class="a">"I'd run <code>EXPLAIN</code> (or <code>EXPLAIN ANALYZE</code>) to see the query plan. I look for <b>full table scans</b> — usually a missing index. I check whether an index is being used, whether stats are fresh, and whether there's <b>contention</b> or a <b>hot spot</b> (one range getting all the traffic). Then I add/adjust an index or rewrite the query, and measure again."</div>
+<div class="q">What's a hotspot and how do you fix it?</div>
+<div class="a">When one range/node gets a disproportionate share of traffic — often from sequential keys (e.g. auto-increment IDs all landing on the same range). Fix: spread the load — CockroachDB has <b>hash-sharded indexes</b>, or use UUIDs instead of sequential IDs.</div>
+<div class="q">Reads are slow across regions — what do you do?</div>
+<div class="a">Serve reads locally. In CockroachDB, use <b>REGIONAL BY ROW</b> so each row's home is near its users, or <b>follower reads</b> (read a slightly-stale-but-consistent copy from a nearby replica) for read-heavy workloads. Cross-region latency is physics — the trick is to not cross regions on the hot path.</div>
+</div>
+
+<!-- ============================================ -->
+<h2 id="p6">6 · Cloud architecture</h2>
+<table>
+<tr><th>Term</th><th>Plain meaning</th></tr>
+<tr><td>Region</td><td>A geographic area (e.g. us-east). Far apart = higher latency between them.</td></tr>
+<tr><td>Availability Zone (AZ)</td><td>An isolated data-center within a region. Spread across AZs to survive one failing.</td></tr>
+<tr><td>RTO / RPO</td><td>RTO = how fast you recover. RPO = how much data you can lose. CockroachDB: <b>RPO = 0</b> (lose nothing), RTO = seconds.</td></tr>
+<tr><td>Blast radius</td><td>How much breaks when one thing fails. Good design keeps it small.</td></tr>
+<tr><td>Active-active</td><td>All regions serve traffic at once (CRDB does this). Active-passive = one live, one standby.</td></tr>
+</table>
+<div class="qa">
+<div class="q">Design a globally-available app for a ride-share company (like MovR).</div>
+<div class="a">"Multi-region CockroachDB with <b>3 regions across 3 AZs each</b>. Use <b>REGIONAL BY ROW</b> so a rider's data lives near them (fast + GDPR), and <b>SURVIVE REGION FAILURE</b> so losing a whole region keeps the app up. App servers in each region behind a load balancer, all talking to one logical database. Result: local speed, regional survival, one system to operate."</div>
+<div class="q">Managed cloud vs self-hosted — trade-offs?</div>
+<div class="a">Managed (CockroachDB Cloud) = less ops burden, faster, provider handles upgrades/backups; costs more, less control. Self-hosted = full control, cheaper at scale, but you own the ops. Most start managed, move workloads self-hosted only if they need it.</div>
+</div>
+
+<pre class="diagram">   Multi-region: data copied across 3 regions (SURVIVE REGION FAILURE)
+
+   SINGAPORE          CALIFORNIA          LONDON
+   ┌──┐┌──┐┌──┐       ┌──┐┌──┐┌──┐        ┌──┐┌──┐┌──┐
+   │n1││n2││n3│       │n4││n5││n6│        │n7││n8││n9│
+   └──┘└──┘└──┘       └──┘└──┘└──┘        └╌╌┘└╌╌┘└╌╌┘
+       ✔ live             ✔ live            ✘ whole region dies
+
+   → a majority of every row still lives in SG + CA
+   → app keeps serving, London's data is still readable, nothing lost</pre>
+
+<!-- ============================================ -->
+<h2 id="p7">7 · Migrations</h2>
+<p>Moving from an old database to a new one <b>without downtime</b> is a core SE conversation.</p>
+<div class="analogy"><b>Analogy (expand/contract):</b> renovating a shop while staying open — you build the new section, quietly move stock over, run both for a bit, then close the old section. Never shut the doors.</div>
+<h3>The zero-downtime pattern</h3>
+<pre class="diagram">1. SET UP    → stand up CockroachDB alongside the old DB
+2. BULK LOAD → copy existing data over (and validate it matches)
+3. DUAL-WRITE→ app writes to BOTH old + new for a while
+4. VERIFY    → compare — new DB has everything, correct
+5. CUTOVER   → switch reads to the new DB
+6. RETIRE    → stop writing to the old DB, decommission it</pre>
+<pre class="diagram">   The trick = run BOTH, then switch (no downtime):
+
+   BEFORE            DURING (dual-write)        AFTER
+   app → [ OLD ]     app → [ OLD ] + [ NEW ]    app → [ NEW ]
+                     copy history → verify      retire [ OLD ]
+   ── the OLD database stays live the entire time; you only cut
+      over once the NEW one is proven to have everything ──</pre>
+<div class="qa">
+<div class="q">How would you migrate a customer from PostgreSQL to CockroachDB?</div>
+<div class="a">"The big advantage: CockroachDB is <b>Postgres wire-compatible</b>, so most app code, drivers, and ORMs work unchanged. I'd use CockroachDB's migration tool <b>MOLT</b> to bulk-load and validate, dual-write during the transition, then cut over. Things to watch: <b>sequences</b> (prefer UUIDs to avoid hotspots), <b>foreign keys</b>, and adding a <b>retry loop</b> for serialization errors. I'd de-risk with a pilot on a non-critical service first."</div>
+<div class="q">From a sharded MySQL setup?</div>
+<div class="a">"Their app has manual sharding logic — the win is <b>deleting it</b>. CockroachDB shards automatically. I'd migrate schema + data, remove the app-side routing, and let CRDB rebalance. It simplifies their codebase, not just the database."</div>
+</div>
+<div class="crdb"><b>Name-drop:</b> <b>MOLT</b> (Migrate Off Legacy Technology) = CockroachDB's toolkit for schema conversion, bulk load, and live validation.</div>
+
+<!-- ============================================ -->
+<h2 id="p8">8 · Infrastructure & automation</h2>
+<div class="qa">
+<div class="q">How do you back up a distributed database without downtime?</div>
+<div class="a">"CockroachDB does <b>online, distributed backups</b> straight to object storage (S3/GCS) — no locking, no downtime. Incremental backups + <b>point-in-time restore</b> let you rewind to any moment. <b>Changefeeds</b> stream changes out for CDC/replication."</div>
+<div class="q">How would you deploy CockroachDB repeatably?</div>
+<div class="a">"<b>Terraform</b> for the infrastructure, the <b>CockroachDB Kubernetes operator</b> (or Helm) to run and manage the cluster, CI/CD for schema changes, and monitoring-as-code (Prometheus/Grafana — which I set up in my exercise). Everything version-controlled so it's reproducible."</div>
+<div class="q">What do you monitor on a database in production?</div>
+<div class="a">"Node health/liveness, under-replicated & unavailable ranges, replicas per node (rebalancing), throughput (QPS), p99 latency, SQL errors, and disk/CPU. I tracked exactly these in Grafana during my failure tests."</div>
+</div>
+
+<pre class="diagram">   Repeatable deploy — everything as code (no manual clicking):
+
+   Terraform   →   K8s Operator   →   CI/CD      →   Prometheus+Grafana
+   (servers,       (runs & heals       (schema        (dashboards
+    network)        the cluster)         changes)       + alerts)
+   ──────────── all version-controlled → reproducible ────────────
+
+   Online backup (no downtime):
+   CockroachDB ──stream──► S3 / GCS  (full + incremental)
+                          → restore to ANY point in time (rewind)</pre>
+
+<!-- ============================================ -->
+<h2 id="p9">9 · CockroachDB — the must-know facts (name-drop these)</h2>
+<pre class="diagram">   How it all fits together — one write, end to end:
+
+   app → load balancer → any node → LEASEHOLDER of the range
+                                        │  Raft: a majority must agree
+                                 ┌──────┼──────┐
+                               copy 1  copy 2  copy 3
+                                        │
+                                  COMMITTED ✔   (majority agreed → RPO = 0)</pre>
+<table>
+<tr><th>Term</th><th>One-line meaning</th></tr>
+<tr><td><b>Range</b></td><td>A chunk of the table's data (~512MB). The unit that gets replicated & moved.</td></tr>
+<tr><td><b>Replica</b></td><td>A copy of a range. Usually 3 (or 5 for multi-region).</td></tr>
+<tr><td><b>Leaseholder</b></td><td>The replica that serves reads & coordinates writes for a range.</td></tr>
+<tr><td><b>Raft</b></td><td>The consensus rulebook — majority agrees before a write commits.</td></tr>
+<tr><td><b>Quorum</b></td><td>The majority needed to agree (2 of 3, 3 of 5).</td></tr>
+<tr><td><b>Serializable</b></td><td>Strongest isolation — transactions act as if one-at-a-time.</td></tr>
+<tr><td><b>HLC</b></td><td>Hybrid Logical Clock — orders events despite clock skew, in software.</td></tr>
+<tr><td><b>REGIONAL BY ROW</b></td><td>Each row has a home region → local speed + data residency (GDPR).</td></tr>
+<tr><td><b>SURVIVE REGION FAILURE</b></td><td>Spread 5 replicas so losing a whole region still leaves a majority.</td></tr>
+<tr><td><b>RPO = 0</b></td><td>Zero data loss on failure. (RTO = seconds.)</td></tr>
+<tr><td><b>MOLT</b></td><td>Migration toolkit (schema convert, load, validate).</td></tr>
+<tr><td><b>Changefeed / CDC</b></td><td>Stream row changes out to Kafka/etc. in real time.</td></tr>
+</table>
+<div class="warn"><b>The 3 sentences that make you sound expert:</b><br>
+1. "CockroachDB splits data into <b>ranges</b>, replicates each 3–5 ways, and keeps them in sync with <b>Raft</b> consensus — a write commits only when a majority agrees."<br>
+2. "It's <b>serializable and CP</b> — it chooses correctness over availability, so it'll refuse a write before it serves wrong data."<br>
+3. "It's <b>Postgres-compatible</b> and shards itself, so you get horizontal scale and multi-region survival <b>without</b> app-level sharding or failover runbooks."</div>
+
+<!-- ============================================ -->
+<h2 id="p10">10 · Scenario frameworks (structure any answer)</h2>
+<h3>System design prompt → use this order</h3>
+<pre class="diagram">1. CLARIFY   → "How many users? read or write heavy? global? consistency needs?"
+2. DATA      → what are the main tables/entities and access patterns?
+3. SCALE     → replication, sharding/ranges, where the data lives (regions)
+4. FAILURE   → what happens when a node / AZ / region dies? (RPO/RTO)
+5. TRADE-OFFS→ name what you're trading (latency vs consistency, cost vs HA)
+6. VALUE     → "so the customer gets: no downtime, no data loss, GDPR"</pre>
+<h3>Troubleshooting prompt → use this order</h3>
+<pre class="diagram">1. REPRODUCE → when/where does it happen? recent change?
+2. MEASURE   → metrics/logs — latency, errors, hot ranges, EXPLAIN
+3. ISOLATE   → is it the query, the schema, the network, or the load?
+4. FIX       → smallest change that addresses the root cause
+5. VERIFY    → measure again; add monitoring so it's caught next time</pre>
+<pre class="diagram">   Shape of a strong answer (say it in this order):
+
+   CLARIFY  →  ask questions first  ("read or write heavy? global?")
+      │
+   REASON   →  think out loud, name the trade-offs
+      │
+   ANSWER   →  give your recommendation
+      │
+   VALUE    →  "...so the customer gets no downtime / no data loss"</pre>
+<div class="analogy">Even if you don't know the exact answer, <b>walking the framework out loud</b> scores well — it shows you approach problems like an engineer, not a guesser.</div>
+
+<!-- ============================================ -->
+<h2 id="p11">11 · Curveballs + glossary</h2>
+<p><b>Curveball script</b> (memorize): <i>"I haven't worked with that specifically — but here's how I'd reason about it: first I'd figure out [the goal], then the trade-off is probably [X vs Y], and I'd lean [Z] because [reason]. I'd validate by [test]."</i> Calm + structured beats a memorized fact.</p>
+<h3>Quick glossary (plain words)</h3>
+<table>
+<tr><td><b>Node</b></td><td>one computer/server in the cluster</td></tr>
+<tr><td><b>Cluster</b></td><td>all the nodes working together as one database</td></tr>
+<tr><td><b>Replica</b></td><td>a copy of data on a node</td></tr>
+<tr><td><b>Quorum</b></td><td>the majority needed to agree</td></tr>
+<tr><td><b>Consensus</b></td><td>how nodes agree on the truth (Raft)</td></tr>
+<tr><td><b>Leaseholder</b></td><td>the replica in charge of a chunk of data</td></tr>
+<tr><td><b>Consistency</b></td><td>do I always see correct, latest data?</td></tr>
+<tr><td><b>Availability</b></td><td>is the system up and answering?</td></tr>
+<tr><td><b>Partition</b></td><td>nodes can't talk to each other (network split)</td></tr>
+<tr><td><b>Sharding</b></td><td>splitting data across nodes</td></tr>
+<tr><td><b>Index</b></td><td>a shortcut to find rows fast</td></tr>
+<tr><td><b>Full scan</b></td><td>reading every row (slow) — usually a missing index</td></tr>
+<tr><td><b>ACID</b></td><td>the safety promise of SQL transactions</td></tr>
+<tr><td><b>Latency</b></td><td>how long a request takes (p99 = the slow 1%)</td></tr>
+<tr><td><b>Throughput</b></td><td>how many requests per second</td></tr>
+<tr><td><b>RPO / RTO</b></td><td>data you can lose / time to recover</td></tr>
+<tr><td><b>Idempotent</b></td><td>safe to repeat with the same result</td></tr>
+<tr><td><b>CDC</b></td><td>streaming data changes out in real time</td></tr>
+</table>
+
+<!-- ============================================ -->
+<h2 id="p12">12 · Coding exercises + interview drills</h2>
+<p class="lead">The interview can include coding. They are usually testing whether you can write clear, safe logic and explain your assumptions—not whether you remember a clever trick.</p>
+
+<h3>A. SQL exercise: find the busiest riders</h3>
+<p><b>Question:</b> “Find the top five riders by number of completed rides.”</p>
+<pre class="diagram">SELECT rider_id, COUNT(*) AS completed_rides
+FROM rides
+WHERE status = 'completed'
+GROUP BY rider_id
+ORDER BY completed_rides DESC
+LIMIT 5;</pre>
+<p><b>Explain it simply:</b> filter first, group rows by rider, count each group, sort from largest to smallest, and return five rows.</p>
+<p><b>What to mention:</b> index the filtering/grouping pattern only after checking the workload with <code>EXPLAIN</code>. An index can improve reads but adds write and storage cost.</p>
+
+<h3>B. SQL exercise: find a missing index</h3>
+<pre class="diagram">EXPLAIN ANALYZE
+SELECT * FROM rides
+WHERE city = 'new york' AND status = 'completed';
+
+Read the plan:
+  full scan?       → many rows inspected
+  index scan?      → likely better targeted access
+  high latency?    → inspect row count, contention, and distribution
+  hotspot?         → check whether one key/range receives most writes</pre>
+<p><b>Interview answer:</b> “I would not add an index blindly. I would reproduce the query, inspect the plan, measure p95/p99 latency, check write overhead, then test the candidate index against representative traffic.”</p>
+
+<h3>C. Application-development exercise: safe transaction retry</h3>
+<p><b>Question:</b> “How should an application handle a serializable retry error?”</p>
+<pre class="diagram">attempt = 1
+while attempt <= MAX_RETRIES:
+    try:
+        BEGIN
+          read required rows
+          make business decision
+          write all related changes
+        COMMIT
+        return success
+    except serialization_retry_40001:
+        ROLLBACK
+        wait briefly with backoff
+        attempt += 1
+
+return a clear failure after the bounded retry limit</pre>
+<p><b>Critical detail:</b> retry the <b>whole transaction</b>, not only the failed statement. Otherwise the application may use a partially stale decision.</p>
+<p><b>Production details:</b> use bounded exponential backoff, make external side effects idempotent, add a request or business key for deduplication, and record retry counts in metrics.</p>
+
+<h3>D. Application-development exercise: idempotent order creation</h3>
+<pre class="diagram">Client sends:  create_order(idempotency_key = ABC123)
+        │
+        ├── request times out after the database commits
+        │
+        ▼
+Client retries the same request
+        │
+        ▼
+Database unique constraint on ABC123
+        │
+        ▼
+Return the original order instead of creating a duplicate</pre>
+<p><b>Simple meaning:</b> the network may make a successful request look like a failure. The same request must be safe to repeat.</p>
+
+<h3>E. Cloud-architecture drill: design a global service</h3>
+<pre class="diagram">Users in Region A ─┐
+Users in Region B ─┼──► global DNS / load balancing
+Users in Region C ─┘             │
+                                 ▼
+                       healthy regional SQL entry point
+                                 │
+                    ┌────────────┼────────────┐
+                    ▼            ▼            ▼
+                 Region A     Region B     Region C
+                 AZ1/AZ2      AZ1/AZ2      AZ1/AZ2
+
+Ask before designing:
+  RPO = how much data can be lost?
+  RTO = how quickly must service recover?
+  Is the workload global or region-owned?
+  Are writes latency-sensitive?
+  What happens during a region partition?</pre>
+<p><b>Trade-off:</b> putting data near users can reduce latency, but global coordination and cross-region writes can increase latency and cost. Choose locality and replication based on the business requirement.</p>
+
+<h3>F. Infrastructure drill: safe node maintenance</h3>
+<pre class="diagram">Before maintenance:
+  1. check node health and capacity
+  2. verify replicas are healthy
+  3. drain the node gracefully
+  4. wait for ranges/work to move
+  5. patch or restart the node
+  6. verify it rejoins and catches up
+  7. check latency, errors, and under-replication
+
+Emergency failure is different:
+  hard kill → detect → preserve quorum → repair replicas</pre>
+<p><b>Good answer:</b> “For planned work I drain first. For an unplanned failure I protect quorum, keep traffic on healthy nodes, and verify re-replication before declaring recovery complete.”</p>
+
+<h3>G. Migration drill: move a production database safely</h3>
+<pre class="diagram">DISCOVER
+  schema, size, traffic, extensions, dependencies, RPO/RTO
+      │
+      ▼
+PLAN
+  compatibility, target topology, rollback point, cutover method
+      │
+      ▼
+TEST
+  restore a copy, run representative queries, compare results
+      │
+      ▼
+DUAL / CDC
+  keep target updated while source remains available
+      │
+      ▼
+CUT OVER
+  pause or fence writes, catch up, switch traffic, validate
+      │
+      ▼
+OBSERVE → ROLLBACK WINDOW → DECOMMISSION</pre>
+<p><b>Never start with “copy the tables.”</b> Start with compatibility, dependencies, correctness checks, cutover risk, and a tested rollback plan.</p>
+
+<h3>H. Automation drill: what should be automated?</h3>
+<table>
+<tr><th>Area</th><th>Useful automation</th><th>Safety check</th></tr>
+<tr><td>Provisioning</td><td>Terraform or equivalent cluster and network setup</td><td>reviewed plans, separate environments</td></tr>
+<tr><td>Deployment</td><td>versioned migrations and staged rollout</td><td>backward-compatible schema changes</td></tr>
+<tr><td>Operations</td><td>health checks, backups, restore tests, alerts</td><td>test the alert and the restore, not only the script</td></tr>
+<tr><td>Scaling</td><td>capacity-based node or workload changes</td><td>limits, cooldowns, and cost guardrails</td></tr>
+<tr><td>Security</td><td>certificate rotation, least-privilege roles</td><td>audit logs and break-glass access</td></tr>
+</table>
+
+<h3>I. One scenario answer template</h3>
+<pre class="diagram">INTERVIEWER: “The database is slow. What do you do?”
+
+YOU:
+  1. Clarify: Which query? Read or write? p95 or p99? Since when?
+  2. Measure: latency, QPS, errors, CPU, memory, contention, hot ranges.
+  3. Inspect: EXPLAIN ANALYZE, indexes, schema, distribution, recent change.
+  4. Stabilize: protect availability and rollback an unsafe change if needed.
+  5. Fix: query/index/schema/topology change matched to evidence.
+  6. Validate: reproduce the workload and compare before/after metrics.
+  7. Prevent: alert, dashboard, capacity plan, and documented runbook.</pre>
+<p>This structure works for slow queries, node failures, migrations, cloud design, and automation questions.</p>
+
+<h3>J. Final practice set</h3>
+<div class="qa">
+<p class="q">Design a three-node CockroachDB deployment for a production service.</p><p class="a">State the regions/AZs, replication factor, SQL entry point, backup plan, workload shape, RPO/RTO, and how you will test a node and network failure.</p>
+<p class="q">A query became slow after the table grew ten times. What do you check?</p><p class="a">Query plan, row count, index selectivity, statistics, contention, hot ranges, p99 latency, and whether the access pattern changed.</p>
+<p class="q">A migration must have nearly zero downtime. How do you approach it?</p><p class="a">Compatibility-first schema changes, backfill/CDC or replication, validation, a controlled cutover, monitoring, and a tested rollback window.</p>
+<p class="q">What would you automate first?</p><p class="a">Repeatable provisioning, health checks, backups plus restore tests, safe deployments, and alerts with clear ownership. Automation without verification only repeats mistakes faster.</p>
+<p class="q">How do you explain CockroachDB to a customer in one minute?</p><p class="a">“It gives applications a SQL interface while distributing data across nodes, replicating it for survival, and using consensus so replicas agree. The customer gets scale and resilience without manually sharding every table.”</p>
+</div>
+
+<p style="margin-top:26px;color:var(--faint);font-size:13px;text-align:center">You don't need to memorize everything. Understand the 6 foundations, know the 3 "expert" sentences, and walk the frameworks out loud. That's an SE who gets hired.</p>
+
+</div>

@@ -1,0 +1,648 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Google Interview Study Guide</title>
+<style>
+:root{--ink:#14243b;--blue:#0d55c7;--pale:#eef5ff;--line:#d6e0ed;--muted:#536780}*{box-sizing:border-box}body{margin:0;background:#f4f7fb;color:var(--ink);font:16px/1.58 system-ui,-apple-system,"Segoe UI",sans-serif}main{max-width:1080px;margin:auto;background:#fff;padding:42px 34px 70px;box-shadow:0 0 35px #ccd5e544}h1{color:#073a91;font-size:2.4rem;line-height:1.15}h2{color:#104d9d;border-top:2px solid var(--line);padding-top:18px;margin-top:42px}h3{color:#234777}pre{background:#0c1a2d;color:#ecf4ff;padding:17px;border-radius:9px;overflow:auto;font:14px/1.48 ui-monospace,Menlo,monospace}code{background:#edf2f8;padding:2px 5px;border-radius:4px}table{border-collapse:collapse;width:100%;margin:16px 0 25px}th,td{border:1px solid var(--line);padding:9px;text-align:left;vertical-align:top}th{background:var(--pale);color:#143f82}.lead{font-size:1.12rem;color:var(--muted)}blockquote{border-left:5px solid var(--blue);background:#f3f7ff;padding:13px 18px;margin:18px 0}.note{border-left:5px solid #dda822;background:#fff5d4;padding:13px 18px}.green{border-left:5px solid #2a9c59;background:#eaf8ef;padding:13px 18px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}.card{border:1px solid var(--line);border-radius:9px;padding:13px;background:#fbfdff}.small{color:var(--muted);font-size:.92rem}@media print{body{background:#fff}main{box-shadow:none;max-width:none;padding:0}h2{break-before:page}pre{white-space:pre-wrap}}
+</style></head><body><main>
+<h1>Google Interview Study Guide</h1>
+<p class="lead">Built from <a href="./01_foundations.md">01_foundations.md</a>, with simple explanations, ASCII diagrams, coding patterns, system-design structure, and mappings to your CockroachDB/MOVR and TDA work.</p>
+<div class="note"><strong>Purpose:</strong> preparation material, not a prediction of exact questions or a replacement for official instructions.</div>
+<h2 id="beginner-visual-companion">Beginner visual companion — four RRK scenarios</h2>
+<p>Use this section first. It translates each Google Role-Related Knowledge
+scenario into the same plain-language style as the <code>I like tea</code>
+foundation lessons. Start with the short answer, draw the ASCII flow, then
+zoom into the component the interviewer chooses.</p>
+<pre>CLARIFY → QUANTIFY → DRAW → EXPLAIN COMPONENTS → TEST FAILURE → MEASURE
+  who?      scale?       flow       state/ownership     risk?       SLO/cost?</pre>
+<h3>Four-scenario opening table</h3>
+<table><tr><th>Scenario</th><th>Plain-language question</th><th>Internal flow</th><th>Main control</th><th>Measure</th><th>Deep dive</th></tr>
+<tr><td>Fine-tuning memory</td><td>Why did training run out of GPU memory?</td><td>forward → loss → gradients → weight update</td><td>Profile, reduce, re-measure</td><td>Peak memory, quality, throughput</td><td><a href="#deep-fine-tuning">GPU memory</a></td></tr>
+<tr><td>600 APIs</td><td>How can an agent use old APIs safely?</td><td>plan → validate → approve → execute → verify</td><td>Identity, policy, idempotency, audit</td><td>Tool accuracy, duplicates, unauthorized calls</td><td><a href="#deep-apis">API gateway</a></td></tr>
+<tr><td>Enterprise KMS</td><td>How can search respect every user’s permissions?</td><td>ingest → index → retrieve → ACL filter → cite</td><td>Deterministic ACL boundary before generation</td><td>Recall, freshness, latency, leakage</td><td><a href="#deep-kms">KMS search</a></td></tr>
+<tr><td>SME underwriting</td><td>How can an agent help without an unsafe loan decision?</td><td>extract → verify → analyze → policy → human approval</td><td>Provenance, deterministic rules, human gate</td><td>Accuracy, fairness, overrides, audit completeness</td><td><a href="#deep-underwriting">Underwriting</a></td></tr></table>
+<h2 id="rrk-complete-map">Complete Google RRK preparation map</h2>
+<p>The four scenarios are the case studies. The interviewer may drill into any
+of these supporting skills while you explain them.</p>
+<pre>                         GOOGLE RRK
+                              │
+       ┌──────────────────────┼──────────────────────┐
+       ▼                      ▼                      ▼
+   LLM / ML              SYSTEMS                 PRODUCT
+   fundamentals          engineering             judgment
+       │                      │                      │
+       ├─ Q/K/V              ├─ APIs                ├─ clarify
+       ├─ attention          ├─ queues               ├─ estimate
+       ├─ training           ├─ databases            ├─ trade-offs
+       ├─ fine-tuning       ├─ caching              └─ rollout
+       └─ KV cache          ├─ sharding
+                            ├─ observability
+                            └─ failure recovery
+                              │
+                              ▼
+                         SAFETY / SECURITY
+                         IAM, ACLs, PII,
+                         prompt injection,
+                         human approval, audit</pre>
+<h3>Preparation checklist</h3>
+<table><tr><th>Area</th><th>What you should explain</th><th>Scenario connection</th></tr>
+<tr><td>LLM fundamentals</td><td>Tokenizer, embeddings, Q/K/V, attention, MLP, logits, KV cache</td><td>All four</td></tr>
+<tr><td>ML systems</td><td>Fine-tuning memory, LoRA/QLoRA, quantization, evaluation, cost</td><td>Fine-tuning</td></tr>
+<tr><td>Agentic systems</td><td>Planning, tool choice, state, retries, verification, approval</td><td>APIs and underwriting</td></tr>
+<tr><td>System design</td><td>APIs, queues, storage, caching, sharding, SLOs</td><td>All four</td></tr>
+<tr><td>Distributed systems</td><td>Quorum, replication, idempotency, backpressure, recovery</td><td>APIs and KMS</td></tr>
+<tr><td>Coding</td><td>LRU, graphs, DP, parsing, top-K, concurrency</td><td>Coding and system components</td></tr>
+<tr><td>Security</td><td>IAM, tenant isolation, ACLs, PII, prompt injection, audit</td><td>APIs, KMS, underwriting</td></tr>
+<tr><td>Product/consulting</td><td>Clarify ambiguity, estimate scale, prioritize, explain trade-offs</td><td>All four</td></tr>
+<tr><td>Communication</td><td>30-second answer, 3-minute drawing, deep drill-down</td><td>Every question</td></tr></table>
+<h3>The answer sequence to practise aloud</h3>
+<pre>CLARIFY → QUANTIFY → DRAW → NAME OWNERSHIP → TEST FAILURE
+    → ADD SECURITY/HUMAN CONTROL → MEASURE AND ROLL OUT
+
+CLARIFY   who uses it, success, risk
+QUANTIFY  users, QPS, data, latency, cost, accuracy
+DRAW      input → processing → state → decision → output
+OWNERSHIP model, runtime, gateway, database, human approver
+FAILURE   timeout, duplicate, stale data, bad model, denied access
+MEASURE   quality, latency, availability, cost, auditability</pre>
+<h3>Scenario-to-skill map</h3>
+<pre>FINE-TUNING MEMORY
+  model weights → gradients → optimizer → GPU memory
+  ML fundamentals, profiling, trade-offs, evaluation
+
+600 APIs
+  user → agent → tool contract → policy → API → verify
+  agents, APIs, IAM, idempotency, retries, audit
+
+GLEAN-LIKE KMS
+  sources → connectors → indexes → ACL filter → cited answer
+  search, ingestion, distributed systems, security, freshness
+
+SME UNDERWRITING
+  documents → evidence → verification → rules → human decision
+  workflows, risk, provenance, fairness, human-in-loop</pre>
+<pre>30 seconds → business goal + architecture + main risk
+3 minutes  → ASCII request path + data stores + ownership
+10 minutes → algorithms + failure + security + metrics
+deep drill → input, state, algorithm, output, failure mode</pre>
+
+<h3 id="rrk-fine-tuning">Scenario 1 — Fine-tuning memory</h3>
+<p><strong>Common-language question:</strong> Why does training run out of GPU
+memory, and how can we make it fit?</p>
+<pre>INFERENCE: the model reads “I like tea” and makes temporary K/V notes.
+TRAINING:  the model reads examples, checks the answer, and changes weights.</pre>
+<pre>                 TRAINING GPU MEMORY
+                         │
+        ┌────────────────┼────────────────┐
+        ▼                ▼                ▼
+  MODEL WEIGHTS       ACTIVATIONS       TRAINING STATE
+  learned recipe      saved layer       gradients
+  WQ/WK/WV            values for         Adam moments
+  MLP weights         backpropagation    master weights
+                         │
+                         ▼
+                 PEAK MUST FIT GPU</pre>
+<pre>“I like tea” during inference       training the model
+────────────────────────────       ────────────────────────────
+token IDs → embeddings              token IDs → embeddings
+24 layers use fixed weights         layers make a prediction
+create temporary K/V                compare with correct token
+generate answer                     loss → gradients → update weights</pre>
+<blockquote><strong>30-second answer:</strong> I separate persistent model
+state, activations, and temporary buffers. Full mixed-precision Adam can
+require roughly 12–16 bytes per trainable parameter before activations,
+depending on the implementation. I measure peak memory, then choose smaller
+micro-batches with accumulation, activation checkpointing, LoRA/QLoRA, lower
+precision, sharding, or offload. I compare memory against quality,
+throughput, convergence, and training time.</blockquote>
+<pre>Does the full model fit?
+        │
+   ┌────┴────┐
+  YES        NO
+   │          │
+profile   reduce micro-batch / checkpoint activations
+               │
+               ▼
+        still does not fit?
+          ┌────┴────┐
+         NO        YES
+          │          │
+       train     LoRA/QLoRA or shard/offload</pre>
+
+<h3 id="rrk-apis">Scenario 2 — Make 600 APIs agent-ready</h3>
+<p><strong>Common-language question:</strong> How do we let an agent use 600
+old APIs without giving it 600 unsafe buttons?</p>
+<pre>600 LEGACY APIs
+      │
+      ▼
+inventory + classify risk
+      │
+      ▼
+small task-oriented tool contracts
+      │
+      ▼
+agent chooses a tool
+      │
+      ▼
+identity + policy + schema validation
+      ├── low risk → execute
+      └── high risk → human approval
+                     │
+                     ▼
+              adapter calls API
+                     │
+                     ▼
+              verify + audit receipt</pre>
+<p>Like the tokenizer lesson, normalize a raw legacy API into a safe tool
+identity and validated arguments:</p>
+<pre>raw legacy API → normalized tool ID → validated arguments → safe execution
+
+PLAN → VALIDATE → APPROVE → EXECUTE → VERIFY → AUDIT</pre>
+<blockquote><strong>30-second answer:</strong> Inventory and risk-classify the
+600 endpoints, expose task-oriented versioned tools, and put deterministic
+identity, policy, schema, idempotency, timeout, retry, and audit controls in
+front. Launch read-only tools first, evaluate tool and argument accuracy, then
+canary side-effecting actions with approval and rollback.</blockquote>
+
+<h3 id="rrk-kms">Scenario 3 — Glean-like enterprise knowledge system</h3>
+<p><strong>Common-language question:</strong> How do we search company knowledge
+and never show a user a document they cannot access?</p>
+<pre>Drive / Gmail / Slack / Jira / Git / Confluence
+                     │
+                     ▼
+             connectors + change events
+                     │
+                     ▼
+        raw store → parse → normalize → chunk
+                     │
+          ┌──────────┼──────────┬──────────┐
+          ▼          ▼          ▼          ▼
+       BM25       vectors     graph      metadata
+          └──────────┼──────────┴──────────┘
+                     ▼
+user query → authenticate → retrieve candidates
+                     │
+                     ▼
+              enforce user ACLs
+                     │
+                     ▼
+              rerank → cited answer</pre>
+<pre>candidate document ACL ∩ current user permissions = allowed?
+        │                                  │
+       NO                                 YES
+        │                                  │
+ discard before model                  eligible to rank/ground</pre>
+<blockquote><strong>30-second answer:</strong> Separate ingestion and query
+planes. Preserve versions, deletions, provenance, and ACLs. Build lexical,
+vector, metadata, and optionally graph indexes. Authenticate the individual
+user, retrieve candidates, enforce permissions before content reaches the
+model, rerank, and generate cited answers. Measure freshness, relevance,
+latency, faithfulness, and zero unauthorized leakage.</blockquote>
+
+<h3 id="rrk-underwriting">Scenario 4 — SME underwriting agent</h3>
+<p><strong>Common-language question:</strong> How can an agent help a
+Relationship Manager underwrite an SME while a human remains accountable?</p>
+<pre>documents + bank data + tax data + registry + bureau
+                         │
+                         ▼
+                 durable case workflow
+                         │
+       ┌─────────┬───────┼────────┬─────────┐
+       ▼         ▼       ▼        ▼         ▼
+      OCR     extract  verify   cashflow  fraud/policy
+       │         │       │        │         │
+       └─────────┴───────┴────────┴─────────┘
+                         ▼
+              evidence + confidence + source
+                         │
+                         ▼
+              deterministic policy checks
+                         │
+                         ▼
+              RM / credit officer approval
+                         │
+                         ▼
+              decision + reason + audit trail</pre>
+<pre>RECEIVED → EXTRACTING → VERIFYING → ANALYZING
+    ▲          │             │           │
+    └──── request-more-evidence ────────┘
+                              │
+                              ▼
+                    READY_FOR_APPROVAL
+                         │       │
+                         ▼       ▼
+                    APPROVED  DECLINED/ESCALATED</pre>
+<blockquote><strong>30-second answer:</strong> Build an evidence-first durable
+workflow, not an autonomous loan approver. Extract facts with confidence and
+provenance, verify authoritative sources, run deterministic KYC/AML and credit
+rules, identify contradictions, and pause for risk-based human approval. Audit
+every document, model version, policy version, decision, and override.</blockquote>
+<pre>LLM suggests and explains.
+Deterministic rules verify.
+Human approves high-impact decisions.
+Audit records what happened and why.</pre>
+
+<h3 id="rrk-comparison">Four-scenario comparison</h3>
+<table><tr><th>Scenario</th><th>Main danger</th><th>Core control</th><th>Measure</th></tr><tr><td>Fine-tuning memory</td><td>OOM or quality loss</td><td>Profile, reduce, re-measure</td><td>Peak memory, quality, throughput</td></tr><tr><td>600 APIs</td><td>Unsafe side effects</td><td>Validate, approve, verify</td><td>Tool accuracy, duplicates, unauthorized calls</td></tr><tr><td>Enterprise KMS</td><td>Permission leakage</td><td>ACL enforcement before generation</td><td>Recall, freshness, latency, leakage</td></tr><tr><td>Underwriting</td><td>Wrong or unauditable decision</td><td>Evidence, rules, human approval</td><td>Extraction, fairness, overrides, audit completeness</td></tr></table>
+<h2 id="deep-visual-dives">Deep visual dives — how each system works internally</h2>
+<p>These are the drill-down sections. Start with the left side of each diagram
+in an interview and zoom into one box only when asked.</p>
+
+<h3 id="deep-fine-tuning">Deep dive 1 — Fine-tuning memory, inside the GPU</h3>
+<h4>One training example</h4>
+<pre>training example: “I like tea”
+correct next token: “tea”
+             │
+             ▼
+       tokenizer → token IDs
+             │
+             ▼
+       embeddings + model weights
+             │
+             ▼
+       forward pass: Q/K/V → attention → MLP
+             │
+             ▼
+       logits → softmax: tea = 33%
+             │
+             ▼
+       loss compares 33% with target 100%
+             │
+             ▼
+       backpropagation → gradients → optimizer update</pre>
+<h4>GPU memory map</h4>
+<pre>┌─────────────────────────────────────────────────────────────┐
+│ GPU MEMORY                                                  │
+├─────────────────────────────────────────────────────────────┤
+│ MODEL PARAMETERS: WQ/WK/WV, MLP, norms, embeddings, head    │
+├─────────────────────────────────────────────────────────────┤
+│ GRADIENTS: one correction value per trainable parameter      │
+├─────────────────────────────────────────────────────────────┤
+│ OPTIMIZER: Adam m/v and sometimes FP32 master weights        │
+├─────────────────────────────────────────────────────────────┤
+│ ACTIVATIONS: hidden vectors saved for backpropagation        │
+├─────────────────────────────────────────────────────────────┤
+│ TEMPORARY: attention workspace, communication, fragmentation │
+└─────────────────────────────────────────────────────────────┘</pre>
+<pre>FULL FINE-TUNING → all weights receive gradients
+        │ does not fit?
+        ▼
+MICRO-BATCH / CHECKPOINTING → less activation memory, more compute
+        │ still does not fit?
+        ▼
+LoRA / QLoRA → freeze base, train small adapter matrices
+        │ still does not fit?
+        ▼
+SHARD / OFFLOAD → split state across GPUs or move some to CPU</pre>
+<p><strong>Simple mapping:</strong> full fine-tuning rewrites the whole recipe;
+LoRA attaches a small correction card; checkpointing throws away notes and
+recalculates them later; sharding keeps different pages on different desks.</p>
+
+<h3 id="deep-apis">Deep dive 2 — 600 APIs, inside one governed tool call</h3>
+<pre>user: “Refund my last order”
+             │
+             ▼
+       agent planner → refund_order tool
+             │
+             ▼
+       schema: order_id, amount, currency
+             │
+             ▼
+       identity + policy + authorization
+             │
+       ┌─────┴─────┐
+       ▼           ▼
+    low risk     high risk
+       │           │
+    execute     human approval
+       └─────┬─────┘
+             ▼
+       API adapter → legacy system of record
+             │
+             ▼
+       verify receipt + audit event</pre>
+<pre>request ID + tenant + identity
+             │
+             ▼
+schema validation ── bad input → reject
+             │
+authorization ────── denied → audit + stop
+             │
+idempotency key ──── duplicate → return prior result
+             │
+timeout/retry/circuit breaker
+             │
+legacy adapter → response validation → business invariant</pre>
+<pre>PLAN → VALIDATE → APPROVE → EXECUTE → VERIFY → AUDIT
+
+If a network timeout happens after a refund may have succeeded:
+use the idempotency key or query the system of record before retrying.</pre>
+
+<h3 id="deep-kms">Deep dive 3 — Glean-like KMS, inside ingestion and search</h3>
+<pre>source connector → durable event queue → raw immutable store
+       → parse/normalize → ACL resolver → stable chunks
+       ├── BM25 index
+       ├── vector index
+       ├── metadata index
+       └── knowledge graph
+
+DELETE event → tombstone/version → remove from every index
+             → invalidate cached results → audit completion</pre>
+<pre>user question: “What is the tea reimbursement policy?”
+             │
+             ▼
+authenticate → query understanding → BM25 + vector retrieval
+             │
+             ▼
+        merge candidates / rerank
+             │
+             ▼
+        enforce individual ACLs
+             │
+             ▼
+        grounded prompt with citations → answer</pre>
+<pre>candidate ACL ∩ current user permissions = allowed?
+       NO → discard before model/reranker boundary
+       YES → eligible to rank and ground</pre>
+<p><strong>Simple search mapping:</strong> BM25 finds matching words; vectors
+find similar meaning; the graph finds connected people and systems; metadata
+filters date, team, type, and source. Permissions remain a deterministic
+boundary before generation.</p>
+
+<h3 id="deep-underwriting">Deep dive 4 — SME underwriting, inside one case</h3>
+<pre>case ID + consent
+      │
+      ▼
+RECEIVED → document checks → EXTRACTING
+                         OCR → facts → confidence → provenance
+                                      │
+                                      ▼
+VERIFYING: bank + tax + registry + bureau + KYC
+                                      │
+                         contradiction? → human review
+                                      ▼
+ANALYZING: cash flow + repayment + fraud + policy
+                                      │
+                                      ▼
+DETERMINISTIC POLICY CHECKS
+                                      │
+                                      ▼
+READY FOR RM / CREDIT APPROVAL</pre>
+<pre>document fact → source/timestamp/confidence → verified fact
+      → derived metric → policy result → recommendation
+      → human decision → audit record</pre>
+<pre>Audit record:
+case version, document IDs/hashes, extracted facts and page references,
+verification responses, model/policy versions, recommendation, confidence,
+approver, decision, reason, timestamp</pre>
+<p>The model can read, extract, summarize, and explain. It must not silently
+invent missing numbers or make an irreversible credit decision without the
+required human approval.</p>
+<h2>1. Reusable interview loop</h2>
+<pre>clarify → model → simplest correct design → prove correctness
+       → failure/scale/cost → edge cases → trade-offs</pre>
+<ol><li>Restate the problem.</li><li>Ask useful clarifying questions.</li><li>State assumptions.</li><li>Start simple; name the invariant.</li><li>Walk normal and failure cases.</li><li>Give time/space complexity, then optimize.</li></ol>
+<h2>2. LLM foundations in interview language</h2>
+<pre>text → tokenizer → token IDs → embeddings
+     → transformer layers (Q/K/V + MLP)
+     → prefill (create state) → decode (one token at a time) → answer</pre>
+<div class="grid"><div class="card"><h3>Permanent</h3><p>Model weights are the learned recipe used for every request.</p></div><div class="card"><h3>Temporary</h3><p>K/V is context state created during inference; a matching prefix may be reused.</p></div></div>
+<blockquote>“Weights are the learned recipe. K/V is temporary attention state. Prefix reuse avoids old prefill; the new question and answer still require work. Locally I can validate and restore a native cache; an API provider owns its private cache.”</blockquote>
+<h3>Q, K, and V</h3><pre>hidden state
+  ├── × WQ → Query: what am I looking for?
+  ├── × WK → Key: what does each token offer?
+  └── × WV → Value: what information is carried?
+Q · K → relevance → softmax → weighted V → attention output</pre>
+<h3>Prefill versus decode</h3><pre>PREFILL: read input, create K/V, often prompt-bound
+DECODE: generate output, append state, often serial/latency-bound</pre>
+<h2>3. Your evidence</h2>
+<h3>CockroachDB / MOVR</h3><pre>MOVR client / Python driver
+          │
+          ▼
+HAProxy :26256 ← stable SQL endpoint
+          │
+          ├── n1 :26257
+          ├── n2 :26258
+          └── n3 :26259
+                 │
+                 ▼
+       ranges + Raft replicas + SQL</pre>
+<p>Story: initialize; route MovR through one endpoint; measure baseline; add/decommission a node; hard-kill a node; observe recovery; verify client SQL, database health, and HAProxy checks.</p>
+<h3>TDA / research discipline</h3><pre>hypothesis → equal-state-byte baseline → reference code
+          → tests + gradcheck → multiple seeds → gate/stop/revise</pre>
+<table><tr><th>Competency</th><th>CockroachDB/MOVR</th><th>TDA/foundations</th></tr><tr><td>Correctness</td><td>replication, quorum, SQL</td><td>reference code, tests</td></tr><tr><td>Reliability</td><td>failure, drain, recovery</td><td>restore validation</td></tr><tr><td>Performance</td><td>QPS, p95/p99</td><td>prefill/decode, fairness</td></tr><tr><td>Observability</td><td>Console, HAProxy, CLI</td><td>logs, seeds, CIs</td></tr></table>
+<p class="small">TDA is a measured research hypothesis, not a proven production replacement.</p>
+<h2>4. Coding patterns</h2>
+<h3>LRU</h3><pre>head (most recent)                         tail (least recent)
+   │                                             │
+   ▼                                             ▼
+ [A] ⇄ [C] ⇄ [B] ← map: key → node</pre><p>Invariant: every map entry points to one list node and every list node is in the map. O(1) average get/put, O(capacity) space.</p>
+<h3>DP / sequence alignment</h3><pre>LCS[i][j] = 1 + LCS[i-1][j-1] if equal
+            max(LCS[i-1][j],LCS[i][j-1]) otherwise
+edit[i][j] = previous diagonal if equal
+             1 + min(delete,insert,replace) otherwise</pre><p>Define what the state means before coding. Optimize memory only after correctness.</p>
+<h3>Streaming and top-K</h3><pre>chunk 1: "ab<" → state = saw '<'
+chunk 2: "tag>c" → continue from saved state
+
+events → map → min-heap of size K → top K
+producer → bounded queue → workers → aggregator</pre><p>Discuss boundaries, retries, duplicates, ordering, cancellation, and backpressure.</p>
+<h2>5. System-design template</h2><pre>users/metric → requirements → API/data model → request path/state
+→ failures/recovery → scale/latency/cost → observability/security/privacy
+→ trade-offs → next iteration</pre>
+<h3>Context-cache gateway</h3><pre>IDE/client → gateway + auth + request ID
+                  ├─ prefix fingerprint / lookup
+                  ├─ token budget / rate limit / tenant quota
+                  ▼
+             model router
+              ├─ local: prefill → restore → decode
+              └─ API: provider hit/miss → decode
+                  ▼
+             response + usage + trace</pre><ul><li>Reject mismatched model/tokenizer/tools/fingerprint.</li><li>Use safe full-prefill fallback.</li><li>Measure hit rate, p50/p95/p99, errors, tokens, memory, queues, and cost.</li><li>Isolate tenants and protect retained state.</li></ul>
+<h2>6. Quorum and resilience</h2><pre>three replicas: n1 + n2 + n3 = 3 votes
+quorum: floor(3/2)+1 = 2
+one node down:  2 votes → quorum remains → safe writes continue
+two nodes down: 1 vote  → quorum lost    → writes stop safely</pre><p>Three live processes do not mean every range has its leader on the same node; ranges may have different leaders.</p><pre>node status → liveness
+replication view → under-replicated/unavailable ranges
+SQL via HAProxy → user-visible path
+HAProxy stats → endpoint health/traffic
+range report → leader/follower, lease, ticking, errors</pre><blockquote>“I verify quorum with node status, range health, and an application transaction. The decisive rule is a majority of replicas for the affected range.”</blockquote>
+<h2>7. One-week plan</h2><table><tr><th>Day</th><th>Focus</th></tr><tr><td>1</td><td>Foundations + 90-second LLM and one-minute CockroachDB stories.</td></tr><tr><td>2</td><td>LRU, sliding window, edit distance/LCS.</td></tr><tr><td>3</td><td>Chunk parser, retries, ordering, duplicates, backpressure.</td></tr><tr><td>4</td><td>Context-cache system design, privacy, metrics, cost.</td></tr><tr><td>5</td><td>Coding and system-design mocks aloud.</td></tr><tr><td>6</td><td>Baseline → failure → recovery evidence rehearsal.</td></tr><tr><td>7</td><td>Light review, sleep, no new framework.</td></tr></table>
+<h2>8. Mock questions</h2><div class="card"><p><strong>Weights vs K/V?</strong> Permanent learned recipe versus temporary context state.</p><p><strong>Does prefix caching skip a new question?</strong> No.</p><p><strong>Build LRU?</strong> Map + doubly linked list, invariant, O(1).</p><p><strong>Arbitrary chunks?</strong> DFA/state survives boundaries.</p><p><strong>One node dies?</strong> Affected ranges retain/elect a leader if a majority remains; verify all layers.</p><p><strong>What do you measure?</strong> Availability, errors, tail latency, cache hit rate, tokens, memory, queues, and cost.</p></div>
+<h2>9. Final checklist</h2><ul><li>Explain tokenizer, embeddings, Q/K/V, prefill/decode, and ownership.</li><li>Code LRU and a DP recurrence without autocomplete.</li><li>Preserve parser state across chunks and state invariants aloud.</li><li>Design a reliable context-cache gateway.</li><li>Explain three-replica quorum and failure evidence.</li><li>Separate measured facts, assumptions, and hypotheses.</li></ul>
+<div class="green"><strong>Closing message:</strong> “I make complex systems understandable, measurable, and safe to operate. I validate the simple path first, preserve state explicitly, test failure modes, and use evidence before making claims.”</div>
+<hr>
+<h1>RRK Preparation: The Four Core Scenarios</h1>
+<p>RRK means <strong>Role-Related Knowledge</strong>. The interviewer is checking whether you can turn an unclear business request into a safe, measurable production system.</p>
+<pre>business problem → clarify user/scale/quality/latency/risk/control
+                → requirements → architecture → reliability/security
+                → evaluation/rollout/cost/observability → trade-offs</pre>
+<blockquote>“Before choosing a model or product, I clarify the user, business outcome, consequence of an error, latency, scale, and where human approval is required. Then I design the smallest measurable production path.”</blockquote>
+
+<h2>RRK Scenario 1 — Fine-tuning memory</h2>
+<p><strong>Question:</strong> “You need to fine-tune a large model. What are the memory considerations, and how would you make it fit?”</p>
+<p><strong>Simple meaning:</strong> Why did training run out of GPU memory, and how can we reduce memory without silently destroying quality?</p>
+<pre>GPU MEMORY
+  ├── model weights
+  ├── gradients
+  ├── optimizer states
+  ├── saved activations
+  └── temporary kernels / communication buffers</pre>
+<p><strong>Answer:</strong> Separate persistent states, activations, and temporary memory. Profile peak memory. Try smaller micro-batches with accumulation, checkpointing, BF16, LoRA/QLoRA, then sharding or offload. Compare quality, throughput, convergence, and peak memory—not only whether the job starts.</p>
+<pre>full fit? ─yes→ profile quality/throughput
+    │no
+reduce batch/checkpoint? ─yes→ keep weights, accept compute
+    │no
+all weights need changing? ─no→ LoRA/QLoRA
+    │yes
+shard/offload → re-profile</pre>
+<p><strong>Your bridge:</strong> TDA’s equal-state-byte rule and seeded gates show that a memory saving is meaningful only with a fair comparison and measured quality.</p>
+<p><strong>Follow-ups:</strong> Adam versus SGD; accumulation and activation memory; checkpointing; BF16 versus FP16; when full fine-tuning is necessary.</p>
+
+<h2>RRK Scenario 2 — Make 600 APIs agent-ready</h2>
+<p><strong>Question:</strong> “An enterprise has 600 legacy APIs. How would you make them agent-ready end to end?”</p>
+<p><strong>Simple meaning:</strong> Do not give an LLM 600 dangerous buttons. Build governed tools that describe, authorize, validate, execute, and audit actions.</p>
+<pre>legacy APIs → inventory/risk → tool contracts/schemas
+      → agent planner → policy + identity gateway
+      → approval when risky → reliable adapter → API system of record</pre>
+<pre>PLAN → VALIDATE (schema, identity, policy, amount)
+     → APPROVE → EXECUTE (timeout/retry/idempotency)
+     → VERIFY (invariant, receipt, audit event)</pre>
+<p><strong>Answer:</strong> Inventory and classify APIs, normalize contracts, wrap them as task-oriented versioned tools, and place a deterministic policy/identity gateway in front. Start with read-only low-risk tools, evaluate tool and argument accuracy, then canary higher-risk actions with rollback.</p>
+<p><strong>Your bridge:</strong> HAProxy is a stable endpoint; the gateway is a controlled endpoint. MOVR SQL correctness and node health checks map to deterministic validation and post-action verification.</p>
+<p><strong>Metrics:</strong> tool selection, argument accuracy, unauthorized calls (target zero), duplicate side effects (target zero), approval burden, task success, p50/p95/p99, and cost per task.</p>
+<p><strong>Follow-ups:</strong> why not expose all schemas; API versions; prompt injection; wrong amount; safe payment retries.</p>
+
+<h2>RRK Scenario 3 — Glean-like enterprise knowledge system</h2>
+<p><strong>Question:</strong> “Design an enterprise knowledge system like Glean, including connectors, ingestion, hybrid search, a knowledge graph, and individual-user permissions.”</p>
+<p><strong>Simple meaning:</strong> Make search fresh and relevant, cite the answer, and never leak a document the user cannot access.</p>
+<pre>Drive/Gmail/Slack/Jira/Confluence/DB/Git
+        ↓ connectors: sync + events + deletes
+raw versioned store → parse → normalize → deduplicate → chunk → ACLs
+        ├── BM25 lexical index
+        ├── vector index
+        ├── metadata index
+        └── knowledge graph
+query → authenticate → retrieve → security trim → rerank → cited answer</pre>
+<pre>candidate document → user principals intersect document ACL?
+       no → discard before model/reranker boundary
+       yes → eligible for ranking and grounding</pre>
+<p><strong>Answer:</strong> Separate ingestion and query planes. Preserve versions, deletions, and ACLs. Build lexical, vector, graph, and metadata indexes. Authenticate the individual user, retrieve candidates, enforce permissions before text reaches the model, rerank, and generate cited answers. Launch only when freshness, relevance, latency, faithfulness, and zero leakage meet thresholds.</p>
+<p><strong>Your bridge:</strong> cache fingerprints map to versioned state; provider/local cache ownership maps to source ACL ownership; CockroachDB observability maps to connector lag and index-health dashboards.</p>
+<p><strong>Follow-ups:</strong> pre-filter versus post-filter; revoked access; missed webhooks; hybrid search; prompt injection in retrieved content; embedding-model upgrades.</p>
+
+<h2>RRK Scenario 4 — SME underwriting agent</h2>
+<p><strong>Question:</strong> “A relationship manager takes a day to underwrite an SME. Design an agentic system that reduces turnaround time, including human approval and verification.”</p>
+<p><strong>Simple meaning:</strong> Collect evidence faster, check it reliably, explain the recommendation, and keep an authorized human accountable.</p>
+<pre>portal → consent + documents → durable case workflow
+       ├─ OCR/extract + confidence/provenance
+       ├─ registry/bank/tax/bureau/KYC verification
+       ├─ cash flow + repayment capacity
+       ├─ fraud/sector/policy analysis
+       └─ current policy retrieval
+                  ↓
+       deterministic policy + critic for conflicts
+                  ↓
+       human RM/credit officer → audited decision</pre>
+<pre>RECEIVED → EXTRACTING → VERIFYING → ANALYZING
+    ↑            │             │           │
+    └──── REQUEST_MORE_EVIDENCE ← low confidence/conflict
+                              ↓
+                   READY_FOR_APPROVAL
+                              ↓
+                  APPROVED / DECLINED / ESCALATED</pre>
+<p><strong>Answer:</strong> Build an evidence-first workflow, not an autonomous loan approver. Extract facts with confidence and provenance, verify against authoritative systems, run deterministic KYC/AML and credit rules, calculate risk, reconcile contradictions, and pause for risk-based human approval. Audit every input, model/rule version, decision, and override.</p>
+<p><strong>Your bridge:</strong> MOVR tables and SQL provide durable case state; failure recovery informs workflow retries; TDA evidence discipline informs confidence and audit gates.</p>
+<p><strong>Metrics:</strong> turnaround time, extraction accuracy, verification match rate, false approvals/declines, overrides, fairness, audit completeness, and cost per case.</p>
+<p><strong>Follow-ups:</strong> contradictory documents; unavailable sources; automation boundaries; hallucinated facts; rollback of a bad model or policy.</p>
+
+<h2>RRK comparison and rehearsal card</h2>
+<table><tr><th>Scenario</th><th>Main risk</th><th>Architecture</th><th>Your bridge</th></tr><tr><td>Fine-tuning memory</td><td>OOM / quality loss</td><td>profile → reduce → re-measure</td><td>TDA equal-byte experiments</td></tr><tr><td>600 APIs</td><td>unsafe side effects</td><td>contract → policy → execute → verify</td><td>HAProxy/SQL control path</td></tr><tr><td>Enterprise KMS</td><td>unauthorized leakage</td><td>connectors → indexes → ACL trim → cited answer</td><td>MOVR + foundations boundaries</td></tr><tr><td>Underwriting</td><td>wrong/un-auditable decision</td><td>evidence → rules → human approval</td><td>durability + evidence discipline</td></tr></table>
+<pre>30 seconds → executive summary
+3 minutes  → architecture whiteboard
+10 minutes → reliability, security, evaluation, cost
+deep dive  → one difficult follow-up + explicit trade-off</pre>
+<p class="green"><strong>Close every RRK answer:</strong> “I would launch in a low-risk slice, instrument failure and quality metrics, compare with an agreed baseline, and expand autonomy only when the evidence meets the gate.”</p>
+<hr><h1>RRK Deep-Dive Playbook</h1>
+<p>Use this section when the interviewer asks “why?”, “what happens next?”, or “what fails?”. Explain the business concept first, then architecture, then the control that makes it safe.</p>
+<pre>business problem → clarify → architecture → workflow
+                → correctness/security/reliability → metrics → trade-offs</pre>
+
+<h2>Deep dive 1 — Fine-tuning memory</h2>
+<p><strong>Simple idea:</strong> Fine-tuning teaches an existing model a specific behavior. The GPU stores much more than the model itself.</p>
+<pre>GPU memory = weights + gradients + optimizer states
+           + saved activations + temporary workspace</pre>
+<pre>data → tokenizer → batches → forward pass → loss
+                                  ↓
+                         backward pass → gradients
+                                  ↓
+                         optimizer → checkpoint</pre>
+<p><strong>Workflow:</strong> define quality; estimate memory; run a representative batch; profile peak; choose smaller micro-batches/checkpointing/BF16/LoRA/QLoRA/sharding; train with restart; evaluate quality, speed, and cost.</p>
+<table><tr><th>Option</th><th>Benefit</th><th>Trade-off</th></tr><tr><td>Smaller micro-batch</td><td>less activation memory</td><td>more steps</td></tr><tr><td>Checkpointing</td><td>stores fewer activations</td><td>recompute work</td></tr><tr><td>LoRA/QLoRA</td><td>less trainable state</td><td>quality/quantization risk</td></tr><tr><td>FSDP/ZeRO</td><td>shards state</td><td>communication complexity</td></tr></table>
+<p><strong>Drill answers:</strong> Adam stores two extra moments; accumulation lowers each micro-batch peak but not all memory; checkpointing saves activations, not parameters; validate estimates with a representative peak-memory profile. <strong>Your bridge:</strong> TDA equal-state-byte gates show that a memory win must be compared fairly with quality and speed.</p>
+
+<h2>Deep dive 2 — Making 600 APIs agent-ready</h2>
+<p><strong>Simple idea:</strong> The model may propose an action; deterministic code must authorize, validate, execute, and audit it.</p>
+<pre>legacy APIs → inventory/risk → schemas/versioned tools
+  → agent planner → policy + identity gateway
+  → approval if risky → adapters → systems of record
+  → verify result → audit</pre>
+<pre>PLAN → VALIDATE (schema, identity, policy, amount)
+     → APPROVE → EXECUTE (timeout, retry, idempotency)
+     → VERIFY (invariant, receipt, audit event)</pre>
+<p><strong>Workflow:</strong> classify read-only/mutating APIs; fix contracts; wrap narrow business tools; add identity, limits, and approval; execute safely; verify authoritative state; canary low-risk tools first.</p>
+<p><strong>Drill answers:</strong> Do not expose all schemas because prompts become costly and confusing; use idempotency keys to prevent duplicate payments; after a timeout query operation status rather than blindly retry; version contracts and adapters for API changes; test unauthorized identities, malformed arguments, adversarial prompts, duplicate delivery, and downstream failure.</p>
+<p><strong>Your bridge:</strong> HAProxy is a stable entry point, while health and correctness are checked behind it. Similarly, the agent proposes but a gateway owns execution.</p>
+
+<h2>Deep dive 3 — Glean-like enterprise knowledge system</h2>
+<p><strong>Simple idea:</strong> Keep enterprise knowledge complete and fresh, find only authorized evidence, and answer with citations.</p>
+<pre>sources → connectors → durable queue → raw/versioned store
+       → parse/normalize/deduplicate/chunk + ACLs
+       ├─ BM25 lexical index
+       ├─ vector index
+       ├─ graph/metadata
+user → authenticate → hybrid retrieve → security trim
+     → rerank → grounded answer + citations</pre>
+<pre>sync → checkpoint → fetch → normalize → index
+event → validate version → update/delete
+missed event → reconciliation scan → repair
+poison document → quarantine → alert → replay</pre>
+<p><strong>Query workflow:</strong> authenticate user/tenant; understand query; retrieve lexical, vector, and graph candidates; enforce ACL before text reaches the model; rerank; generate only from evidence; return citations and freshness.</p>
+<p><strong>Drill answers:</strong> hybrid search combines exact identifiers with semantic meaning; the model never grants permission; revoked ACLs require fresh checks or bounded staleness; missed webhooks require checkpoints and reconciliation; retrieved content is untrusted evidence and cannot override system instructions.</p>
+<p><strong>Your bridge:</strong> cache fingerprints map to versioned index state; CockroachDB health signals map to connector lag and index-health dashboards.</p>
+
+<h2>Deep dive 4 — SME underwriting agent</h2>
+<p><strong>Simple idea:</strong> Automate evidence collection and analysis, not unaccountable loan approval.</p>
+<pre>portal → consent + documents → durable case state
+       ├─ OCR/extract + confidence/provenance
+       ├─ registry/bank/tax/bureau/KYC verification
+       ├─ cash flow + risk analysis
+       └─ policy retrieval
+                 ↓
+       deterministic rules + contradiction critic
+                 ↓
+       evidence-backed recommendation
+                 ↓
+       authorized human approval → audit</pre>
+<pre>RECEIVED → EXTRACTING → VERIFYING → ANALYZING
+    ↑          │             │           │
+    └── REQUEST_MORE_EVIDENCE ← conflict/low confidence
+                              ↓
+                    READY_FOR_APPROVAL
+                              ↓
+                    APPROVED/DECLINED/ESCALATED</pre>
+<p><strong>Workflow:</strong> collect consent; classify documents; extract facts with confidence; verify authoritative data; calculate cash flow and risk; reconcile contradictions; present cited evidence and uncertainty; pause for the correct human; record every version and override.</p>
+<p><strong>Drill answers:</strong> Never average conflicting documents—rank authority and request evidence; if a source is down, retry durably or escalate, never guess; allow autonomy for low-risk extraction but keep regulated approval human; require provenance for every material fact; version rules/models and roll back with an audit trail.</p>
+<p><strong>Your bridge:</strong> MOVR recovery demonstrates durable state and post-failure verification; TDA gates demonstrate evidence before expanding autonomy.</p>
+
+<h2>Universal RRK drill checklist</h2>
+<pre>WHO uses it and who is harmed if wrong?
+WHAT is the smallest useful workflow?
+SCALE: requests, users, data, updates?
+QUALITY: what is acceptable and unacceptable?
+LATENCY: interactive, near-real-time, or batch?
+RISK: privacy, money, regulation, reputation?
+CONTROL: autonomous, supervised, or mandatory approval?
+STATE: what is authoritative and how is it versioned?
+FAILURE: model, network, source, or node failure?
+MEASUREMENT: what decides launch or rollback?</pre>
+<blockquote>If interrupted: “That is an important failure boundary. I will make it explicit, define the safe fallback, and add a metric or test so we can prove it.”</blockquote>
+<p class="small">Source: <code>/Users/ashish/DECASTATE/Experiment/01_foundations.md</code> and the RRK guide, correlated with the existing local CockroachDB/MOVR and TDA work.</p>
+</main></body></html>
