@@ -216,6 +216,7 @@ footer b{color:var(--lime)}
       </div>
     </div>
     <div class="bound"><b>DecaState owns:</b> the local gateway + your measurements &nbsp;·&nbsp; <b>Provider owns:</b> the model + its cache &nbsp;·&nbsp; <b>Model owns:</b> the answer</div>
+    <div class="bound" style="margin-top:6px"><b>Self-hosted too (measured):</b> the same gateway pointed at a llama.cpp server reported a real cache HIT — 1,441 tokens reused, 7 new — and priced it honestly as <b style="color:var(--chip-warn-fg)">not_priced</b>, because a self-hosted model has no per-token bill. vLLM next.</div>
     <div class="warn">⚠ Stated plainly: DecaState's gateway runs on <b>your localhost</b> — one line to switch (<code>ANTHROPIC_BASE_URL</code> / OpenAI <code>base_url</code>), streaming relayed byte-for-byte, both providers. Your prompts never leave your machine except straight to the provider you chose with your key — nothing to attest, because nothing is hosted by us. A ChatGPT/Codex or Claude <b>subscription</b> session is provider-managed: no external tool can intercept it or prove dollar savings there.</div>
   </section>
 

@@ -6,7 +6,9 @@
 
 Every restart, crash, or extra agent re-sends your whole repo to **Anthropic or OpenAI at full input-token price** — or re-burns your own **GPU's time** locally. Same bytes, billed again: twice, five times, ten times a day. **DecaState makes you pay for understanding once.**
 
-**Persist · Wake · Checkpoint · Rollback · Fork — real inference state, on your Mac.**
+**Persist · Wake · Checkpoint · Rollback · Fork — real inference state, on your machine.**
+
+**Two proven backends** — MLX (Apple Silicon) and **llama.cpp/GGUF (macOS · Linux · Windows · CPU · consumer GPU)** — and the honest gateway + Context Guard run on **any OS** today. [Architecture →](ARCHITECTURE.md)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-c3f53c.svg)](LICENSE)
 [![Prefill avoided](https://img.shields.io/badge/redundant%20prefill-100%25%20avoided-c3f53c.svg)](benchmarks/results/long_context_resume.json)
@@ -14,7 +16,8 @@ Every restart, crash, or extra agent re-sends your whole repo to **Anthropic or 
 [![Fork](https://img.shields.io/badge/fork%20an%20agent-~15ms-brightgreen.svg)](benchmarks/results/fork_baseline.json)
 [![Local](https://img.shields.io/badge/100%25-local%20%C2%B7%20your%20state%20never%20leaves-black.svg)](docs/SECURITY.md)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](pyproject.toml)
-[![Apple Silicon / MLX](https://img.shields.io/badge/Apple%20Silicon-MLX-black.svg)](https://github.com/ml-explore/mlx)
+[![Backends](https://img.shields.io/badge/backends-MLX%20%2B%20llama.cpp%20proven-c3f53c.svg)](ARCHITECTURE.md)
+[![Any OS](https://img.shields.io/badge/gateway%20%2B%20guard-any%20OS-blue.svg)](ARCHITECTURE.md)
 [![Benchmarks](https://img.shields.io/badge/every%20number-reproducible-orange.svg)](benchmarks/results)
 
 <br/>
@@ -111,6 +114,23 @@ That's **2 million tokens of re-processing, per agent, per day — gone.** Multi
 Forking an understood state into a new agent: **~15 ms**. Checkpoint create: **~15–40 ms**. All continuations are **deterministically byte-exact** after restore — verified token-by-token, not "the text looks similar".
 
 Every row above comes from a JSON file in [`benchmarks/results/`](benchmarks/results) that you can regenerate yourself in minutes. **This repo contains zero invented numbers.**
+
+---
+
+## Runs where you run
+
+One state contract — `understand → wake → fork` — pluggable engines:
+
+| Backend | Platform | Status | Proof |
+|---|---|---|---|
+| **MLX** | Apple Silicon | ✅ proven | `make phase1` |
+| **llama.cpp** (any GGUF) | macOS · Linux · Windows · CPU · consumer GPU | ✅ proven | [`scripts/llamacpp_state_proof.py`](scripts/llamacpp_state_proof.py) → [results](benchmarks/results/llamacpp_state_proof.json) |
+| vLLM / CUDA (KV connector) | server GPUs | ○ in progress | gated behind proof |
+| remote/offload tiers (`push`/`pull`) | all | ○ roadmap | gated behind proof |
+
+llama.cpp backend, measured (3.8K-token context, llama-server's own timings): after a **true process kill**, wake restored the state in **0.23s** and the follow-up processed **4 tokens instead of 3,772** — 99.9% of re-prefill avoided, prompt phase **26ms vs 4,200ms**. Fork lanes independent; temp-0 answer byte-identical before/after death (same machine/build — state files are llama.cpp build-sensitive, and wake enforces a build+model fingerprint rather than pretending otherwise).
+
+The gateway also measures **self-hosted** models unchanged — llama-server speaks OpenAI's `cached_tokens` usage field, so a self-hosted receipt shows real reused tokens and honestly reports `not_priced` instead of inventing dollars ([proof](benchmarks/results/selfhosted_gateway_proof.json)).
 
 ---
 
@@ -291,7 +311,9 @@ MODEL changes · RUNTIME changes · PROCESS dies · MACHINE changes
 
 ## Requirements
 
-- Apple Silicon Mac (MLX). Linux/CUDA users: the llama.cpp adapter is the top roadmap item — watch/star to follow.
+- **Any OS:** the honest gateway, Context Guard, and the **llama.cpp backend** (bring any GGUF + `llama-server`; no bindings, plain HTTP).
+- **Apple Silicon Mac:** additionally unlocks the MLX backend (`pip install 'decastate[mlx]'`).
+- vLLM/CUDA: in progress — watch/star to follow.
 - Python 3.10+
 - ~300 MB disk for the proof model; state files are ~12 MB per 1K tokens of context (published, measured).
 
