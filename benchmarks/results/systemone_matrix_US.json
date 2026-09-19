@@ -55,10 +55,10 @@
       "latency_ms_p95": 3039.0,
       "input_tokens": 1553,
       "output_tokens": 572,
-      "cost_usd": 0.03841,
+      "cost_usd": 0.04413,
       "type_errors": 0,
       "pricing": "published",
-      "vs_jev_cheaper_x": 153.6,
+      "vs_jev_cheaper_x": 176.5,
       "vs_jev_slower_x": 9.3
     }
   },

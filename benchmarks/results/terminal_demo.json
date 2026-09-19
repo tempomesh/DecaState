@@ -1,0 +1,182 @@
+{
+  "ticket": "Our checkout has been down for 3 hours across ALL Pro accounts since your release. We have a partner launch tomorrow morning, my CEO is escalating, and this is the third outage this month. Fix it or we churn.",
+  "questions": [
+    "Revenue currently impacted?",
+    "Production capability down?",
+    "Which incident scope?",
+    "Account health status?",
+    "Security concern present?",
+    "Human attention needed?",
+    "Churn likelihood level?",
+    "Financial impact level?",
+    "Which response deadline?",
+    "Which primary department?",
+    "Which requested resolution?",
+    "Repeated production failures?",
+    "Language personally threatening?",
+    "Immediate feature request?"
+  ],
+  "jev": {
+    "answers": {
+      "Revenue currently impacted?": {
+        "type": "noul",
+        "noul": 0.93
+      },
+      "Production capability down?": {
+        "type": "noul",
+        "noul": 0.95
+      },
+      "Which incident scope?": {
+        "type": "choice",
+        "choice": "platform_wide",
+        "confidence": 0.86,
+        "probabilities": {
+          "multi_account": 0.09,
+          "platform_wide": 0.91,
+          "single_account": 0.0
+        }
+      },
+      "Account health status?": {
+        "type": "choice",
+        "choice": "at_risk",
+        "confidence": 1.0,
+        "probabilities": {
+          "healthy": 0.0,
+          "at_risk": 1.0,
+          "watch": 0.0
+        }
+      },
+      "Security concern present?": {
+        "type": "noul",
+        "noul": 0.28
+      },
+      "Human attention needed?": {
+        "type": "noul",
+        "noul": 0.96
+      },
+      "Churn likelihood level?": {
+        "type": "score",
+        "score": 3.0,
+        "confidence": 1.0,
+        "legend": {
+          "0": "none",
+          "1": "low",
+          "2": "elevated",
+          "3": "severe"
+        },
+        "probabilities": {
+          "0": 0.0,
+          "1": 0.0,
+          "2": 0.0,
+          "3": 1.0
+        }
+      },
+      "Financial impact level?": {
+        "type": "score",
+        "score": 2.98,
+        "confidence": 0.98,
+        "legend": {
+          "0": "none",
+          "1": "minor",
+          "2": "moderate",
+          "3": "major"
+        },
+        "probabilities": {
+          "0": 0.0,
+          "1": 0.0,
+          "2": 0.01,
+          "3": 0.99
+        }
+      },
+      "Which response deadline?": {
+        "type": "choice",
+        "choice": "today",
+        "confidence": 0.98,
+        "probabilities": {
+          "today": 0.99,
+          "no_rush": 0.0,
+          "this_week": 0.01
+        }
+      },
+      "Which primary department?": {
+        "type": "choice",
+        "choice": "technical",
+        "confidence": 0.68,
+        "probabilities": {
+          "technical": 0.76,
+          "security": 0.0,
+          "success": 0.0,
+          "billing": 0.24
+        }
+      },
+      "Which requested resolution?": {
+        "type": "choice",
+        "choice": "restore_service",
+        "confidence": 0.99,
+        "probabilities": {
+          "explain": 0.0,
+          "restore_service": 0.99,
+          "refund": 0.0,
+          "escalate": 0.01
+        }
+      },
+      "Repeated production failures?": {
+        "type": "noul",
+        "noul": 0.93
+      },
+      "Language personally threatening?": {
+        "type": "noul",
+        "noul": 0.8
+      },
+      "Immediate feature request?": {
+        "type": "noul",
+        "noul": 0.02
+      }
+    },
+    "latency_ms": 807.2,
+    "cost_usd": 3.4e-05,
+    "usage": {
+      "input_tokens": 803,
+      "output_tokens": 406
+    },
+    "via": "DecaState gateway \u2713 integrity unchanged"
+  },
+  "llm": {
+    "model": "gpt-5.6-sol",
+    "answers": {
+      "Revenue currently impacted?": 1,
+      "Production capability down?": 1,
+      "Which incident scope?": "All Pro accounts",
+      "Account health status?": "At risk",
+      "Security concern present?": 0,
+      "Human attention needed?": 1,
+      "Churn likelihood level?": 3,
+      "Financial impact level?": 3,
+      "Which response deadline?": "Immediate",
+      "Which primary department?": "Engineering",
+      "Which requested resolution?": "Restore checkout service",
+      "Repeated production failures?": 1,
+      "Language personally threatening?": 0,
+      "Immediate feature request?": 0
+    },
+    "latency_ms": 5305.9,
+    "cost_usd": 0.008156,
+    "usage": {
+      "prompt_tokens": 149,
+      "completion_tokens": 378,
+      "total_tokens": 527,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 221,
+        "audio_tokens": 0,
+        "accepted_prediction_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    },
+    "via": "DecaState gateway"
+  }
+}

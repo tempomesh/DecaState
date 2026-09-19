@@ -15,7 +15,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 HERE = os.path.dirname(__file__)
 RES = os.path.join(HERE, "..", "benchmarks", "results")
-ASSUMED_PRICING = {"gpt-6-astra"}  # cost multiple shown with * until confirmed
+ASSUMED_PRICING = set()  # Astra pricing confirmed 10/50
 
 PRETTY = {"jev": "Jev", "claude-fable-5": "Fable 5", "claude-opus-5": "Opus 5",
           "gpt-6-astra": "GPT-6 Astra", "gpt-5.6-sol": "GPT-5.6 Sol",

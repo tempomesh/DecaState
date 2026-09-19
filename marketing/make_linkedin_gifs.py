@@ -15,7 +15,7 @@ HERE = os.path.dirname(__file__)
 US = json.load(open(os.path.join(HERE, "..", "benchmarks/results/systemone_matrix_US.json")))
 PRETTY = {"claude-fable-5": "Fable 5", "gpt-6-astra": "GPT-6 Astra",
           "claude-opus-5": "Opus 5", "gpt-5.6-sol": "GPT-5.6 Sol"}
-ASSUMED = {"gpt-6-astra"}
+ASSUMED = set()
 rows = sorted([(PRETTY[n], m["cost_usd"], m["vs_jev_cheaper_x"], m["vs_jev_slower_x"], n)
                for n, m in US["models"].items() if n in PRETTY],
               key=lambda r: r[1], reverse=True)
@@ -45,11 +45,15 @@ def header(d, right="MEASURED · RECEIPTS IN REPO"):
     d.polygon([(cx, cy - s), (cx + s, cy), (cx, cy + s), (cx - s, cy)], fill=LIME)
     d.polygon([(cx, cy - 7), (cx + 7, cy), (cx, cy + 7), (cx - 7, cy)], fill=BG)
     d.text((92, 43), "DecaState", font=bold(32), fill=WHITE)
-    d.text((1032 - d.textlength(right, font=mono(16)), 52), right, font=mono(16), fill=DIMMER)
-    # persistent honest strap on every frame
-    strap = "Jev (TypeSafe AI)  ·  measured with DecaState.com"
-    d.text((92, 88), strap, font=mono(18), fill=LIME)
-    d.line([(48, 124), (1032, 124)], fill=(28, 34, 48), width=1)
+    d.text((1032 - d.textlength(right, font=mono(16)), 50), right, font=mono(16), fill=DIMMER)
+    # persistent honest strap — brand names bold & larger, "measured with" regular
+    monob = lambda s: ImageFont.truetype("/System/Library/Fonts/Menlo.ttc", s, index=1)
+    x = 92
+    for t, fn, c in [("Jev (TypeSafe AI)", monob(29), LIME),
+                     ("    measured with    ", mono(19), DIM),
+                     ("DecaState.com", monob(29), LIME)]:
+        d.text((x, 86), t, font=fn, fill=c); x += d.textlength(t, font=fn)
+    d.line([(48, 128), (1032, 128)], fill=(28, 34, 48), width=1)
 
 
 def footer(d, tag="measured, not marketed · receipts in the repo"):

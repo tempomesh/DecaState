@@ -16,7 +16,7 @@ HERE = os.path.dirname(__file__)
 D = json.load(open(os.path.join(HERE, "..", "benchmarks/results/systemone_matrix_SG.json")))
 PRETTY = {"claude-fable-5": "Fable 5", "gpt-6-astra": "GPT-6 Astra",
           "claude-opus-5": "Opus 5", "gpt-5.6-sol": "GPT-5.6 Sol"}
-ASSUMED = {"gpt-6-astra"}
+ASSUMED = set()
 JEV_C = D["models"]["jev"]["cost_usd"]
 rows = sorted([(PRETTY[n], m["cost_usd"], m["vs_jev_cheaper_x"], n)
                for n, m in D["models"].items() if n in PRETTY],
