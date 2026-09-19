@@ -1,0 +1,28 @@
+{
+  "requests": 23,
+  "actual_usd": 0.078,
+  "nocache_usd": 0.2148,
+  "input_tokens": 26510,
+  "cache_write_tokens": 26790,
+  "cache_read_tokens": 165182,
+  "output_tokens": 619,
+  "priced_requests": 18,
+  "by_model": {
+    "claude-haiku-4-5": {
+      "requests": 17,
+      "actual_usd": 0.078,
+      "nocache_usd": 0.2148,
+      "saved_usd": 0.1368
+    },
+    "gpt-4o-mini": {
+      "requests": 1,
+      "actual_usd": 0.0,
+      "nocache_usd": 0.0,
+      "saved_usd": 0.0
+    }
+  },
+  "saved_usd": 0.1368,
+  "saved_pct": 63.7,
+  "basis": "provider-reported usage \u00d7 published pricing; actual = full invoice (input+cache+output), nocache = every cached token at full input rate; the difference is what the prompt cache actually saved",
+  "source": "gateway audit"
+}
