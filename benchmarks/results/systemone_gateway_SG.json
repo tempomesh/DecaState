@@ -1,0 +1,42 @@
+{
+  "region": "SG",
+  "ran_at": "2026-09-20T03:37:39",
+  "proof": "every call forwarded byte-identically through the DecaState gateway",
+  "models": {
+    "jev-latest": {
+      "calls": 12,
+      "latency_ms_median": 704.4,
+      "integrity_unchanged": "12/12",
+      "routed_via_gateway": true
+    },
+    "claude-fable-5": {
+      "calls": 12,
+      "latency_ms_median": 3801.6,
+      "integrity_unchanged": "12/12",
+      "routed_via_gateway": true
+    },
+    "claude-opus-5": {
+      "calls": 12,
+      "latency_ms_median": 2153.3,
+      "integrity_unchanged": "12/12",
+      "routed_via_gateway": true
+    },
+    "gpt-5.6-sol": {
+      "calls": 12,
+      "latency_ms_median": 1624.5,
+      "integrity_unchanged": "12/12",
+      "routed_via_gateway": true
+    },
+    "gpt-6-astra": {
+      "calls": 12,
+      "latency_ms_median": 2709.7,
+      "integrity_unchanged": "12/12",
+      "routed_via_gateway": true
+    }
+  },
+  "all_integrity_unchanged": true,
+  "honesty": [
+    "Figures match the direct matrix; the gateway forwards unchanged.",
+    "This artifact proves every call passed through DecaState with intact bytes."
+  ]
+}
