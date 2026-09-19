@@ -1,0 +1,812 @@
+{
+  "workload": "12 tickets x 3 decisions",
+  "ran_at": "2026-09-19T18:03:43",
+  "honesty": [
+    "Latency includes our network path to each provider; TypeSafe publishes West-Coast-measured numbers.",
+    "Jev cost uses ANNOUNCED early-access pricing ($0.042/MTok in) \u2014 verify on a real bill.",
+    "Decision QUALITY/calibration is not judged here; confidences are recorded for a later scored pass.",
+    "Latency re-measured from Phoenix (us-west); Jev median 246ms sits inside TypeSafe's stated 70-500ms range."
+  ],
+  "jev": {
+    "calls": 12,
+    "latency_ms_median": 246.5,
+    "latency_ms_p95": 288.1,
+    "input_tokens": 5951,
+    "output_tokens": 1032,
+    "cost_usd": 0.00025,
+    "type_errors": 0
+  },
+  "jev_calls": [
+    {
+      "wall_ms": 266.3,
+      "usage": {
+        "input_tokens": 509,
+        "output_tokens": 86
+      },
+      "answers": {
+        "route": {
+          "type": "choice",
+          "choice": "technical",
+          "confidence": 0.7,
+          "probabilities": {
+            "technical": 0.76,
+            "general": 0.0,
+            "security": 0.0,
+            "billing": 0.24,
+            "sales": 0.0
+          }
+        },
+        "urgency": {
+          "type": "score",
+          "score": 2.99,
+          "confidence": 0.99,
+          "legend": {
+            "0": "no time pressure; answer within days is fine",
+            "1": "normal queue; answer within one business day",
+            "2": "elevated; customer is blocked or money is involved",
+            "3": "urgent; production down, deadline hours away, or security exposure"
+          },
+          "probabilities": {
+            "0": 0.0,
+            "1": 0.0,
+            "2": 0.0,
+            "3": 1.0
+          }
+        },
+        "refund_eligible": {
+          "type": "noul",
+          "noul": 0.77
+        }
+      },
+      "schema_ok": true
+    },
+    {
+      "wall_ms": 249.0,
+      "usage": {
+        "input_tokens": 500,
+        "output_tokens": 86
+      },
+      "answers": {
+        "route": {
+          "type": "choice",
+          "choice": "general",
+          "confidence": 1.0,
+          "probabilities": {
+            "security": 0.0,
+            "billing": 0.0,
+            "general": 1.0,
+            "sales": 0.0,
+            "technical": 0.0
+          }
+        },
+        "urgency": {
+          "type": "score",
+          "score": 0.57,
+          "confidence": 0.55,
+          "legend": {
+            "0": "no time pressure; answer within days is fine",
+            "1": "normal queue; answer within one business day",
+            "2": "elevated; customer is blocked or money is involved",
+            "3": "urgent; production down, deadline hours away, or security exposure"
+          },
+          "probabilities": {
+            "0": 0.44,
+            "1": 0.55,
+            "2": 0.01,
+            "3": 0.0
+          }
+        },
+        "refund_eligible": {
+          "type": "noul",
+          "noul": 0.05
+        }
+      },
+      "schema_ok": true
+    },
+    {
+      "wall_ms": 244.0,
+      "usage": {
+        "input_tokens": 500,
+        "output_tokens": 86
+      },
+      "answers": {
+        "route": {
+          "type": "choice",
+          "choice": "technical",
+          "confidence": 0.97,
+          "probabilities": {
+            "billing": 0.0,
+            "general": 0.0,
+            "sales": 0.0,
+            "technical": 0.97,
+            "security": 0.03
+          }
+        },
+        "urgency": {
+          "type": "score",
+          "score": 2.94,
+          "confidence": 0.94,
+          "legend": {
+            "0": "no time pressure; answer within days is fine",
+            "1": "normal queue; answer within one business day",
+            "2": "elevated; customer is blocked or money is involved",
+            "3": "urgent; production down, deadline hours away, or security exposure"
+          },
+          "probabilities": {
+            "0": 0.0,
+            "1": 0.0,
+            "2": 0.06,
+            "3": 0.94
+          }
+        },
+        "refund_eligible": {
+          "type": "noul",
+          "noul": 0.55
+        }
+      },
+      "schema_ok": true
+    },
+    {
+      "wall_ms": 249.5,
+      "usage": {
+        "input_tokens": 494,
+        "output_tokens": 86
+      },
+      "answers": {
+        "route": {
+          "type": "choice",
+          "choice": "billing",
+          "confidence": 1.0,
+          "probabilities": {
+            "billing": 1.0,
+            "sales": 0.0,
+            "technical": 0.0,
+            "general": 0.0,
+            "security": 0.0
+          }
+        },
+        "urgency": {
+          "type": "score",
+          "score": 1.87,
+          "confidence": 0.87,
+          "legend": {
+            "0": "no time pressure; answer within days is fine",
+            "1": "normal queue; answer within one business day",
+            "2": "elevated; customer is blocked or money is involved",
+            "3": "urgent; production down, deadline hours away, or security exposure"
+          },
+          "probabilities": {
+            "0": 0.01,
+            "1": 0.12,
+            "2": 0.87,
+            "3": 0.0
+          }
+        },
+        "refund_eligible": {
+          "type": "noul",
+          "noul": 0.95
+        }
+      },
+      "schema_ok": true
+    },
+    {
+      "wall_ms": 288.1,
+      "usage": {
+        "input_tokens": 496,
+        "output_tokens": 86
+      },
+      "answers": {
+        "route": {
+          "type": "choice",
+          "choice": "technical",
+          "confidence": 1.0,
+          "probabilities": {
+            "security": 0.0,
+            "general": 0.0,
+            "technical": 1.0,
+            "sales": 0.0,
+            "billing": 0.0
+          }
+        },
+        "urgency": {
+          "type": "score",
+          "score": 1.7,
+          "confidence": 0.69,
+          "legend": {
+            "0": "no time pressure; answer within days is fine",
+            "1": "normal queue; answer within one business day",
+            "2": "elevated; customer is blocked or money is involved",
+            "3": "urgent; production down, deadline hours away, or security exposure"
+          },
+          "probabilities": {
+            "0": 0.03,
+            "1": 0.24,
+            "2": 0.73,
+            "3": 0.0
+          }
+        },
+        "refund_eligible": {
+          "type": "noul",
+          "noul": 0.1
+        }
+      },
+      "schema_ok": true
+    },
+    {
+      "wall_ms": 199.8,
+      "usage": {
+        "input_tokens": 494,
+        "output_tokens": 86
+      },
+      "answers": {
+        "route": {
+          "type": "choice",
+          "choice": "sales",
+          "confidence": 0.99,
+          "probabilities": {
+            "billing": 0.0,
+            "general": 0.0,
+            "technical": 0.0,
+            "security": 0.0,
+            "sales": 1.0
+          }
+        },
+        "urgency": {
+          "type": "score",
+          "score": 1.49,
+          "confidence": 0.48,
+          "legend": {
+            "0": "no time pressure; answer within days is fine",
+            "1": "normal queue; answer within one business day",
+            "2": "elevated; customer is blocked or money is involved",
+            "3": "urgent; production down, deadline hours away, or security exposure"
+          },
+          "probabilities": {
+            "0": 0.02,
+            "1": 0.48,
+            "2": 0.5,
+            "3": 0.0
+          }
+        },
+        "refund_eligible": {
+          "type": "noul",
+          "noul": 0.07
+        }
+      },
+      "schema_ok": true
+    },
+    {
+      "wall_ms": 213.1,
+      "usage": {
+        "input_tokens": 497,
+        "output_tokens": 86
+      },
+      "answers": {
+        "route": {
+          "type": "choice",
+          "choice": "technical",
+          "confidence": 0.88,
+          "probabilities": {
+            "security": 0.0,
+            "billing": 0.07,
+            "general": 0.02,
+            "sales": 0.01,
+            "technical": 0.9
+          }
+        },
+        "urgency": {
+          "type": "score",
+          "score": 2.04,
+          "confidence": 0.96,
+          "legend": {
+            "0": "no time pressure; answer within days is fine",
+            "1": "normal queue; answer within one business day",
+            "2": "elevated; customer is blocked or money is involved",
+            "3": "urgent; production down, deadline hours away, or security exposure"
+          },
+          "probabilities": {
+            "0": 0.0,
+            "1": 0.0,
+            "2": 0.96,
+            "3": 0.04
+          }
+        },
+        "refund_eligible": {
+          "type": "noul",
+          "noul": 0.75
+        }
+      },
+      "schema_ok": true
+    },
+    {
+      "wall_ms": 251.5,
+      "usage": {
+        "input_tokens": 487,
+        "output_tokens": 86
+      },
+      "answers": {
+        "route": {
+          "type": "choice",
+          "choice": "security",
+          "confidence": 0.65,
+          "probabilities": {
+            "sales": 0.0,
+            "security": 0.72,
+            "general": 0.01,
+            "billing": 0.0,
+            "technical": 0.27
+          }
+        },
+        "urgency": {
+          "type": "score",
+          "score": 1.93,
+          "confidence": 0.92,
+          "legend": {
+            "0": "no time pressure; answer within days is fine",
+            "1": "normal queue; answer within one business day",
+            "2": "elevated; customer is blocked or money is involved",
+            "3": "urgent; production down, deadline hours away, or security exposure"
+          },
+          "probabilities": {
+            "0": 0.0,
+            "1": 0.07,
+            "2": 0.93,
+            "3": 0.0
+          }
+        },
+        "refund_eligible": {
+          "type": "noul",
+          "noul": 0.21
+        }
+      },
+      "schema_ok": true
+    },
+    {
+      "wall_ms": 183.3,
+      "usage": {
+        "input_tokens": 493,
+        "output_tokens": 86
+      },
+      "answers": {
+        "route": {
+          "type": "choice",
+          "choice": "technical",
+          "confidence": 0.9,
+          "probabilities": {
+            "sales": 0.0,
+            "security": 0.0,
+            "general": 0.08,
+            "billing": 0.0,
+            "technical": 0.92
+          }
+        },
+        "urgency": {
+          "type": "score",
+          "score": 0.98,
+          "confidence": 0.87,
+          "legend": {
+            "0": "no time pressure; answer within days is fine",
+            "1": "normal queue; answer within one business day",
+            "2": "elevated; customer is blocked or money is involved",
+            "3": "urgent; production down, deadline hours away, or security exposure"
+          },
+          "probabilities": {
+            "0": 0.08,
+            "1": 0.86,
+            "2": 0.06,
+            "3": 0.0
+          }
+        },
+        "refund_eligible": {
+          "type": "noul",
+          "noul": 0.16
+        }
+      },
+      "schema_ok": true
+    },
+    {
+      "wall_ms": 219.0,
+      "usage": {
+        "input_tokens": 500,
+        "output_tokens": 86
+      },
+      "answers": {
+        "route": {
+          "type": "choice",
+          "choice": "billing",
+          "confidence": 1.0,
+          "probabilities": {
+            "technical": 0.0,
+            "security": 0.0,
+            "sales": 0.0,
+            "general": 0.0,
+            "billing": 1.0
+          }
+        },
+        "urgency": {
+          "type": "score",
+          "score": 1.84,
+          "confidence": 0.84,
+          "legend": {
+            "0": "no time pressure; answer within days is fine",
+            "1": "normal queue; answer within one business day",
+            "2": "elevated; customer is blocked or money is involved",
+            "3": "urgent; production down, deadline hours away, or security exposure"
+          },
+          "probabilities": {
+            "0": 0.02,
+            "1": 0.12,
+            "2": 0.86,
+            "3": 0.0
+          }
+        },
+        "refund_eligible": {
+          "type": "noul",
+          "noul": 0.41
+        }
+      },
+      "schema_ok": true
+    },
+    {
+      "wall_ms": 225.2,
+      "usage": {
+        "input_tokens": 490,
+        "output_tokens": 86
+      },
+      "answers": {
+        "route": {
+          "type": "choice",
+          "choice": "billing",
+          "confidence": 1.0,
+          "probabilities": {
+            "sales": 0.0,
+            "billing": 1.0,
+            "general": 0.0,
+            "security": 0.0,
+            "technical": 0.0
+          }
+        },
+        "urgency": {
+          "type": "score",
+          "score": 0.11,
+          "confidence": 0.89,
+          "legend": {
+            "0": "no time pressure; answer within days is fine",
+            "1": "normal queue; answer within one business day",
+            "2": "elevated; customer is blocked or money is involved",
+            "3": "urgent; production down, deadline hours away, or security exposure"
+          },
+          "probabilities": {
+            "0": 0.9,
+            "1": 0.09,
+            "2": 0.01,
+            "3": 0.0
+          }
+        },
+        "refund_eligible": {
+          "type": "noul",
+          "noul": 0.22
+        }
+      },
+      "schema_ok": true
+    },
+    {
+      "wall_ms": 292.6,
+      "usage": {
+        "input_tokens": 491,
+        "output_tokens": 86
+      },
+      "answers": {
+        "route": {
+          "type": "choice",
+          "choice": "security",
+          "confidence": 1.0,
+          "probabilities": {
+            "billing": 0.0,
+            "sales": 0.0,
+            "security": 1.0,
+            "general": 0.0,
+            "technical": 0.0
+          }
+        },
+        "urgency": {
+          "type": "score",
+          "score": 3.0,
+          "confidence": 1.0,
+          "legend": {
+            "0": "no time pressure; answer within days is fine",
+            "1": "normal queue; answer within one business day",
+            "2": "elevated; customer is blocked or money is involved",
+            "3": "urgent; production down, deadline hours away, or security exposure"
+          },
+          "probabilities": {
+            "0": 0.0,
+            "1": 0.0,
+            "2": 0.0,
+            "3": 1.0
+          }
+        },
+        "refund_eligible": {
+          "type": "noul",
+          "noul": 0.18
+        }
+      },
+      "schema_ok": true
+    }
+  ],
+  "llm": {
+    "model": "claude-haiku-4-5",
+    "calls": 12,
+    "latency_ms_median": 637.5,
+    "latency_ms_p95": 944.0,
+    "input_tokens": 1671,
+    "output_tokens": 454,
+    "cost_usd": 0.003941,
+    "schema_or_parse_failures": 0
+  },
+  "llm_calls": [
+    {
+      "wall_ms": 944.0,
+      "usage": {
+        "input_tokens": 151,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 42,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      },
+      "parsed": {
+        "route": "technical",
+        "urgency": 3,
+        "refund_eligible_prob": 0.3
+      },
+      "schema_ok": true
+    },
+    {
+      "wall_ms": 649.9,
+      "usage": {
+        "input_tokens": 142,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 34,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      },
+      "parsed": {
+        "route": "general",
+        "urgency": 0,
+        "refund_eligible_prob": 0.05
+      },
+      "schema_ok": true
+    },
+    {
+      "wall_ms": 591.5,
+      "usage": {
+        "input_tokens": 144,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 42,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      },
+      "parsed": {
+        "route": "technical",
+        "urgency": 3,
+        "refund_eligible_prob": 0.15
+      },
+      "schema_ok": true
+    },
+    {
+      "wall_ms": 625.0,
+      "usage": {
+        "input_tokens": 137,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 34,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      },
+      "parsed": {
+        "route": "billing",
+        "urgency": 2,
+        "refund_eligible_prob": 0.95
+      },
+      "schema_ok": true
+    },
+    {
+      "wall_ms": 596.6,
+      "usage": {
+        "input_tokens": 140,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 32,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      },
+      "parsed": {
+        "route": "technical",
+        "urgency": 2,
+        "refund_eligible_prob": 0
+      },
+      "schema_ok": true
+    },
+    {
+      "wall_ms": 701.3,
+      "usage": {
+        "input_tokens": 136,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 42,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      },
+      "parsed": {
+        "route": "sales",
+        "urgency": 2,
+        "refund_eligible_prob": 0.0
+      },
+      "schema_ok": true
+    },
+    {
+      "wall_ms": 711.7,
+      "usage": {
+        "input_tokens": 140,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 34,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      },
+      "parsed": {
+        "route": "billing",
+        "urgency": 2,
+        "refund_eligible_prob": 0.35
+      },
+      "schema_ok": true
+    },
+    {
+      "wall_ms": 584.7,
+      "usage": {
+        "input_tokens": 129,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 34,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      },
+      "parsed": {
+        "route": "technical",
+        "urgency": 2,
+        "refund_eligible_prob": 0.15
+      },
+      "schema_ok": true
+    },
+    {
+      "wall_ms": 656.2,
+      "usage": {
+        "input_tokens": 136,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 42,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      },
+      "parsed": {
+        "route": "technical",
+        "urgency": 1,
+        "refund_eligible_prob": 0.05
+      },
+      "schema_ok": true
+    },
+    {
+      "wall_ms": 607.6,
+      "usage": {
+        "input_tokens": 145,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 42,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      },
+      "parsed": {
+        "route": "billing",
+        "urgency": 1,
+        "refund_eligible_prob": 0.15
+      },
+      "schema_ok": true
+    },
+    {
+      "wall_ms": 572.1,
+      "usage": {
+        "input_tokens": 136,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 34,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      },
+      "parsed": {
+        "route": "billing",
+        "urgency": 0,
+        "refund_eligible_prob": 0.15
+      },
+      "schema_ok": true
+    },
+    {
+      "wall_ms": 1596.1,
+      "usage": {
+        "input_tokens": 135,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 42,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      },
+      "parsed": {
+        "route": "security",
+        "urgency": 3,
+        "refund_eligible_prob": 0.0
+      },
+      "schema_ok": true
+    }
+  ],
+  "measured_ratio": {
+    "latency_median_x": 2.6,
+    "cost_x": 15.8
+  },
+  "agreement_jev_vs_llm": {
+    "route": "10/12",
+    "urgency_within_1_level": "12/12",
+    "refund_same_side": "9/12",
+    "note": "agreement between two models, not ground truth; scored quality pass pending"
+  },
+  "region": "OCI Phoenix (us-west) \u2014 fair latency vs TypeSafe West-Coast service"
+}
