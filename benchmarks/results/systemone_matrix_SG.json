@@ -1,0 +1,481 @@
+{
+  "region": "SG",
+  "workload": "12 tickets x 3 decisions",
+  "ran_at": "2026-09-20T02:28:22",
+  "models": {
+    "jev": {
+      "calls": 12,
+      "latency_ms_median": 706.0,
+      "latency_ms_p95": 780.1,
+      "input_tokens": 5951,
+      "output_tokens": 1032,
+      "cost_usd": 0.00025,
+      "type_errors": 0,
+      "pricing": "announced"
+    },
+    "claude-haiku-4-5": {
+      "calls": 12,
+      "latency_ms_median": 772.2,
+      "latency_ms_p95": 837.9,
+      "input_tokens": 1671,
+      "output_tokens": 438,
+      "cost_usd": 0.003861,
+      "type_errors": 0,
+      "pricing": "published",
+      "vs_jev_cheaper_x": 15.4,
+      "vs_jev_slower_x": 1.1
+    },
+    "claude-sonnet-5": {
+      "calls": 12,
+      "latency_ms_median": 1355.6,
+      "latency_ms_p95": 1968.2,
+      "input_tokens": 2263,
+      "output_tokens": 566,
+      "cost_usd": 0.015279,
+      "type_errors": 0,
+      "pricing": "published",
+      "vs_jev_cheaper_x": 61.1,
+      "vs_jev_slower_x": 1.9
+    },
+    "claude-fable-5": {
+      "calls": 12,
+      "latency_ms_median": 3730.4,
+      "latency_ms_p95": 4081.1,
+      "input_tokens": 2263,
+      "output_tokens": 1120,
+      "cost_usd": 0.07863,
+      "type_errors": 0,
+      "pricing": "published",
+      "vs_jev_cheaper_x": 314.5,
+      "vs_jev_slower_x": 5.3
+    }
+  },
+  "errors": {},
+  "_jev_calls": [
+    {
+      "route": {
+        "type": "choice",
+        "choice": "technical",
+        "confidence": 0.75,
+        "probabilities": {
+          "sales": 0.0,
+          "security": 0.0,
+          "general": 0.0,
+          "technical": 0.8,
+          "billing": 0.2
+        }
+      },
+      "urgency": {
+        "type": "score",
+        "score": 2.99,
+        "confidence": 0.99,
+        "legend": {
+          "0": "no time pressure; answer within days is fine",
+          "1": "normal queue; answer within one business day",
+          "2": "elevated; customer is blocked or money is involved",
+          "3": "urgent; production down, deadline hours away, or security exposure"
+        },
+        "probabilities": {
+          "0": 0.0,
+          "1": 0.0,
+          "2": 0.01,
+          "3": 0.99
+        }
+      },
+      "refund_eligible": {
+        "type": "noul",
+        "noul": 0.77
+      }
+    },
+    {
+      "route": {
+        "type": "choice",
+        "choice": "general",
+        "confidence": 1.0,
+        "probabilities": {
+          "technical": 0.0,
+          "general": 1.0,
+          "security": 0.0,
+          "sales": 0.0,
+          "billing": 0.0
+        }
+      },
+      "urgency": {
+        "type": "score",
+        "score": 0.57,
+        "confidence": 0.55,
+        "legend": {
+          "0": "no time pressure; answer within days is fine",
+          "1": "normal queue; answer within one business day",
+          "2": "elevated; customer is blocked or money is involved",
+          "3": "urgent; production down, deadline hours away, or security exposure"
+        },
+        "probabilities": {
+          "0": 0.44,
+          "1": 0.55,
+          "2": 0.01,
+          "3": 0.0
+        }
+      },
+      "refund_eligible": {
+        "type": "noul",
+        "noul": 0.05
+      }
+    },
+    {
+      "route": {
+        "type": "choice",
+        "choice": "technical",
+        "confidence": 0.96,
+        "probabilities": {
+          "technical": 0.97,
+          "security": 0.03,
+          "sales": 0.0,
+          "general": 0.0,
+          "billing": 0.0
+        }
+      },
+      "urgency": {
+        "type": "score",
+        "score": 2.96,
+        "confidence": 0.96,
+        "legend": {
+          "0": "no time pressure; answer within days is fine",
+          "1": "normal queue; answer within one business day",
+          "2": "elevated; customer is blocked or money is involved",
+          "3": "urgent; production down, deadline hours away, or security exposure"
+        },
+        "probabilities": {
+          "0": 0.0,
+          "1": 0.0,
+          "2": 0.04,
+          "3": 0.96
+        }
+      },
+      "refund_eligible": {
+        "type": "noul",
+        "noul": 0.57
+      }
+    },
+    {
+      "route": {
+        "type": "choice",
+        "choice": "billing",
+        "confidence": 1.0,
+        "probabilities": {
+          "sales": 0.0,
+          "security": 0.0,
+          "technical": 0.0,
+          "general": 0.0,
+          "billing": 1.0
+        }
+      },
+      "urgency": {
+        "type": "score",
+        "score": 1.88,
+        "confidence": 0.88,
+        "legend": {
+          "0": "no time pressure; answer within days is fine",
+          "1": "normal queue; answer within one business day",
+          "2": "elevated; customer is blocked or money is involved",
+          "3": "urgent; production down, deadline hours away, or security exposure"
+        },
+        "probabilities": {
+          "0": 0.01,
+          "1": 0.11,
+          "2": 0.88,
+          "3": 0.0
+        }
+      },
+      "refund_eligible": {
+        "type": "noul",
+        "noul": 0.95
+      }
+    },
+    {
+      "route": {
+        "type": "choice",
+        "choice": "technical",
+        "confidence": 1.0,
+        "probabilities": {
+          "security": 0.0,
+          "technical": 1.0,
+          "sales": 0.0,
+          "general": 0.0,
+          "billing": 0.0
+        }
+      },
+      "urgency": {
+        "type": "score",
+        "score": 1.77,
+        "confidence": 0.76,
+        "legend": {
+          "0": "no time pressure; answer within days is fine",
+          "1": "normal queue; answer within one business day",
+          "2": "elevated; customer is blocked or money is involved",
+          "3": "urgent; production down, deadline hours away, or security exposure"
+        },
+        "probabilities": {
+          "0": 0.02,
+          "1": 0.19,
+          "2": 0.78,
+          "3": 0.01
+        }
+      },
+      "refund_eligible": {
+        "type": "noul",
+        "noul": 0.1
+      }
+    },
+    {
+      "route": {
+        "type": "choice",
+        "choice": "sales",
+        "confidence": 0.99,
+        "probabilities": {
+          "billing": 0.0,
+          "general": 0.0,
+          "sales": 1.0,
+          "security": 0.0,
+          "technical": 0.0
+        }
+      },
+      "urgency": {
+        "type": "score",
+        "score": 1.42,
+        "confidence": 0.54,
+        "legend": {
+          "0": "no time pressure; answer within days is fine",
+          "1": "normal queue; answer within one business day",
+          "2": "elevated; customer is blocked or money is involved",
+          "3": "urgent; production down, deadline hours away, or security exposure"
+        },
+        "probabilities": {
+          "0": 0.02,
+          "1": 0.55,
+          "2": 0.43,
+          "3": 0.0
+        }
+      },
+      "refund_eligible": {
+        "type": "noul",
+        "noul": 0.07
+      }
+    },
+    {
+      "route": {
+        "type": "choice",
+        "choice": "technical",
+        "confidence": 0.83,
+        "probabilities": {
+          "security": 0.0,
+          "technical": 0.86,
+          "sales": 0.01,
+          "general": 0.02,
+          "billing": 0.11
+        }
+      },
+      "urgency": {
+        "type": "score",
+        "score": 2.05,
+        "confidence": 0.95,
+        "legend": {
+          "0": "no time pressure; answer within days is fine",
+          "1": "normal queue; answer within one business day",
+          "2": "elevated; customer is blocked or money is involved",
+          "3": "urgent; production down, deadline hours away, or security exposure"
+        },
+        "probabilities": {
+          "0": 0.0,
+          "1": 0.0,
+          "2": 0.95,
+          "3": 0.05
+        }
+      },
+      "refund_eligible": {
+        "type": "noul",
+        "noul": 0.76
+      }
+    },
+    {
+      "route": {
+        "type": "choice",
+        "choice": "security",
+        "confidence": 0.67,
+        "probabilities": {
+          "billing": 0.0,
+          "sales": 0.0,
+          "technical": 0.25,
+          "security": 0.74,
+          "general": 0.01
+        }
+      },
+      "urgency": {
+        "type": "score",
+        "score": 1.92,
+        "confidence": 0.91,
+        "legend": {
+          "0": "no time pressure; answer within days is fine",
+          "1": "normal queue; answer within one business day",
+          "2": "elevated; customer is blocked or money is involved",
+          "3": "urgent; production down, deadline hours away, or security exposure"
+        },
+        "probabilities": {
+          "0": 0.0,
+          "1": 0.08,
+          "2": 0.92,
+          "3": 0.0
+        }
+      },
+      "refund_eligible": {
+        "type": "noul",
+        "noul": 0.21
+      }
+    },
+    {
+      "route": {
+        "type": "choice",
+        "choice": "technical",
+        "confidence": 0.88,
+        "probabilities": {
+          "security": 0.0,
+          "general": 0.1,
+          "technical": 0.9,
+          "billing": 0.0,
+          "sales": 0.0
+        }
+      },
+      "urgency": {
+        "type": "score",
+        "score": 0.98,
+        "confidence": 0.87,
+        "legend": {
+          "0": "no time pressure; answer within days is fine",
+          "1": "normal queue; answer within one business day",
+          "2": "elevated; customer is blocked or money is involved",
+          "3": "urgent; production down, deadline hours away, or security exposure"
+        },
+        "probabilities": {
+          "0": 0.08,
+          "1": 0.86,
+          "2": 0.06,
+          "3": 0.0
+        }
+      },
+      "refund_eligible": {
+        "type": "noul",
+        "noul": 0.15
+      }
+    },
+    {
+      "route": {
+        "type": "choice",
+        "choice": "billing",
+        "confidence": 1.0,
+        "probabilities": {
+          "security": 0.0,
+          "sales": 0.0,
+          "billing": 1.0,
+          "general": 0.0,
+          "technical": 0.0
+        }
+      },
+      "urgency": {
+        "type": "score",
+        "score": 1.75,
+        "confidence": 0.75,
+        "legend": {
+          "0": "no time pressure; answer within days is fine",
+          "1": "normal queue; answer within one business day",
+          "2": "elevated; customer is blocked or money is involved",
+          "3": "urgent; production down, deadline hours away, or security exposure"
+        },
+        "probabilities": {
+          "0": 0.03,
+          "1": 0.18,
+          "2": 0.79,
+          "3": 0.0
+        }
+      },
+      "refund_eligible": {
+        "type": "noul",
+        "noul": 0.4
+      }
+    },
+    {
+      "route": {
+        "type": "choice",
+        "choice": "billing",
+        "confidence": 1.0,
+        "probabilities": {
+          "billing": 1.0,
+          "sales": 0.0,
+          "general": 0.0,
+          "technical": 0.0,
+          "security": 0.0
+        }
+      },
+      "urgency": {
+        "type": "score",
+        "score": 0.11,
+        "confidence": 0.89,
+        "legend": {
+          "0": "no time pressure; answer within days is fine",
+          "1": "normal queue; answer within one business day",
+          "2": "elevated; customer is blocked or money is involved",
+          "3": "urgent; production down, deadline hours away, or security exposure"
+        },
+        "probabilities": {
+          "0": 0.9,
+          "1": 0.09,
+          "2": 0.01,
+          "3": 0.0
+        }
+      },
+      "refund_eligible": {
+        "type": "noul",
+        "noul": 0.23
+      }
+    },
+    {
+      "route": {
+        "type": "choice",
+        "choice": "security",
+        "confidence": 1.0,
+        "probabilities": {
+          "security": 1.0,
+          "billing": 0.0,
+          "sales": 0.0,
+          "general": 0.0,
+          "technical": 0.0
+        }
+      },
+      "urgency": {
+        "type": "score",
+        "score": 3.0,
+        "confidence": 1.0,
+        "legend": {
+          "0": "no time pressure; answer within days is fine",
+          "1": "normal queue; answer within one business day",
+          "2": "elevated; customer is blocked or money is involved",
+          "3": "urgent; production down, deadline hours away, or security exposure"
+        },
+        "probabilities": {
+          "0": 0.0,
+          "1": 0.0,
+          "2": 0.0,
+          "3": 1.0
+        }
+      },
+      "refund_eligible": {
+        "type": "noul",
+        "noul": 0.21
+      }
+    }
+  ],
+  "honesty": [
+    "Cost from labeled prices (LLM published, Jev announced/unverified).",
+    "Latency measured from region=SG; compare only same-region.",
+    "Decision quality/calibration not scored here."
+  ]
+}
