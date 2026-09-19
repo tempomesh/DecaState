@@ -90,33 +90,34 @@ def region_card(data, region):
     base(d); tag = "FAIR LATENCY · US-WEST" if region == "US" else "LATENCY · SINGAPORE"
     header(d, f"SAME 36 DECISIONS · {tag}")
     d.text((48, 190), f"JEV vs THE FRONTIER · {region}", font=mono(26), fill=LIME)
-    hy = 262
-    for x, t in [(360, "cheaper"), (620, "faster"), (860, "type err")]:
+    d.text((48, 232), "same 36 decisions · these are all excellent models — different jobs",
+           font=mono(20), fill=DIMMER)
+    hy = 288
+    for x, t in [(440, "cheaper"), (760, "faster")]:
         d.text((x, hy), t, font=mono(22), fill=DIMMER)
     d.text((48, hy), "model", font=mono(22), fill=DIMMER)
     d.line([(48, hy + 34), (1032, hy + 34)], fill=(28, 34, 48), width=2)
     y = hy + 54
-    d.text((48, y), "Jev", font=black(38), fill=LIME)
-    d.text((360, y + 4), "—", font=bold(34), fill=DIM)
-    d.text((620, y + 4), f"{data['models']['jev']['latency_ms_median']:.0f}ms", font=bold(30), fill=LIME)
-    d.text((860, y + 4), f"0/{12}", font=bold(34), fill=LIME)
-    y += 78
+    d.text((48, y), "Jev", font=black(40), fill=LIME)
+    d.text((440, y + 4), "—", font=bold(36), fill=DIM)
+    d.text((760, y + 4), f"{data['models']['jev']['latency_ms_median']:.0f}ms", font=black(34), fill=LIME)
+    y += 82
     for name, m in others_sorted(data, "vs_jev_cheaper_x"):
         star = "*" if name in ASSUMED_PRICING else ""
-        te = m.get("type_errors", 0)
-        d.text((48, y), PRETTY.get(name, name), font=bold(36), fill=WHITE)
-        d.text((360, y + 4), f"{m['vs_jev_cheaper_x']:g}×{star}", font=black(32), fill=LIME)
-        d.text((620, y + 4), f"{m['vs_jev_slower_x']:g}×", font=black(32), fill=WHITE)
-        d.text((860, y + 4), f"{te}/12", font=bold(32), fill=(CORAL if te else DIM))
-        d.line([(48, y + 60), (1032, y + 60)], fill=(20, 25, 35), width=1)
-        y += 78
-    d.text((48, y + 18), "Jev: typed answers, one call, in parallel. 0 type errors, always.",
+        d.text((48, y), PRETTY.get(name, name), font=bold(38), fill=WHITE)
+        d.text((440, y + 4), f"{m['vs_jev_cheaper_x']:g}×{star}", font=black(34), fill=LIME)
+        d.text((760, y + 4), f"{m['vs_jev_slower_x']:g}×", font=black(34), fill=WHITE)
+        d.line([(48, y + 64), (1032, y + 64)], fill=(20, 25, 35), width=1)
+        y += 82
+    d.text((48, y + 20), "For narrow decisions Jev is cheaper & faster. For writing and",
            font=mono(21), fill=DIM)
-    d.text((48, y + 52), "cheaper = cost/36 decisions · faster = median latency vs Jev",
-           font=mono(19), fill=DIMMER)
+    d.text((48, y + 52), "reasoning, you still want these models. Pick the right tool — and",
+           font=mono(21), fill=DIM)
+    d.text((48, y + 84), "measure it. cheaper = cost/36 · faster = median latency vs Jev.",
+           font=mono(21), fill=DIM)
     if region == "US":
-        d.text((48, y + 84), "measured from OCI Phoenix · SG numbers in the repo too",
-               font=mono(19), fill=DIMMER)
+        d.text((48, y + 124), "measured from OCI Phoenix · both regions + type-safety data in the repo",
+               font=mono(18), fill=DIMMER)
     footer(d)
     img.save(os.path.join(HERE, f"decastate_matrix_{region.lower()}_1x1.png"))
     print(f"{region} card ok")
