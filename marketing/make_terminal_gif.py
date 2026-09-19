@@ -101,6 +101,26 @@ def foot(d, x0, jev, done):
 frames = []
 JN, LN = len(KEYS), len(KEYS)
 CMD_L, CMD_R = "$ decastate measure jev", "$ decastate measure gpt-5.6-sol"
+SPD = D["llm"]["latency_ms"] / D["jev"]["latency_ms"]
+CHP = D["llm"]["cost_usd"] / D["jev"]["cost_usd"]
+
+# ACT 0: land on the payoff first, then show the race
+for _ in range(12):
+    f = Image.new("RGB", (1080, 1080)); d = ImageDraw.Draw(f, "RGBA")
+    base(d); brand(d)
+    d.text((60, 300), f"{SPD:.1f}× faster", font=black(118), fill=LIME)
+    d.text((60, 452), f"{CHP:.0f}× cheaper", font=black(118), fill=LIME)
+    d.text((64, 626), "Jev vs GPT-5.6 Sol · same 14 typed decisions",
+           font=bold(34), fill=WHITE)
+    d.text((64, 682), "one real support ticket · both measured through DecaState",
+           font=mono(22), fill=DIM)
+    d.text((64, 740), "watch them race, side by side ↓", font=mono(24), fill=LIME)
+    d.line([(48, 990), (1032, 990)], fill=(28, 34, 48), width=2)
+    d.text((48, 1012), "◈ decastate.com", font=mono(22), fill=LIME)
+    d.text((262, 1012), "·  the honest receipt layer for every model you call",
+           font=mono(22), fill=DIMMER)
+    frames.append(f)
+
 for fr in range(64):
     f = Image.new("RGB", (1080, 1080)); d = ImageDraw.Draw(f, "RGBA")
     base(d); brand(d)
