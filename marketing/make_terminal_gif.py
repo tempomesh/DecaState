@@ -100,7 +100,8 @@ def foot(d, x0, jev, done):
 
 frames = []
 JN, LN = len(KEYS), len(KEYS)
-CMD_L, CMD_R = "$ decastate measure jev", "$ decastate measure gpt-5.6-sol"
+LLM_MODEL = D["llm"]["model"]
+CMD_L, CMD_R = "$ decastate measure jev", f"$ decastate measure {LLM_MODEL}"
 SPD = D["llm"]["latency_ms"] / D["jev"]["latency_ms"]
 CHP = D["llm"]["cost_usd"] / D["jev"]["cost_usd"]
 
@@ -109,12 +110,12 @@ for _ in range(12):
     f = Image.new("RGB", (1080, 1080)); d = ImageDraw.Draw(f, "RGBA")
     base(d); brand(d)
     d.text((60, 300), f"{SPD:.1f}× faster", font=black(118), fill=LIME)
-    d.text((60, 452), f"{CHP:.0f}× cheaper", font=black(118), fill=LIME)
-    d.text((64, 626), "Jev vs GPT-5.6 Sol · same 14 typed decisions",
-           font=bold(34), fill=WHITE)
-    d.text((64, 682), "one real support ticket · both measured through DecaState",
-           font=mono(22), fill=DIM)
-    d.text((64, 740), "watch them race, side by side ↓", font=mono(24), fill=LIME)
+    d.text((60, 452), "pennies vs dollars", font=black(96), fill=LIME)
+    d.text((64, 604), f"Jev vs {LLM_MODEL} · same 14 typed decisions on one ticket",
+           font=bold(32), fill=WHITE)
+    d.text((64, 656), f"${D['jev']['cost_usd']:.5f}   vs   ${D['llm']['cost_usd']:.4f}   ·   both measured through DecaState",
+           font=mono(21), fill=DIM)
+    d.text((64, 716), "watch them race, side by side ↓", font=mono(24), fill=LIME)
     d.line([(48, 990), (1032, 990)], fill=(28, 34, 48), width=2)
     d.text((48, 1012), "◈ decastate.com", font=mono(22), fill=LIME)
     d.text((262, 1012), "·  the honest receipt layer for every model you call",
@@ -127,7 +128,7 @@ for fr in range(64):
     js = min(JN, max(0, (fr - 5) * 4))     # Jev: parallel, fills fast
     ls = min(LN, max(0, int((fr - 5) * 0.55)))  # LLM: sequential, slow
     pane(d, 40, "TYPESAFE · jev-latest", CMD_L, True, js, D["jev"]["answers"], KEYS)
-    pane(d, 560, "LLM · gpt-5.6-sol", CMD_R, False, ls, D["llm"]["answers"], KEYS)
+    pane(d, 560, f"LLM · {LLM_MODEL}", CMD_R, False, ls, D["llm"]["answers"], KEYS)
     foot(d, 40, True, js >= JN)
     foot(d, 560, False, ls >= LN)
     # end overlay
@@ -135,13 +136,15 @@ for fr in range(64):
         d.rectangle([0, 300, 1080, 820], fill=(7, 9, 14, 232))
         spd = D["llm"]["latency_ms"] / D["jev"]["latency_ms"]
         chp = D["llm"]["cost_usd"] / D["jev"]["cost_usd"]
-        d.text((60, 360), f"{spd:.1f}× faster", font=black(96), fill=LIME)
-        d.text((60, 480), f"{chp:.0f}× cheaper", font=black(96), fill=LIME)
-        d.text((64, 616), "same 14 typed decisions · one parallel call vs streamed text",
-               font=bold(30), fill=WHITE)
-        d.text((64, 664), "both forwarded byte-identically · integrity unchanged ✓",
-               font=mono(22), fill=DIM)
-        d.text((64, 700), "receipts in the repo · decastate.com", font=mono(22), fill=DIMMER)
+        d.text((60, 356), f"{spd:.1f}× faster", font=black(92), fill=LIME)
+        d.text((60, 470), f"${D['jev']['cost_usd']:.5f} vs ${D['llm']['cost_usd']:.4f}",
+               font=black(60), fill=LIME)
+        d.text((64, 566), "same 14 typed decisions · one parallel call vs streamed text",
+               font=bold(29), fill=WHITE)
+        d.text((64, 612), "both forwarded byte-identically · integrity unchanged ✓",
+               font=mono(21), fill=DIM)
+        d.text((64, 648), "full 36-decision benchmark: up to 314× cheaper · decastate.com",
+               font=mono(21), fill=DIMMER)
     d.line([(48, 990), (1032, 990)], fill=(28, 34, 48), width=2)
     d.text((48, 1012), "◈ decastate.com", font=mono(22), fill=LIME)
     d.text((262, 1012), "·  the honest receipt layer for every model you call", font=mono(22), fill=DIMMER)

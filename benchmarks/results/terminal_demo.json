@@ -20,20 +20,20 @@
     "answers": {
       "Revenue currently impacted?": {
         "type": "noul",
-        "noul": 0.93
+        "noul": 0.94
       },
       "Production capability down?": {
         "type": "noul",
-        "noul": 0.95
+        "noul": 0.94
       },
       "Which incident scope?": {
         "type": "choice",
         "choice": "platform_wide",
-        "confidence": 0.86,
+        "confidence": 0.8,
         "probabilities": {
-          "multi_account": 0.09,
-          "platform_wide": 0.91,
-          "single_account": 0.0
+          "single_account": 0.0,
+          "multi_account": 0.13,
+          "platform_wide": 0.87
         }
       },
       "Account health status?": {
@@ -48,7 +48,7 @@
       },
       "Security concern present?": {
         "type": "noul",
-        "noul": 0.28
+        "noul": 0.25
       },
       "Human attention needed?": {
         "type": "noul",
@@ -91,22 +91,22 @@
       "Which response deadline?": {
         "type": "choice",
         "choice": "today",
-        "confidence": 0.98,
+        "confidence": 0.99,
         "probabilities": {
-          "today": 0.99,
           "no_rush": 0.0,
-          "this_week": 0.01
+          "this_week": 0.01,
+          "today": 0.99
         }
       },
       "Which primary department?": {
         "type": "choice",
         "choice": "technical",
-        "confidence": 0.68,
+        "confidence": 0.62,
         "probabilities": {
-          "technical": 0.76,
-          "security": 0.0,
+          "billing": 0.28,
           "success": 0.0,
-          "billing": 0.24
+          "technical": 0.72,
+          "security": 0.0
         }
       },
       "Which requested resolution?": {
@@ -114,15 +114,15 @@
         "choice": "restore_service",
         "confidence": 0.99,
         "probabilities": {
-          "explain": 0.0,
-          "restore_service": 0.99,
           "refund": 0.0,
-          "escalate": 0.01
+          "explain": 0.0,
+          "escalate": 0.0,
+          "restore_service": 1.0
         }
       },
       "Repeated production failures?": {
         "type": "noul",
-        "noul": 0.93
+        "noul": 0.94
       },
       "Language personally threatening?": {
         "type": "noul",
@@ -133,7 +133,7 @@
         "noul": 0.02
       }
     },
-    "latency_ms": 807.2,
+    "latency_ms": 865.6,
     "cost_usd": 3.4e-05,
     "usage": {
       "input_tokens": 803,
@@ -142,40 +142,26 @@
     "via": "DecaState gateway \u2713 integrity unchanged"
   },
   "llm": {
-    "model": "gpt-5.6-sol",
+    "model": "claude-fable-5",
     "answers": {
-      "Revenue currently impacted?": 1,
-      "Production capability down?": 1,
-      "Which incident scope?": "All Pro accounts",
-      "Account health status?": "At risk",
-      "Security concern present?": 0,
-      "Human attention needed?": 1,
-      "Churn likelihood level?": 3,
-      "Financial impact level?": 3,
-      "Which response deadline?": "Immediate",
-      "Which primary department?": "Engineering",
-      "Which requested resolution?": "Restore checkout service",
-      "Repeated production failures?": 1,
-      "Language personally threatening?": 0,
-      "Immediate feature request?": 0
+      "_raw": "```json\n{\n  \"Revenue currently impacted?\": 1,\n  \"Production capability down?\": 1,\n  \"Which incident scope?\": \"all_accoun"
     },
-    "latency_ms": 5305.9,
-    "cost_usd": 0.008156,
+    "latency_ms": 6189.9,
+    "cost_usd": 0.0225,
     "usage": {
-      "prompt_tokens": 149,
-      "completion_tokens": 378,
-      "total_tokens": 527,
-      "prompt_tokens_details": {
-        "cached_tokens": 0,
-        "cache_write_tokens": 0,
-        "audio_tokens": 0
+      "input_tokens": 250,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "cache_creation": {
+        "ephemeral_5m_input_tokens": 0,
+        "ephemeral_1h_input_tokens": 0
       },
-      "completion_tokens_details": {
-        "reasoning_tokens": 221,
-        "audio_tokens": 0,
-        "accepted_prediction_tokens": 0,
-        "rejected_prediction_tokens": 0
-      }
+      "output_tokens": 400,
+      "output_tokens_details": {
+        "thinking_tokens": 286
+      },
+      "service_tier": "standard",
+      "inference_geo": "global"
     },
     "via": "DecaState gateway"
   }
