@@ -321,6 +321,10 @@ MODEL changes · RUNTIME changes · PROCESS dies · MACHINE changes
 
 Issues and PRs welcome — especially runtime adapters, larger-model benchmark runs, and COW research. State files can contain your code and conversations: everything is **local-only by default, nothing is ever uploaded**. See [docs/SECURITY.md](docs/SECURITY.md) and [docs/OPERATIONS.md](docs/OPERATIONS.md).
 
+## Connect
+
+Questions, ideas, or want to use DecaState at your company? Open an issue, or reach out: **[connect@decastate.com](mailto:connect@decastate.com)** · [decastate.com](https://decastate.com)
+
 ## License
 
 [MIT](LICENSE).
