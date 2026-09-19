@@ -40,9 +40,16 @@ def base(d):
 
 
 def header(d, right="MEASURED · RECEIPTS IN REPO"):
-    d.text((48, 44), "◈", font=bold(30), fill=LIME)
-    d.text((86, 42), "DecaState", font=bold(30), fill=WHITE)
-    d.text((1032 - d.textlength(right, font=mono(17)), 52), right, font=mono(17), fill=DIMMER)
+    # filled diamond wordmark
+    cx, cy, s = 62, 60, 17
+    d.polygon([(cx, cy - s), (cx + s, cy), (cx, cy + s), (cx - s, cy)], fill=LIME)
+    d.polygon([(cx, cy - 7), (cx + 7, cy), (cx, cy + 7), (cx - 7, cy)], fill=BG)
+    d.text((92, 43), "DecaState", font=bold(32), fill=WHITE)
+    d.text((1032 - d.textlength(right, font=mono(16)), 52), right, font=mono(16), fill=DIMMER)
+    # persistent honest strap on every frame
+    strap = "Jev (TypeSafe AI)  ·  measured with DecaState.com"
+    d.text((92, 88), strap, font=mono(18), fill=LIME)
+    d.line([(48, 124), (1032, 124)], fill=(28, 34, 48), width=1)
 
 
 def footer(d, tag="measured, not marketed · receipts in the repo"):
