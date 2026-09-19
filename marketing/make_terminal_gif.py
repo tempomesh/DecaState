@@ -7,11 +7,13 @@ together; the LLM's stream one by one — the visual difference, honestly.
 
 Output: marketing/decastate_terminal_1x1.gif
 """
-import json, os
+import json, os, sys
 from PIL import Image, ImageDraw, ImageFont
 
 HERE = os.path.dirname(__file__)
-D = json.load(open(os.path.join(HERE, "..", "benchmarks/results/terminal_demo.json")))
+DEMO = sys.argv[1] if len(sys.argv) > 1 else "benchmarks/results/terminal_demo.json"
+OUT = sys.argv[2] if len(sys.argv) > 2 else "decastate_terminal_1x1.gif"
+D = json.load(open(os.path.join(HERE, "..", DEMO)))
 BG, LIME, WHITE, CORAL, DIM, DIMMER = ("#07090e", "#c3f53c", "#e9edf5", "#ff8f88", "#8b97b0", "#5f6b85")
 PANE, BAR, BORD = "#0d1219", "#161b24", "#242a35"
 bold = lambda s: ImageFont.truetype("/System/Library/Fonts/Supplemental/Arial Bold.ttf", s)
@@ -109,13 +111,13 @@ CHP = D["llm"]["cost_usd"] / D["jev"]["cost_usd"]
 for _ in range(12):
     f = Image.new("RGB", (1080, 1080)); d = ImageDraw.Draw(f, "RGBA")
     base(d); brand(d)
-    d.text((60, 300), f"{SPD:.1f}× faster", font=black(118), fill=LIME)
-    d.text((60, 452), "pennies vs dollars", font=black(96), fill=LIME)
-    d.text((64, 604), f"Jev vs {LLM_MODEL} · same 14 typed decisions on one ticket",
-           font=bold(32), fill=WHITE)
-    d.text((64, 656), f"${D['jev']['cost_usd']:.5f}   vs   ${D['llm']['cost_usd']:.4f}   ·   both measured through DecaState",
+    d.text((60, 296), f"{SPD:.1f}× faster", font=black(112), fill=LIME)
+    d.text((60, 440), f"{CHP:.0f}× cheaper", font=black(112), fill=LIME)
+    d.text((64, 596), f"Jev vs {LLM_MODEL} · same 14 typed decisions on one ticket",
+           font=bold(31), fill=WHITE)
+    d.text((64, 646), f"${D['jev']['cost_usd']:.5f}  vs  ${D['llm']['cost_usd']:.4f}   ·   both measured through DecaState",
            font=mono(21), fill=DIM)
-    d.text((64, 716), "watch them race, side by side ↓", font=mono(24), fill=LIME)
+    d.text((64, 706), "watch them race, side by side ↓", font=mono(24), fill=LIME)
     d.line([(48, 990), (1032, 990)], fill=(28, 34, 48), width=2)
     d.text((48, 1012), "◈ decastate.com", font=mono(22), fill=LIME)
     d.text((262, 1012), "·  the honest receipt layer for every model you call",
@@ -136,20 +138,19 @@ for fr in range(64):
         d.rectangle([0, 300, 1080, 820], fill=(7, 9, 14, 232))
         spd = D["llm"]["latency_ms"] / D["jev"]["latency_ms"]
         chp = D["llm"]["cost_usd"] / D["jev"]["cost_usd"]
-        d.text((60, 356), f"{spd:.1f}× faster", font=black(92), fill=LIME)
-        d.text((60, 470), f"${D['jev']['cost_usd']:.5f} vs ${D['llm']['cost_usd']:.4f}",
-               font=black(60), fill=LIME)
-        d.text((64, 566), "same 14 typed decisions · one parallel call vs streamed text",
-               font=bold(29), fill=WHITE)
+        d.text((60, 348), f"{spd:.1f}× faster", font=black(88), fill=LIME)
+        d.text((60, 454), f"{chp:.0f}× cheaper", font=black(88), fill=LIME)
+        d.text((64, 572), f"${D['jev']['cost_usd']:.5f} vs ${D['llm']['cost_usd']:.4f} · same 14 decisions, one ticket",
+               font=bold(26), fill=WHITE)
         d.text((64, 612), "both forwarded byte-identically · integrity unchanged ✓",
-               font=mono(21), fill=DIM)
-        d.text((64, 648), "full 36-decision benchmark: up to 314× cheaper · decastate.com",
-               font=mono(21), fill=DIMMER)
+               font=mono(20), fill=DIM)
+        d.text((64, 646), "full 36-decision benchmark in the repo · decastate.com",
+               font=mono(20), fill=DIMMER)
     d.line([(48, 990), (1032, 990)], fill=(28, 34, 48), width=2)
     d.text((48, 1012), "◈ decastate.com", font=mono(22), fill=LIME)
     d.text((262, 1012), "·  the honest receipt layer for every model you call", font=mono(22), fill=DIMMER)
     frames.append(f)
 frames += [frames[-1]] * 14
-frames[0].save(os.path.join(HERE, "decastate_terminal_1x1.gif"),
+frames[0].save(os.path.join(HERE, OUT),
                save_all=True, append_images=frames[1:], duration=95, loop=0)
 print("terminal gif ok ·", len(frames), "frames")
