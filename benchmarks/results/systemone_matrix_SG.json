@@ -1,53 +1,65 @@
 {
   "region": "SG",
   "workload": "12 tickets x 3 decisions",
-  "ran_at": "2026-09-20T02:28:22",
+  "ran_at": "2026-09-20T02:41:04",
   "models": {
     "jev": {
       "calls": 12,
-      "latency_ms_median": 706.0,
-      "latency_ms_p95": 780.1,
+      "latency_ms_median": 717.9,
+      "latency_ms_p95": 782.2,
       "input_tokens": 5951,
       "output_tokens": 1032,
       "cost_usd": 0.00025,
       "type_errors": 0,
       "pricing": "announced"
     },
-    "claude-haiku-4-5": {
-      "calls": 12,
-      "latency_ms_median": 772.2,
-      "latency_ms_p95": 837.9,
-      "input_tokens": 1671,
-      "output_tokens": 438,
-      "cost_usd": 0.003861,
-      "type_errors": 0,
-      "pricing": "published",
-      "vs_jev_cheaper_x": 15.4,
-      "vs_jev_slower_x": 1.1
-    },
-    "claude-sonnet-5": {
-      "calls": 12,
-      "latency_ms_median": 1355.6,
-      "latency_ms_p95": 1968.2,
-      "input_tokens": 2263,
-      "output_tokens": 566,
-      "cost_usd": 0.015279,
-      "type_errors": 0,
-      "pricing": "published",
-      "vs_jev_cheaper_x": 61.1,
-      "vs_jev_slower_x": 1.9
-    },
     "claude-fable-5": {
       "calls": 12,
-      "latency_ms_median": 3730.4,
-      "latency_ms_p95": 4081.1,
+      "latency_ms_median": 3630.1,
+      "latency_ms_p95": 4432.4,
       "input_tokens": 2263,
-      "output_tokens": 1120,
-      "cost_usd": 0.07863,
+      "output_tokens": 1091,
+      "cost_usd": 0.07718,
       "type_errors": 0,
       "pricing": "published",
-      "vs_jev_cheaper_x": 314.5,
-      "vs_jev_slower_x": 5.3
+      "vs_jev_cheaper_x": 308.7,
+      "vs_jev_slower_x": 5.1
+    },
+    "claude-opus-5": {
+      "calls": 12,
+      "latency_ms_median": 1684.5,
+      "latency_ms_p95": 1903.7,
+      "input_tokens": 2263,
+      "output_tokens": 573,
+      "cost_usd": 0.02564,
+      "type_errors": 1,
+      "pricing": "published",
+      "vs_jev_cheaper_x": 102.6,
+      "vs_jev_slower_x": 2.3
+    },
+    "gpt-5.6-sol": {
+      "calls": 12,
+      "latency_ms_median": 1733.6,
+      "latency_ms_p95": 2669.5,
+      "input_tokens": 1553,
+      "output_tokens": 538,
+      "cost_usd": 0.016972,
+      "type_errors": 0,
+      "pricing": "published",
+      "vs_jev_cheaper_x": 67.9,
+      "vs_jev_slower_x": 2.4
+    },
+    "gpt-6-astra": {
+      "calls": 12,
+      "latency_ms_median": 2206.4,
+      "latency_ms_p95": 2848.1,
+      "input_tokens": 1553,
+      "output_tokens": 506,
+      "cost_usd": 0.03577,
+      "type_errors": 0,
+      "pricing": "published",
+      "vs_jev_cheaper_x": 143.1,
+      "vs_jev_slower_x": 3.1
     }
   },
   "errors": {},
@@ -56,13 +68,13 @@
       "route": {
         "type": "choice",
         "choice": "technical",
-        "confidence": 0.75,
+        "confidence": 0.76,
         "probabilities": {
-          "sales": 0.0,
-          "security": 0.0,
+          "technical": 0.81,
           "general": 0.0,
-          "technical": 0.8,
-          "billing": 0.2
+          "security": 0.0,
+          "sales": 0.0,
+          "billing": 0.19
         }
       },
       "urgency": {
@@ -84,7 +96,7 @@
       },
       "refund_eligible": {
         "type": "noul",
-        "noul": 0.77
+        "noul": 0.78
       }
     },
     {
@@ -93,11 +105,11 @@
         "choice": "general",
         "confidence": 1.0,
         "probabilities": {
-          "technical": 0.0,
-          "general": 1.0,
-          "security": 0.0,
           "sales": 0.0,
-          "billing": 0.0
+          "general": 1.0,
+          "billing": 0.0,
+          "security": 0.0,
+          "technical": 0.0
         }
       },
       "urgency": {
@@ -128,17 +140,17 @@
         "choice": "technical",
         "confidence": 0.96,
         "probabilities": {
-          "technical": 0.97,
+          "general": 0.0,
+          "billing": 0.0,
           "security": 0.03,
           "sales": 0.0,
-          "general": 0.0,
-          "billing": 0.0
+          "technical": 0.97
         }
       },
       "urgency": {
         "type": "score",
-        "score": 2.96,
-        "confidence": 0.96,
+        "score": 2.94,
+        "confidence": 0.94,
         "legend": {
           "0": "no time pressure; answer within days is fine",
           "1": "normal queue; answer within one business day",
@@ -148,13 +160,13 @@
         "probabilities": {
           "0": 0.0,
           "1": 0.0,
-          "2": 0.04,
-          "3": 0.96
+          "2": 0.06,
+          "3": 0.94
         }
       },
       "refund_eligible": {
         "type": "noul",
-        "noul": 0.57
+        "noul": 0.58
       }
     },
     {
@@ -163,17 +175,17 @@
         "choice": "billing",
         "confidence": 1.0,
         "probabilities": {
+          "billing": 1.0,
           "sales": 0.0,
           "security": 0.0,
-          "technical": 0.0,
           "general": 0.0,
-          "billing": 1.0
+          "technical": 0.0
         }
       },
       "urgency": {
         "type": "score",
-        "score": 1.88,
-        "confidence": 0.88,
+        "score": 1.89,
+        "confidence": 0.89,
         "legend": {
           "0": "no time pressure; answer within days is fine",
           "1": "normal queue; answer within one business day",
@@ -182,8 +194,8 @@
         },
         "probabilities": {
           "0": 0.01,
-          "1": 0.11,
-          "2": 0.88,
+          "1": 0.1,
+          "2": 0.89,
           "3": 0.0
         }
       },
@@ -198,17 +210,17 @@
         "choice": "technical",
         "confidence": 1.0,
         "probabilities": {
-          "security": 0.0,
-          "technical": 1.0,
-          "sales": 0.0,
           "general": 0.0,
-          "billing": 0.0
+          "billing": 0.0,
+          "security": 0.0,
+          "sales": 0.0,
+          "technical": 1.0
         }
       },
       "urgency": {
         "type": "score",
-        "score": 1.77,
-        "confidence": 0.76,
+        "score": 1.81,
+        "confidence": 0.8,
         "legend": {
           "0": "no time pressure; answer within days is fine",
           "1": "normal queue; answer within one business day",
@@ -217,9 +229,9 @@
         },
         "probabilities": {
           "0": 0.02,
-          "1": 0.19,
-          "2": 0.78,
-          "3": 0.01
+          "1": 0.16,
+          "2": 0.82,
+          "3": 0.0
         }
       },
       "refund_eligible": {
@@ -231,7 +243,7 @@
       "route": {
         "type": "choice",
         "choice": "sales",
-        "confidence": 0.99,
+        "confidence": 1.0,
         "probabilities": {
           "billing": 0.0,
           "general": 0.0,
@@ -242,8 +254,8 @@
       },
       "urgency": {
         "type": "score",
-        "score": 1.42,
-        "confidence": 0.54,
+        "score": 1.44,
+        "confidence": 0.52,
         "legend": {
           "0": "no time pressure; answer within days is fine",
           "1": "normal queue; answer within one business day",
@@ -252,8 +264,8 @@
         },
         "probabilities": {
           "0": 0.02,
-          "1": 0.55,
-          "2": 0.43,
+          "1": 0.52,
+          "2": 0.46,
           "3": 0.0
         }
       },
@@ -266,19 +278,19 @@
       "route": {
         "type": "choice",
         "choice": "technical",
-        "confidence": 0.83,
+        "confidence": 0.89,
         "probabilities": {
-          "security": 0.0,
-          "technical": 0.86,
-          "sales": 0.01,
           "general": 0.02,
-          "billing": 0.11
+          "billing": 0.07,
+          "sales": 0.01,
+          "technical": 0.9,
+          "security": 0.0
         }
       },
       "urgency": {
         "type": "score",
-        "score": 2.05,
-        "confidence": 0.95,
+        "score": 2.06,
+        "confidence": 0.94,
         "legend": {
           "0": "no time pressure; answer within days is fine",
           "1": "normal queue; answer within one business day",
@@ -288,8 +300,8 @@
         "probabilities": {
           "0": 0.0,
           "1": 0.0,
-          "2": 0.95,
-          "3": 0.05
+          "2": 0.94,
+          "3": 0.06
         }
       },
       "refund_eligible": {
@@ -301,19 +313,19 @@
       "route": {
         "type": "choice",
         "choice": "security",
-        "confidence": 0.67,
+        "confidence": 0.64,
         "probabilities": {
-          "billing": 0.0,
+          "security": 0.72,
           "sales": 0.0,
-          "technical": 0.25,
-          "security": 0.74,
-          "general": 0.01
+          "general": 0.01,
+          "billing": 0.0,
+          "technical": 0.27
         }
       },
       "urgency": {
         "type": "score",
-        "score": 1.92,
-        "confidence": 0.91,
+        "score": 1.94,
+        "confidence": 0.93,
         "legend": {
           "0": "no time pressure; answer within days is fine",
           "1": "normal queue; answer within one business day",
@@ -322,8 +334,8 @@
         },
         "probabilities": {
           "0": 0.0,
-          "1": 0.08,
-          "2": 0.92,
+          "1": 0.06,
+          "2": 0.9400000000000001,
           "3": 0.0
         }
       },
@@ -336,19 +348,19 @@
       "route": {
         "type": "choice",
         "choice": "technical",
-        "confidence": 0.88,
+        "confidence": 0.89,
         "probabilities": {
           "security": 0.0,
-          "general": 0.1,
-          "technical": 0.9,
+          "general": 0.09,
           "billing": 0.0,
+          "technical": 0.91,
           "sales": 0.0
         }
       },
       "urgency": {
         "type": "score",
-        "score": 0.98,
-        "confidence": 0.87,
+        "score": 0.99,
+        "confidence": 0.86,
         "legend": {
           "0": "no time pressure; answer within days is fine",
           "1": "normal queue; answer within one business day",
@@ -364,7 +376,42 @@
       },
       "refund_eligible": {
         "type": "noul",
-        "noul": 0.15
+        "noul": 0.16
+      }
+    },
+    {
+      "route": {
+        "type": "choice",
+        "choice": "billing",
+        "confidence": 1.0,
+        "probabilities": {
+          "general": 0.0,
+          "technical": 0.0,
+          "security": 0.0,
+          "sales": 0.0,
+          "billing": 1.0
+        }
+      },
+      "urgency": {
+        "type": "score",
+        "score": 1.78,
+        "confidence": 0.78,
+        "legend": {
+          "0": "no time pressure; answer within days is fine",
+          "1": "normal queue; answer within one business day",
+          "2": "elevated; customer is blocked or money is involved",
+          "3": "urgent; production down, deadline hours away, or security exposure"
+        },
+        "probabilities": {
+          "0": 0.04,
+          "1": 0.15,
+          "2": 0.8099999999999999,
+          "3": 0.0
+        }
+      },
+      "refund_eligible": {
+        "type": "noul",
+        "noul": 0.37
       }
     },
     {
@@ -374,51 +421,16 @@
         "confidence": 1.0,
         "probabilities": {
           "security": 0.0,
-          "sales": 0.0,
-          "billing": 1.0,
-          "general": 0.0,
-          "technical": 0.0
-        }
-      },
-      "urgency": {
-        "type": "score",
-        "score": 1.75,
-        "confidence": 0.75,
-        "legend": {
-          "0": "no time pressure; answer within days is fine",
-          "1": "normal queue; answer within one business day",
-          "2": "elevated; customer is blocked or money is involved",
-          "3": "urgent; production down, deadline hours away, or security exposure"
-        },
-        "probabilities": {
-          "0": 0.03,
-          "1": 0.18,
-          "2": 0.79,
-          "3": 0.0
-        }
-      },
-      "refund_eligible": {
-        "type": "noul",
-        "noul": 0.4
-      }
-    },
-    {
-      "route": {
-        "type": "choice",
-        "choice": "billing",
-        "confidence": 1.0,
-        "probabilities": {
           "billing": 1.0,
           "sales": 0.0,
-          "general": 0.0,
           "technical": 0.0,
-          "security": 0.0
+          "general": 0.0
         }
       },
       "urgency": {
         "type": "score",
-        "score": 0.11,
-        "confidence": 0.89,
+        "score": 0.13,
+        "confidence": 0.87,
         "legend": {
           "0": "no time pressure; answer within days is fine",
           "1": "normal queue; answer within one business day",
@@ -426,8 +438,8 @@
           "3": "urgent; production down, deadline hours away, or security exposure"
         },
         "probabilities": {
-          "0": 0.9,
-          "1": 0.09,
+          "0": 0.89,
+          "1": 0.1,
           "2": 0.01,
           "3": 0.0
         }
@@ -443,10 +455,10 @@
         "choice": "security",
         "confidence": 1.0,
         "probabilities": {
-          "security": 1.0,
-          "billing": 0.0,
           "sales": 0.0,
+          "security": 1.0,
           "general": 0.0,
+          "billing": 0.0,
           "technical": 0.0
         }
       },
@@ -469,7 +481,7 @@
       },
       "refund_eligible": {
         "type": "noul",
-        "noul": 0.21
+        "noul": 0.2
       }
     }
   ],

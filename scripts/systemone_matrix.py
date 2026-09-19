@@ -62,7 +62,7 @@ def run_openai(key, model):
     for s in TICKETS:
         try:
             data, ms = _post(OPENAI_URL,
-                {"model": model, "max_tokens": 200,
+                {"model": model, "max_completion_tokens": 1024,
                  "messages": [{"role": "user", "content": LLM_PROMPT + s}]},
                 {"Authorization": f"Bearer {key}"})
         except urllib.error.HTTPError as e:
