@@ -21,3 +21,15 @@ benchmarks/results/*
 SESSIONMESH_*.md
 .DS_Store
 decastate.egg-info/
+
+# Public repo keeps only the README-used media; everything else stays local
+marketing/*
+!marketing/decastate_demo.gif
+!marketing/decastate_launch.mp4
+!marketing/decastate_coding.gif
+!marketing/decastate_social3_1x1.gif
+docs/
+
+# Internal — never public
+Experiment/
+mock_tests/
